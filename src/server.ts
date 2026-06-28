@@ -44,6 +44,10 @@ export default {
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);
     } catch (error) {
+      if (error instanceof Response) return error;
+      if (error != null && typeof error === "object" && ("options" in error || "isRedirect" in error || "statusCode" in error || "status" in error)) {
+        throw error;
+      }
       console.error(error);
       return new Response(renderErrorPage(), {
         status: 500,

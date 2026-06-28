@@ -53,7 +53,7 @@ function renderErrorPage() {
 }
 var serverEntryPromise;
 async function getServerEntry() {
-	if (!serverEntryPromise) serverEntryPromise = import("./server-Diyn5ed-.mjs").then((m) => m.default ?? m);
+	if (!serverEntryPromise) serverEntryPromise = import("./server-DjKgqb-3.mjs").then((m) => m.default ?? m);
 	return serverEntryPromise;
 }
 async function normalizeCatastrophicSsrResponse(response) {
@@ -71,6 +71,8 @@ var server_default = { async fetch(request, env, ctx) {
 	try {
 		return await normalizeCatastrophicSsrResponse(await (await getServerEntry()).fetch(request, env, ctx));
 	} catch (error) {
+		if (error instanceof Response) return error;
+		if (error != null && typeof error === "object" && ("options" in error || "isRedirect" in error || "statusCode" in error || "status" in error)) throw error;
 		console.error(error);
 		return new Response(renderErrorPage(), {
 			status: 500,
