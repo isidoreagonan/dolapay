@@ -26,6 +26,7 @@ import { useAdminTheme } from "@/components/admin/useAdminTheme";
 export const Route = createFileRoute("/_authenticated/admin")({
   ssr: false,
   beforeLoad: async () => {
+    if (typeof window === "undefined") return;
     const { data: sessionData } = await supabase.auth.getSession();
     const user = sessionData?.session?.user;
     if (!user) throw redirect({ to: "/auth/sign-in" });

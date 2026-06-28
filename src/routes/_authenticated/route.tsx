@@ -4,6 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
   beforeLoad: async () => {
+    if (typeof window === "undefined") {
+      return { userId: "", userEmail: "" };
+    }
     const { data } = await supabase.auth.getSession();
     const user = data?.session?.user;
     if (!user) {
