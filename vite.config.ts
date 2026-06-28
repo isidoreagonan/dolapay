@@ -12,6 +12,9 @@ export default defineConfig({
     tanstackStart(),
     nitro({
       preset: "vercel",
+      externals: {
+        inline: ["tslib"],
+      },
     }),
     react(),
   ],
