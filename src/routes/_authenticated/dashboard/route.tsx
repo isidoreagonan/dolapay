@@ -63,12 +63,13 @@ export function useIsAdmin() {
   return useQuery({
     queryKey: ["is-admin"],
     queryFn: async (): Promise<boolean> => {
-      const { data: u } = await supabase.auth.getUser();
-      if (!u.user) return false;
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData?.session?.user;
+      if (!user) return false;
       const { data, error } = await supabase
         .from("user_roles")
         .select("role")
-        .eq("user_id", u.user.id)
+        .eq("user_id", user.id)
         .eq("role", "admin")
         .maybeSingle();
       if (error) return false;

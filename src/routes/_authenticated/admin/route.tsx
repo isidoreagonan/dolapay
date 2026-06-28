@@ -26,12 +26,13 @@ import { useAdminTheme } from "@/components/admin/useAdminTheme";
 export const Route = createFileRoute("/_authenticated/admin")({
   ssr: false,
   beforeLoad: async () => {
-    const { data: u } = await supabase.auth.getUser();
-    if (!u.user) throw redirect({ to: "/auth/sign-in" });
+    const { data: sessionData } = await supabase.auth.getSession();
+    const user = sessionData?.session?.user;
+    if (!user) throw redirect({ to: "/auth/sign-in" });
     const { data, error } = await supabase
       .from("user_roles")
       .select("role")
-      .eq("user_id", u.user.id)
+      .eq("user_id", user.id)
       .eq("role", "admin")
       .maybeSingle();
     if (error || !data) throw redirect({ to: "/dashboard" });
