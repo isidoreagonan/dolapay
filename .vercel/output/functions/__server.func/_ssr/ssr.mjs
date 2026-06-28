@@ -1,16 +1,31 @@
 //#region node_modules/.nitro/vite/services/ssr/index.js
 var lastCapturedError;
-var TTL_MS = 5e3;
-function record(error) {
+var TTL_MS = 1e4;
+function recordError(error) {
+	if (error != null && typeof error === "object") {
+		if ("statusCode" in error || "status" in error || "isRedirect" in error || "options" in error) return;
+	}
 	lastCapturedError = {
 		error,
 		at: Date.now()
 	};
 }
 if (typeof globalThis.addEventListener === "function") {
-	globalThis.addEventListener("error", (event) => record(event.error ?? event));
-	globalThis.addEventListener("unhandledrejection", (event) => record(event.reason));
+	globalThis.addEventListener("error", (event) => recordError(event.error ?? event));
+	globalThis.addEventListener("unhandledrejection", (event) => recordError(event.reason));
 }
+if (typeof process !== "undefined" && typeof process.on === "function") {
+	process.on("uncaughtException", (err) => recordError(err));
+	process.on("unhandledRejection", (reason) => recordError(reason));
+}
+var origConsoleError = console.error;
+console.error = (...args) => {
+	origConsoleError(...args);
+	for (const arg of args) if (arg && (arg instanceof Error || typeof arg === "object" && (arg.stack || arg.message))) {
+		recordError(arg);
+		break;
+	}
+};
 function consumeLastCapturedError() {
 	if (!lastCapturedError) return void 0;
 	if (Date.now() - lastCapturedError.at > TTL_MS) {
