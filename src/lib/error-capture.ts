@@ -6,11 +6,16 @@ const TTL_MS = 10_000;
 
 export function recordError(error: unknown) {
   if (error != null && typeof error === "object") {
-    if ("statusCode" in error || "status" in error || "isRedirect" in error || "options" in error) {
+    if ("isRedirect" in error || "options" in error) {
+      return;
+    }
+    const status = (error as any).status ?? (error as any).statusCode;
+    if (typeof status === "number" && status < 500) {
       return;
     }
   }
-  lastCapturedError = { error, at: Date.now() };
+  const actualError = (error != null && typeof error === "object" && "cause" in error && (error as any).cause) ? (error as any).cause : error;
+  lastCapturedError = { error: actualError, at: Date.now() };
 }
 
 if (typeof globalThis.addEventListener === "function") {

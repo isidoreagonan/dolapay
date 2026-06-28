@@ -46,11 +46,14 @@ export default {
       return await normalizeCatastrophicSsrResponse(response);
     } catch (error) {
       if (error instanceof Response) return error;
-      if (error != null && typeof error === "object" && ("options" in error || "isRedirect" in error || "statusCode" in error || "status" in error)) {
-        throw error;
+      if (error != null && typeof error === "object") {
+        if ("options" in error || "isRedirect" in error) throw error;
+        const st = (error as any).status ?? (error as any).statusCode;
+        if (typeof st === "number" && st < 500) throw error;
       }
       console.error(error);
-      return new Response(renderErrorPage(error), {
+      const actualErr = (error != null && typeof error === "object" && "cause" in error && (error as any).cause) ? (error as any).cause : error;
+      return new Response(renderErrorPage(actualErr), {
         status: 500,
         headers: { "content-type": "text/html; charset=utf-8" },
       });

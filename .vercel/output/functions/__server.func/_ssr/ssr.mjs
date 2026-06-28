@@ -3,10 +3,12 @@ var lastCapturedError;
 var TTL_MS = 1e4;
 function recordError(error) {
 	if (error != null && typeof error === "object") {
-		if ("statusCode" in error || "status" in error || "isRedirect" in error || "options" in error) return;
+		if ("isRedirect" in error || "options" in error) return;
+		const status = error.status ?? error.statusCode;
+		if (typeof status === "number" && status < 500) return;
 	}
 	lastCapturedError = {
-		error,
+		error: error != null && typeof error === "object" && "cause" in error && error.cause ? error.cause : error,
 		at: Date.now()
 	};
 }
@@ -74,7 +76,7 @@ function renderErrorPage(error) {
 }
 var serverEntryPromise;
 async function getServerEntry() {
-	if (!serverEntryPromise) serverEntryPromise = import("./server-DC9Rodaz.mjs").then((m) => m.default ?? m);
+	if (!serverEntryPromise) serverEntryPromise = import("./server-Dfz72UdC.mjs").then((m) => m.default ?? m);
 	return serverEntryPromise;
 }
 async function normalizeCatastrophicSsrResponse(response) {
@@ -94,9 +96,14 @@ var server_default = { async fetch(request, env, ctx) {
 		return await normalizeCatastrophicSsrResponse(await (await getServerEntry()).fetch(request, env, ctx));
 	} catch (error) {
 		if (error instanceof Response) return error;
-		if (error != null && typeof error === "object" && ("options" in error || "isRedirect" in error || "statusCode" in error || "status" in error)) throw error;
+		if (error != null && typeof error === "object") {
+			if ("options" in error || "isRedirect" in error) throw error;
+			const st = error.status ?? error.statusCode;
+			if (typeof st === "number" && st < 500) throw error;
+		}
 		console.error(error);
-		return new Response(renderErrorPage(error), {
+		const actualErr = error != null && typeof error === "object" && "cause" in error && error.cause ? error.cause : error;
+		return new Response(renderErrorPage(actualErr), {
 			status: 500,
 			headers: { "content-type": "text/html; charset=utf-8" }
 		});
