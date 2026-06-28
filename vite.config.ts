@@ -13,9 +13,28 @@ export default defineConfig({
     nitro({
       preset: "vercel",
       externals: {
-        inline: ["tslib"],
+        inline: [
+          "tslib",
+          "@supabase/supabase-js",
+          "@supabase/functions-js",
+          "@supabase/auth-js",
+          "@supabase/postgrest-js",
+          "@supabase/realtime-js",
+          "@supabase/storage-js",
+        ],
       },
     }),
     react(),
   ],
+  ssr: {
+    noExternal: [
+      "tslib",
+      "@supabase/supabase-js",
+      "@supabase/functions-js",
+      "@supabase/auth-js",
+      "@supabase/postgrest-js",
+      "@supabase/realtime-js",
+      "@supabase/storage-js",
+    ],
+  },
 });
