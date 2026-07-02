@@ -28,6 +28,7 @@ export const Route = createFileRoute("/api/public/pay/$slug")({
           "unknown";
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const { pawapay } = await import("@/lib/pawapay.server");
 
         // Rate limit: count attempts in last RATE_WINDOW_SEC for (ip, slug)
         const since = new Date(Date.now() - RATE_WINDOW_SEC * 1000).toISOString();
@@ -108,16 +109,31 @@ export const Route = createFileRoute("/api/public/pay/$slug")({
           return Response.json({ error: "Échec de création" }, { status: 500 });
         }
 
-        // Simulate provider processing async
-        const finalize = async () => {
-          await new Promise((r) => setTimeout(r, 2500));
-          const success = Math.random() > 0.15;
-          await supabaseAdmin
-            .from("transactions")
-            .update({ status: success ? "success" : "failed" })
-            .eq("id", tx!.id);
-        };
-        finalize().catch(() => {});
+        // Déclenchement de la collecte PawaPay (USSD Mobile Money)
+        try {
+          const depositRes = await pawapay.initiateDeposit({
+            depositId: tx!.id,
+            amount: Number(link.amount),
+            currency: link.currency || "XOF",
+            phone: parsed.data.customer_phone,
+            provider: parsed.data.provider,
+            description: `${link.title} · ${parsed.data.customer_name}`,
+          });
+
+          if (depositRes.status === "REJECTED") {
+            await supabaseAdmin
+              .from("transactions")
+              .update({ status: "failed" })
+              .eq("id", tx!.id);
+            return Response.json(
+              { error: "Paiement refusé par l'opérateur Mobile Money" },
+              { status: 400 }
+            );
+          }
+        } catch (err) {
+          console.error("Erreur PawaPay initDeposit:", err);
+          // On laisse pending si c'est une erreur réseau temporaire ou on bascule en failed
+        }
 
         return Response.json({
           transaction_id: tx!.id,

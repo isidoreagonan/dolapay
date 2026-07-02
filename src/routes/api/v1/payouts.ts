@@ -1,0 +1,119 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
+import { authenticateMerchant } from "./auth.server";
+import { pawapay, getCorrespondentCode } from "@/lib/pawapay.server";
+import { supabaseAdmin } from "@/integrations/supabase/client.server";
+
+const PayoutBody = z.object({
+  amount: z.number().int().positive("Le montant doit être supérieur à zéro"),
+  currency: z.string().default("XOF"),
+  recipient_phone: z.string().min(8, "Numéro de téléphone invalide"),
+  provider: z.string().default("Orange"),
+  reference: z.string().optional(),
+});
+
+export const Route = createFileRoute("/api/v1/payouts")({
+  server: {
+    handlers: {
+      POST: async ({ request }) => {
+        const auth = await authenticateMerchant(request);
+        if (auth instanceof Response) return auth;
+
+        let json: unknown;
+        try {
+          json = await request.json();
+        } catch {
+          return Response.json({ error: { code: "invalid_json", message: "Corps JSON invalide." } }, { status: 400 });
+        }
+
+        const parsed = PayoutBody.safeParse(json);
+        if (!parsed.success) {
+          return Response.json(
+            { error: { code: "validation_error", message: parsed.error.issues[0].message } },
+            { status: 400 }
+          );
+        }
+
+        const { amount, currency, recipient_phone, provider, reference } = parsed.data;
+        const correspondent = getCorrespondentCode(provider);
+
+        if (auth.is_test && auth.profile_id === "00000000-0000-0000-0000-000000000000") {
+          return Response.json({
+            id: `po_${crypto.randomUUID().slice(0, 12)}`,
+            status: "processing",
+            amount,
+            currency,
+            recipient_phone,
+            created_at: new Date().toISOString(),
+          }, { status: 201 });
+        }
+
+        // Créer un lot de décaissement ou une transaction de retrait
+        const { data: batch, error: batchErr } = await supabaseAdmin
+          .from("payout_batches")
+          .insert({
+            owner_id: auth.profile_id,
+            profile_id: auth.profile_id,
+            name: reference || `Payout API (${auth.prefix})`,
+            reference: reference || `po_${Date.now()}`,
+            total_amount: amount,
+            currency,
+            total_count: 1,
+            status: "processing",
+            provider: correspondent,
+          })
+          .select("id, created_at")
+          .single();
+
+        if (batchErr || !batch) {
+          return Response.json({ error: { code: "db_error", message: "Impossible d'initier le payout." } }, { status: 500 });
+        }
+
+        const { data: item } = await supabaseAdmin
+          .from("payout_batch_items")
+          .insert({
+            batch_id: batch.id,
+            recipient_phone,
+            amount,
+            currency,
+            provider: correspondent,
+            status: "processing",
+          })
+          .select("id")
+          .single();
+
+        const payoutId = item?.id || batch.id;
+
+        try {
+          const res = await pawapay.initiatePayout({
+            payoutId,
+            amount,
+            currency,
+            phone: recipient_phone,
+            provider,
+            description: reference || "DolaPay Payout",
+          });
+
+          if (res.status === "REJECTED") {
+            await supabaseAdmin.from("payout_batches").update({ status: "failed" }).eq("id", batch.id);
+            return Response.json(
+              { error: { code: "operator_rejected", message: res.rejectionReason?.rejectionMessage || "Retrait refusé." } },
+              { status: 400 }
+            );
+          }
+        } catch (err) {
+          console.error("PawaPay payout error:", err);
+        }
+
+        return Response.json({
+          id: batch.id,
+          status: "processing",
+          amount,
+          currency,
+          recipient_phone,
+          created_at: batch.created_at,
+        }, { status: 201 });
+      },
+    },
+  },
+});
