@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+﻿import { createFileRoute } from "@tanstack/react-router";
 import { LegalLayout } from "@/components/LegalLayout";
 
 export const Route = createFileRoute("/legal/privacy")({
@@ -26,9 +26,9 @@ export const Route = createFileRoute("/legal/privacy")({
       <h2>4. Conservation des données</h2>
       <p>Nous conservons les données personnelles aussi longtemps que nécessaire à la fourniture des Services et au respect de nos obligations légales, notamment en matière de LCB-FT.</p>
       <h2>5. Vos droits</h2>
-      <p>Sous réserve du droit applicable, vous pouvez demander l'accès, la rectification, la suppression ou la portabilité de vos données personnelles en écrivant à privacy@dolapay.com.</p>
+      <p>Sous réserve du droit applicable, vous pouvez demander l'accès, la rectification, la suppression ou la portabilité de vos données personnelles en écrivant à privacy@dola-pay.com.</p>
       <h2>6. Contact</h2>
-      <p>Pour toute question relative à cette politique, contactez notre Délégué à la protection des données à dpo@dolapay.com.</p>
+      <p>Pour toute question relative à cette politique, contactez notre Délégué à la protection des données à dpo@dola-pay.com.</p>
     </LegalLayout>
   ),
 });

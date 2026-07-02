@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+﻿import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Mail, MapPin, MessageSquare, Building2, Shield, Send, Loader2, CheckCircle2 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
@@ -31,19 +31,19 @@ const CHANNELS = [
     icon: MessageSquare,
     label: "Ventes & Démos",
     desc: "Discutez avec un expert paiements pour estimer vos volumes et choisir vos canaux.",
-    email: "sales@dolapay.com",
+    email: "sales@dola-pay.com",
   },
   {
     icon: Building2,
     label: "Support Marchand",
     desc: "Une question sur votre intégration, vos décaissements ou vos transactions.",
-    email: "support@dolapay.com",
+    email: "support@dola-pay.com",
   },
   {
     icon: Shield,
     label: "Conformité & KYC",
     desc: "Documents, vérification d'identité, AML/CFT et réclamations réglementaires.",
-    email: "compliance@dolapay.com",
+    email: "compliance@dola-pay.com",
   },
 ];
 
@@ -70,11 +70,11 @@ function ContactPage() {
     const body = encodeURIComponent(
       `Nom: ${form.name}\nEmail: ${form.email}\nEntreprise: ${form.company}\nSujet: ${form.topic}\n\n${form.message}`,
     );
-    window.location.href = `mailto:hello@dolapay.com?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:hello@dola-pay.com?subject=${subject}&body=${body}`;
     setTimeout(() => {
       setLoading(false);
       setSent(true);
-      toast.success("Votre client mail s'ouvre — finalisez l'envoi à hello@dolapay.com");
+      toast.success("Votre client mail s'ouvre — finalisez l'envoi à hello@dola-pay.com");
     }, 400);
   }
 
@@ -242,8 +242,8 @@ function ContactPage() {
                 <div className="font-semibold">Urgence opérationnelle ?</div>
                 <p className="mt-1 text-muted-foreground">
                   Marchands actifs : écrivez à{" "}
-                  <a href="mailto:oncall@dolapay.com" className="font-semibold text-primary hover:underline">
-                    oncall@dolapay.com
+                  <a href="mailto:oncall@dola-pay.com" className="font-semibold text-primary hover:underline">
+                    oncall@dola-pay.com
                   </a>{" "}
                   avec votre identifiant <code className="rounded bg-card px-1 py-0.5 text-xs">acc_…</code>.
                 </p>

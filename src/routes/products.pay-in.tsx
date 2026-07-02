@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+﻿import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, Check, Wallet, ShieldCheck, Zap } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -17,7 +17,7 @@ export const Route = createFileRoute("/products/pay-in")({
 });
 
 const CODE_MM = `// Initier un paiement Orange Money Burkina Faso 🇧🇫
-await fetch("https://api.dolapay.com/v1/charges", {
+await fetch("https://api.dola-pay.com/v1/charges", {
   method: "POST",
   headers: {
     "Authorization": "Bearer sk_live_***",
@@ -34,7 +34,7 @@ await fetch("https://api.dolapay.com/v1/charges", {
 });`;
 
 const CODE_CARD = `// Encaisser une carte Visa via 3D-Secure
-await fetch("https://api.dolapay.com/v1/charges", {
+await fetch("https://api.dola-pay.com/v1/charges", {
   method: "POST",
   headers: { "Authorization": "Bearer sk_live_***" },
   body: JSON.stringify({

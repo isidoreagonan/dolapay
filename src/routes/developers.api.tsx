@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+﻿import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -70,7 +70,7 @@ const endpoints: Endpoint[] = [
       { name: "metadata", type: "object", required: false, description: "Références internes, identifiant commande ou contexte métier." },
     ],
     snippets: {
-      curl: `curl -X POST https://api.dolapay.co/v1/charges \\
+      curl: `curl -X POST https://api.dola-pay.com/v1/charges \\
   -H "Authorization: Bearer test_sk_dola_xxxxxx" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -124,7 +124,7 @@ charge = dola.charges.create(
       { name: "id", type: "string", required: true, description: "Identifiant unique retourné à la création de la charge." },
     ],
     snippets: {
-      curl: `curl https://api.dolapay.co/v1/charges/ch_01J2K8M2P9 \\
+      curl: `curl https://api.dola-pay.com/v1/charges/ch_01J2K8M2P9 \\
   -H "Authorization: Bearer test_sk_dola_xxxxxx"`,
       node: `const charge = await dola.charges.retrieve('ch_01J2K8M2P9');`,
       python: `charge = dola.charges.retrieve("ch_01J2K8M2P9")`,
@@ -154,7 +154,7 @@ charge = dola.charges.create(
       { name: "reference", type: "string", required: false, description: "Référence métier affichée dans votre dashboard." },
     ],
     snippets: {
-      curl: `curl -X POST https://api.dolapay.co/v1/payouts \\
+      curl: `curl -X POST https://api.dola-pay.com/v1/payouts \\
   -H "Authorization: Bearer test_sk_dola_xxxxxx" \\
   -H "Idempotency-Key: payout_2026_001" \\
   -H "Content-Type: application/json" \\
@@ -413,8 +413,8 @@ function ApiDocsPage() {
               <p className="mt-3 leading-7 text-muted-foreground">{active.summary}</p>
               <div className="mt-5 grid grid-cols-[auto_minmax(0,1fr)] items-center gap-2 rounded-lg border border-border bg-muted/50 p-3 sm:flex sm:flex-wrap">
                 <MethodBadge method={active.method} />
-                <code className="min-w-0 flex-1 break-all font-mono text-sm text-foreground">https://api.dolapay.co/v1{active.path}</code>
-                <CopyButton value={`https://api.dolapay.co/v1${active.path}`} />
+                <code className="min-w-0 flex-1 break-all font-mono text-sm text-foreground">https://api.dola-pay.com/v1{active.path}</code>
+                <CopyButton value={`https://api.dola-pay.com/v1${active.path}`} />
               </div>
             </div>
 
@@ -489,7 +489,7 @@ function ApiDocsPage() {
               <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
                 <Landmark className="h-4 w-4 text-primary" />
                 <p className="mt-3 text-[11px] font-bold uppercase tracking-[0.12em] text-muted-foreground">Base URL</p>
-                <p className="mt-1 break-all font-mono text-xs">api.dolapay.co/v1</p>
+                <p className="mt-1 break-all font-mono text-xs">api.dola-pay.com/v1</p>
               </div>
               <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
                 <Layers3 className="h-4 w-4 text-primary" />

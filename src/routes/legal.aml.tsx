@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+﻿import { createFileRoute } from "@tanstack/react-router";
 import { LegalLayout } from "@/components/LegalLayout";
 
 export const Route = createFileRoute("/legal/aml")({
@@ -26,7 +26,7 @@ export const Route = createFileRoute("/legal/aml")({
       <h2>5. Formation et gouvernance</h2>
       <p>Nos collaborateurs suivent une formation annuelle obligatoire en LCB-FT. Le responsable conformité rend compte directement au conseil d'administration de l'efficacité du dispositif.</p>
       <h2>6. Contact</h2>
-      <p>Demandes des autorités et régulateurs : compliance@dolapay.com.</p>
+      <p>Demandes des autorités et régulateurs : compliance@dola-pay.com.</p>
     </LegalLayout>
   ),
 });

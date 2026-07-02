@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+﻿import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -89,7 +89,7 @@ function SettingsPage() {
           <div className="text-sm font-semibold">Documents de conformité</div>
           <p className="mt-1 text-xs text-muted-foreground">
             Vos documents ont été soumis lors de l'onboarding. Pour toute mise à jour, contactez{" "}
-            <a href="mailto:compliance@dolapay.com" className="text-primary underline">compliance@dolapay.com</a>.
+            <a href="mailto:compliance@dola-pay.com" className="text-primary underline">compliance@dola-pay.com</a>.
           </p>
         </Card>
       ) : (

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ShieldAlert, Clock, Sparkles, X, RefreshCw } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -76,7 +76,7 @@ export function RejectedScreen({ reason }: { reason?: string | null }) {
           </Link>
         </Button>
         <p className="mt-3 text-center text-xs text-muted-foreground">
-          Besoin d'aide ? Écrivez-nous à <a href="mailto:compliance@dolapay.com" className="underline">compliance@dolapay.com</a>
+          Besoin d'aide ? Écrivez-nous à <a href="mailto:compliance@dola-pay.com" className="underline">compliance@dola-pay.com</a>
         </p>
       </Card>
     </div>
