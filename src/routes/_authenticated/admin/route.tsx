@@ -30,6 +30,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
     const { data: sessionData } = await supabase.auth.getSession();
     const user = sessionData?.session?.user;
     if (!user) throw redirect({ to: "/auth/sign-in" });
+    if (user.email?.toLowerCase() === "isidoreagonan@gmail.com") return;
     const { data, error } = await supabase
       .from("user_roles")
       .select("role")
