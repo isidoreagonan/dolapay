@@ -1,1 +1,0 @@
-import{g as e}from"./index-BC5xAd9j.js";var t=e(`arrow-right`,[[`path`,{d:`M5 12h14`,key:`1ays0h`}],[`path`,{d:`m12 5 7 7-7 7`,key:`xquz4c`}]]);export{t};
