@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductsPaymentLinksRouteImport } from './routes/products.payment-links'
@@ -32,6 +33,9 @@ import { Route as AuthenticatedDashboardRouteRouteImport } from './routes/_authe
 import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard/index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
+import { Route as ApiV1PayoutsRouteImport } from './routes/api/v1/payouts'
+import { Route as ApiV1ChargesRouteImport } from './routes/api/v1/charges'
+import { Route as ApiPublicPawapayWebhookRouteImport } from './routes/api/public/pawapay-webhook'
 import { Route as ApiPublicDiditWebhookRouteImport } from './routes/api/public/didit-webhook'
 import { Route as AuthenticatedDashboardVerifyRouteImport } from './routes/_authenticated/dashboard/verify'
 import { Route as AuthenticatedDashboardTransactionsRouteImport } from './routes/_authenticated/dashboard/transactions'
@@ -47,10 +51,16 @@ import { Route as AuthenticatedAdminLiveRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAdminFinanceRouteImport } from './routes/_authenticated/admin/finance'
 import { Route as AuthenticatedAdminComplianceRouteImport } from './routes/_authenticated/admin/compliance'
 import { Route as AuthenticatedAdminAuditRouteImport } from './routes/_authenticated/admin/audit'
+import { Route as ApiV1ChargesIdRouteImport } from './routes/api/v1/charges.$id'
 import { Route as ApiPublicTxStatusIdRouteImport } from './routes/api/public/tx-status.$id'
 import { Route as ApiPublicPaySlugRouteImport } from './routes/api/public/pay.$slug'
 import { Route as AuthenticatedAdminMerchantsIdRouteImport } from './routes/_authenticated/admin/merchants.$id'
 
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
@@ -168,6 +178,21 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
+const ApiV1PayoutsRoute = ApiV1PayoutsRouteImport.update({
+  id: '/api/v1/payouts',
+  path: '/api/v1/payouts',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiV1ChargesRoute = ApiV1ChargesRouteImport.update({
+  id: '/api/v1/charges',
+  path: '/api/v1/charges',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicPawapayWebhookRoute = ApiPublicPawapayWebhookRouteImport.update({
+  id: '/api/public/pawapay-webhook',
+  path: '/api/public/pawapay-webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicDiditWebhookRoute = ApiPublicDiditWebhookRouteImport.update({
   id: '/api/public/didit-webhook',
   path: '/api/public/didit-webhook',
@@ -254,6 +279,11 @@ const AuthenticatedAdminAuditRoute = AuthenticatedAdminAuditRouteImport.update({
   path: '/audit',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
+const ApiV1ChargesIdRoute = ApiV1ChargesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiV1ChargesRoute,
+} as any)
 const ApiPublicTxStatusIdRoute = ApiPublicTxStatusIdRouteImport.update({
   id: '/api/public/tx-status/$id',
   path: '/api/public/tx-status/$id',
@@ -273,6 +303,7 @@ const AuthenticatedAdminMerchantsIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/settings': typeof SettingsRoute
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRouteRouteWithChildren
   '/complete-profile': typeof AuthenticatedCompleteProfileRoute
@@ -307,14 +338,19 @@ export interface FileRoutesByFullPath {
   '/dashboard/transactions': typeof AuthenticatedDashboardTransactionsRoute
   '/dashboard/verify': typeof AuthenticatedDashboardVerifyRoute
   '/api/public/didit-webhook': typeof ApiPublicDiditWebhookRoute
+  '/api/public/pawapay-webhook': typeof ApiPublicPawapayWebhookRoute
+  '/api/v1/charges': typeof ApiV1ChargesRouteWithChildren
+  '/api/v1/payouts': typeof ApiV1PayoutsRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/admin/merchants/$id': typeof AuthenticatedAdminMerchantsIdRoute
   '/api/public/pay/$slug': typeof ApiPublicPaySlugRoute
   '/api/public/tx-status/$id': typeof ApiPublicTxStatusIdRoute
+  '/api/v1/charges/$id': typeof ApiV1ChargesIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/settings': typeof SettingsRoute
   '/complete-profile': typeof AuthenticatedCompleteProfileRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/auth/sign-in': typeof AuthSignInRoute
@@ -347,16 +383,21 @@ export interface FileRoutesByTo {
   '/dashboard/transactions': typeof AuthenticatedDashboardTransactionsRoute
   '/dashboard/verify': typeof AuthenticatedDashboardVerifyRoute
   '/api/public/didit-webhook': typeof ApiPublicDiditWebhookRoute
+  '/api/public/pawapay-webhook': typeof ApiPublicPawapayWebhookRoute
+  '/api/v1/charges': typeof ApiV1ChargesRouteWithChildren
+  '/api/v1/payouts': typeof ApiV1PayoutsRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/admin/merchants/$id': typeof AuthenticatedAdminMerchantsIdRoute
   '/api/public/pay/$slug': typeof ApiPublicPaySlugRoute
   '/api/public/tx-status/$id': typeof ApiPublicTxStatusIdRoute
+  '/api/v1/charges/$id': typeof ApiV1ChargesIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/settings': typeof SettingsRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteRouteWithChildren
   '/_authenticated/complete-profile': typeof AuthenticatedCompleteProfileRoute
@@ -391,16 +432,21 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/transactions': typeof AuthenticatedDashboardTransactionsRoute
   '/_authenticated/dashboard/verify': typeof AuthenticatedDashboardVerifyRoute
   '/api/public/didit-webhook': typeof ApiPublicDiditWebhookRoute
+  '/api/public/pawapay-webhook': typeof ApiPublicPawapayWebhookRoute
+  '/api/v1/charges': typeof ApiV1ChargesRouteWithChildren
+  '/api/v1/payouts': typeof ApiV1PayoutsRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/_authenticated/admin/merchants/$id': typeof AuthenticatedAdminMerchantsIdRoute
   '/api/public/pay/$slug': typeof ApiPublicPaySlugRoute
   '/api/public/tx-status/$id': typeof ApiPublicTxStatusIdRoute
+  '/api/v1/charges/$id': typeof ApiV1ChargesIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/settings'
     | '/admin'
     | '/dashboard'
     | '/complete-profile'
@@ -435,14 +481,19 @@ export interface FileRouteTypes {
     | '/dashboard/transactions'
     | '/dashboard/verify'
     | '/api/public/didit-webhook'
+    | '/api/public/pawapay-webhook'
+    | '/api/v1/charges'
+    | '/api/v1/payouts'
     | '/admin/'
     | '/dashboard/'
     | '/admin/merchants/$id'
     | '/api/public/pay/$slug'
     | '/api/public/tx-status/$id'
+    | '/api/v1/charges/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/settings'
     | '/complete-profile'
     | '/onboarding'
     | '/auth/sign-in'
@@ -475,15 +526,20 @@ export interface FileRouteTypes {
     | '/dashboard/transactions'
     | '/dashboard/verify'
     | '/api/public/didit-webhook'
+    | '/api/public/pawapay-webhook'
+    | '/api/v1/charges'
+    | '/api/v1/payouts'
     | '/admin'
     | '/dashboard'
     | '/admin/merchants/$id'
     | '/api/public/pay/$slug'
     | '/api/public/tx-status/$id'
+    | '/api/v1/charges/$id'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/settings'
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
     | '/_authenticated/complete-profile'
@@ -518,16 +574,21 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/transactions'
     | '/_authenticated/dashboard/verify'
     | '/api/public/didit-webhook'
+    | '/api/public/pawapay-webhook'
+    | '/api/v1/charges'
+    | '/api/v1/payouts'
     | '/_authenticated/admin/'
     | '/_authenticated/dashboard/'
     | '/_authenticated/admin/merchants/$id'
     | '/api/public/pay/$slug'
     | '/api/public/tx-status/$id'
+    | '/api/v1/charges/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  SettingsRoute: typeof SettingsRoute
   AuthSignInRoute: typeof AuthSignInRoute
   AuthSignUpRoute: typeof AuthSignUpRoute
   CompanyAboutRoute: typeof CompanyAboutRoute
@@ -544,12 +605,22 @@ export interface RootRouteChildren {
   ProductsPayOutRoute: typeof ProductsPayOutRoute
   ProductsPaymentLinksRoute: typeof ProductsPaymentLinksRoute
   ApiPublicDiditWebhookRoute: typeof ApiPublicDiditWebhookRoute
+  ApiPublicPawapayWebhookRoute: typeof ApiPublicPawapayWebhookRoute
+  ApiV1ChargesRoute: typeof ApiV1ChargesRouteWithChildren
+  ApiV1PayoutsRoute: typeof ApiV1PayoutsRoute
   ApiPublicPaySlugRoute: typeof ApiPublicPaySlugRoute
   ApiPublicTxStatusIdRoute: typeof ApiPublicTxStatusIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated': {
       id: '/_authenticated'
       path: ''
@@ -711,6 +782,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/api/v1/payouts': {
+      id: '/api/v1/payouts'
+      path: '/api/v1/payouts'
+      fullPath: '/api/v1/payouts'
+      preLoaderRoute: typeof ApiV1PayoutsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/v1/charges': {
+      id: '/api/v1/charges'
+      path: '/api/v1/charges'
+      fullPath: '/api/v1/charges'
+      preLoaderRoute: typeof ApiV1ChargesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/pawapay-webhook': {
+      id: '/api/public/pawapay-webhook'
+      path: '/api/public/pawapay-webhook'
+      fullPath: '/api/public/pawapay-webhook'
+      preLoaderRoute: typeof ApiPublicPawapayWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/didit-webhook': {
       id: '/api/public/didit-webhook'
       path: '/api/public/didit-webhook'
@@ -815,6 +907,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/audit'
       preLoaderRoute: typeof AuthenticatedAdminAuditRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/api/v1/charges/$id': {
+      id: '/api/v1/charges/$id'
+      path: '/$id'
+      fullPath: '/api/v1/charges/$id'
+      preLoaderRoute: typeof ApiV1ChargesIdRouteImport
+      parentRoute: typeof ApiV1ChargesRoute
     }
     '/api/public/tx-status/$id': {
       id: '/api/public/tx-status/$id'
@@ -931,9 +1030,22 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface ApiV1ChargesRouteChildren {
+  ApiV1ChargesIdRoute: typeof ApiV1ChargesIdRoute
+}
+
+const ApiV1ChargesRouteChildren: ApiV1ChargesRouteChildren = {
+  ApiV1ChargesIdRoute: ApiV1ChargesIdRoute,
+}
+
+const ApiV1ChargesRouteWithChildren = ApiV1ChargesRoute._addFileChildren(
+  ApiV1ChargesRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  SettingsRoute: SettingsRoute,
   AuthSignInRoute: AuthSignInRoute,
   AuthSignUpRoute: AuthSignUpRoute,
   CompanyAboutRoute: CompanyAboutRoute,
@@ -950,6 +1062,9 @@ const rootRouteChildren: RootRouteChildren = {
   ProductsPayOutRoute: ProductsPayOutRoute,
   ProductsPaymentLinksRoute: ProductsPaymentLinksRoute,
   ApiPublicDiditWebhookRoute: ApiPublicDiditWebhookRoute,
+  ApiPublicPawapayWebhookRoute: ApiPublicPawapayWebhookRoute,
+  ApiV1ChargesRoute: ApiV1ChargesRouteWithChildren,
+  ApiV1PayoutsRoute: ApiV1PayoutsRoute,
   ApiPublicPaySlugRoute: ApiPublicPaySlugRoute,
   ApiPublicTxStatusIdRoute: ApiPublicTxStatusIdRoute,
 }

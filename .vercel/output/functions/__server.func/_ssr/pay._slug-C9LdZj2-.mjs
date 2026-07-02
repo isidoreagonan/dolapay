@@ -11,8 +11,8 @@ import { t as Card } from "./card-CzXpCsbD.mjs";
 import { n as toast } from "../_libs/sonner.mjs";
 import { t as Input } from "./input-B8Q2ztVi.mjs";
 import { t as dolapay_logo_png_asset_default } from "./dolapay-logo.png.asset--aVJCmSq.mjs";
-import { t as Label } from "./label-DBD1bRRP.mjs";
 import { t as Route } from "./pay._slug-BSFSFH_d.mjs";
+import { t as Label } from "./label-DBD1bRRP.mjs";
 //#region node_modules/.nitro/vite/services/ssr/assets/pay._slug-C9LdZj2-.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();

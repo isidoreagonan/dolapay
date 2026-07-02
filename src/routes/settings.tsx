@@ -3,7 +3,7 @@ import { ArrowRight, Send, Zap, Globe2, Check } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 
-export const Route = createFileRoute("/products/pay-out")({
+export const Route = createFileRoute("/settings")({
   head: () => ({
     meta: [
       { title: "Décaissements (Pay-out) — DolaPay" },
