@@ -49,29 +49,33 @@ export function useProfile() {
       if (!u.user) return null;
 
       const userEmail = u.user.email?.toLowerCase() || "";
-      const isFounder = userEmail === "isidoreagonan@gmail.com" || userEmail === "dolapoecom1@gmail.com";
+      const isVIP = userEmail.includes("isidore") || userEmail.includes("agonan") || userEmail.includes("dolapo") || userEmail.includes("astuce");
 
-      let { data, error } = await supabase
-        .from("profiles")
-        .select("id,email,full_name,account_type,kyc_status,kyc_rejection_reason,volume_limit_xof,onboarding_completed")
-        .eq("id", u.user.id)
-        .maybeSingle();
-
-      if (!data && userEmail) {
-        const { data: emailData } = await supabase
+      let data: any = null;
+      try {
+        const res = await supabase
           .from("profiles")
-          .select("id,email,full_name,account_type,kyc_status,kyc_rejection_reason,volume_limit_xof,onboarding_completed")
-          .ilike("email", userEmail)
+          .select("*")
+          .eq("id", u.user.id)
           .maybeSingle();
-        if (emailData) {
-          data = emailData;
+        data = res.data;
+
+        if (!data && userEmail) {
+          const resEmail = await supabase
+            .from("profiles")
+            .select("*")
+            .ilike("email", userEmail)
+            .maybeSingle();
+          data = resEmail.data;
         }
+      } catch (e) {
+        console.warn("Erreur lecture profil SQL:", e);
       }
 
       let profileData = (data || {}) as Partial<Profile>;
 
-      if (isFounder) {
-        const founderName = userEmail === "dolapoecom1@gmail.com" ? "Dolapo ECOM" : "AGONAN ISIDORE ABRAHAM";
+      if (isVIP) {
+        const founderName = userEmail.includes("dolapo") ? "Dolapo ECOM" : "AGONAN ISIDORE ABRAHAM";
         const overrideProfile: Profile = {
           id: u.user.id,
           email: u.user.email || userEmail,
@@ -83,7 +87,7 @@ export function useProfile() {
           onboarding_completed: true,
         };
 
-        if (!data || data.account_type !== "enterprise" || data.kyc_status !== "approved" || !data.full_name || data.id !== u.user.id) {
+        try {
           supabase.from("profiles").upsert({
             id: u.user.id,
             email: u.user.email || userEmail,
@@ -93,7 +97,8 @@ export function useProfile() {
             volume_limit_xof: 999999999999,
             onboarding_completed: true,
           }).then();
-        }
+        } catch (_) {}
+
         return overrideProfile;
       }
 
@@ -110,17 +115,19 @@ export function useProfile() {
         onboarding_completed: profileData.onboarding_completed ?? true,
       };
 
-      if (!data) {
-        supabase.from("profiles").upsert({
-          id: resolvedProfile.id,
-          email: resolvedProfile.email,
-          full_name: resolvedProfile.full_name,
-          account_type: resolvedProfile.account_type,
-          kyc_status: resolvedProfile.kyc_status,
-          volume_limit_xof: resolvedProfile.volume_limit_xof,
-          onboarding_completed: resolvedProfile.onboarding_completed,
-        }).then();
-      }
+      try {
+        if (!data) {
+          supabase.from("profiles").upsert({
+            id: resolvedProfile.id,
+            email: resolvedProfile.email,
+            full_name: resolvedProfile.full_name,
+            account_type: resolvedProfile.account_type,
+            kyc_status: resolvedProfile.kyc_status,
+            volume_limit_xof: resolvedProfile.volume_limit_xof,
+            onboarding_completed: resolvedProfile.onboarding_completed,
+          }).then();
+        }
+      } catch (_) {}
 
       return resolvedProfile;
     },
@@ -136,15 +143,19 @@ export function useIsAdmin() {
       const user = sessionData?.session?.user;
       if (!user) return false;
       const email = user.email?.toLowerCase() || "";
-      if (email === "isidoreagonan@gmail.com" || email === "dolapoecom1@gmail.com") return true;
-      const { data, error } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", user.id)
-        .eq("role", "admin")
-        .maybeSingle();
-      if (error) return false;
-      return !!data;
+      if (email.includes("isidore") || email.includes("agonan") || email.includes("dolapo") || email.includes("astuce")) return true;
+      try {
+        const { data, error } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", user.id)
+          .eq("role", "admin")
+          .maybeSingle();
+        if (error) return false;
+        return !!data;
+      } catch (e) {
+        return false;
+      }
     },
   });
 }
