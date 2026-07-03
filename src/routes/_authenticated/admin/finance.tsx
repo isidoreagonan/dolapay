@@ -46,8 +46,8 @@ function FinancePage() {
   });
 
   const totalVolume = txs.reduce((s, t) => s + Number(t.amount), 0);
-  const totalPayIn = txs.filter((t) => t.type === "pay_in").reduce((s, t) => s + Number(t.amount), 0);
-  const totalPayOut = txs.filter((t) => t.type === "pay_out").reduce((s, t) => s + Number(t.amount), 0);
+  const totalPayIn = txs.filter((t) => t.type === "pay-in" || t.type === "payment_link").reduce((s, t) => s + Number(t.amount), 0);
+  const totalPayOut = txs.filter((t) => t.type === "pay-out").reduce((s, t) => s + Number(t.amount), 0);
   const revenue = totalPayIn * FEE_PAY_IN + totalPayOut * FEE_PAY_OUT;
 
   const byMonth = new Map<string, { volume: number; payIn: number; payOut: number; revenue: number; count: number }>();
@@ -56,10 +56,10 @@ function FinancePage() {
     const cur = byMonth.get(k) ?? { volume: 0, payIn: 0, payOut: 0, revenue: 0, count: 0 };
     cur.volume += Number(t.amount);
     cur.count += 1;
-    if (t.type === "pay_in") {
+    if (t.type === "pay-in" || t.type === "payment_link") {
       cur.payIn += Number(t.amount);
       cur.revenue += Number(t.amount) * FEE_PAY_IN;
-    } else if (t.type === "pay_out") {
+    } else if (t.type === "pay-out") {
       cur.payOut += Number(t.amount);
       cur.revenue += Number(t.amount) * FEE_PAY_OUT;
     }
@@ -74,7 +74,8 @@ function FinancePage() {
     const cur = byCurrency.get(k) ?? { volume: 0, revenue: 0, count: 0 };
     cur.volume += Number(t.amount);
     cur.count += 1;
-    cur.revenue += Number(t.amount) * (t.type === "pay_in" ? FEE_PAY_IN : t.type === "pay_out" ? FEE_PAY_OUT : 0);
+    const isPayIn = t.type === "pay-in" || t.type === "payment_link";
+    cur.revenue += Number(t.amount) * (isPayIn ? FEE_PAY_IN : t.type === "pay-out" ? FEE_PAY_OUT : 0);
     byCurrency.set(k, cur);
   }
   const currencies = Array.from(byCurrency.entries()).sort(([, a], [, b]) => b.revenue - a.revenue);

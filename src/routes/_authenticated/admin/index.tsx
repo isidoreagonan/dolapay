@@ -46,16 +46,21 @@ function AdminOverview() {
 
   const now = Date.now();
   const day = 24 * 3600 * 1000;
-  const vol = (since: number, type?: "pay_in" | "pay_out") =>
+  const vol = (since: number, type?: "pay-in" | "pay-out") =>
     txs
-      .filter((t) => new Date(t.created_at).getTime() >= since && (!type || t.type === type) && t.status === "success")
+      .filter((t) => {
+        if (new Date(t.created_at).getTime() < since || t.status !== "success") return false;
+        if (!type) return true;
+        if (type === "pay-in") return t.type === "pay-in" || t.type === "payment_link";
+        return t.type === "pay-out";
+      })
       .reduce((s, t) => s + Number(t.amount), 0);
 
   const today = vol(now - day);
   const last7 = vol(now - 7 * day);
   const last30 = vol(now - 30 * day);
-  const payIn30 = vol(now - 30 * day, "pay_in");
-  const payOut30 = vol(now - 30 * day, "pay_out");
+  const payIn30 = vol(now - 30 * day, "pay-in");
+  const payOut30 = vol(now - 30 * day, "pay-out");
   const totalCount = txs.filter((t) => new Date(t.created_at).getTime() >= now - 30 * day).length;
   const completedCount = txs.filter((t) => new Date(t.created_at).getTime() >= now - 30 * day && t.status === "success").length;
   const successRate = totalCount ? (completedCount / totalCount) * 100 : 0;
