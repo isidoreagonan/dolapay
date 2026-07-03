@@ -126,6 +126,13 @@ function DashboardLayout() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      setTimeout(() => {
+        if (window.location.hash === "#" || window.location.hash.includes("access_token") || window.location.hash.includes("error_description")) {
+          window.history.replaceState(null, "", window.location.pathname + window.location.search);
+        }
+      }, 300);
+    }
     if (profile && !profile.onboarding_completed) {
       navigate({ to: "/onboarding", replace: true });
       return;
