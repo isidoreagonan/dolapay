@@ -49,25 +49,33 @@ export function useProfile() {
       if (!u.user) return null;
 
       const userEmail = u.user.email?.toLowerCase() || "";
-      const isFounder = userEmail === "isidoreagonan@gmail.com";
+      const isFounder = userEmail === "isidoreagonan@gmail.com" || userEmail === "dolapoecom1@gmail.com";
 
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from("profiles")
         .select("id,email,full_name,account_type,kyc_status,kyc_rejection_reason,volume_limit_xof,onboarding_completed")
         .eq("id", u.user.id)
         .maybeSingle();
 
-      if (error && error.code !== "PGRST116" && !isFounder) {
-        throw error;
+      if (!data && userEmail) {
+        const { data: emailData } = await supabase
+          .from("profiles")
+          .select("id,email,full_name,account_type,kyc_status,kyc_rejection_reason,volume_limit_xof,onboarding_completed")
+          .ilike("email", userEmail)
+          .maybeSingle();
+        if (emailData) {
+          data = emailData;
+        }
       }
 
       let profileData = (data || {}) as Partial<Profile>;
 
       if (isFounder) {
+        const founderName = userEmail === "dolapoecom1@gmail.com" ? "Dolapo ECOM" : "AGONAN ISIDORE ABRAHAM";
         const overrideProfile: Profile = {
           id: u.user.id,
           email: u.user.email || userEmail,
-          full_name: profileData.full_name || u.user.user_metadata?.full_name || u.user.user_metadata?.name || "AGONAN ISIDORE ABRAHAM",
+          full_name: profileData.full_name || u.user.user_metadata?.full_name || u.user.user_metadata?.name || founderName,
           account_type: "enterprise",
           kyc_status: "approved",
           kyc_rejection_reason: null,
@@ -75,7 +83,7 @@ export function useProfile() {
           onboarding_completed: true,
         };
 
-        if (!data || data.account_type !== "enterprise" || data.kyc_status !== "approved" || !data.full_name) {
+        if (!data || data.account_type !== "enterprise" || data.kyc_status !== "approved" || !data.full_name || data.id !== u.user.id) {
           supabase.from("profiles").upsert({
             id: u.user.id,
             email: u.user.email || userEmail,
@@ -89,14 +97,32 @@ export function useProfile() {
         return overrideProfile;
       }
 
-      if (!profileData.id) return null;
+      const fallbackName = profileData.full_name || u.user.user_metadata?.full_name || u.user.user_metadata?.name || userEmail.split("@")[0] || "Utilisateur";
 
-      const fallbackName = profileData.full_name || u.user.user_metadata?.full_name || u.user.user_metadata?.name || u.user.email?.split("@")[0] || "Utilisateur";
-
-      return {
-        ...profileData,
+      const resolvedProfile: Profile = {
+        id: u.user.id,
+        email: u.user.email || userEmail,
         full_name: fallbackName,
-      } as Profile;
+        account_type: profileData.account_type || "standard",
+        kyc_status: profileData.kyc_status || "approved",
+        kyc_rejection_reason: profileData.kyc_rejection_reason || null,
+        volume_limit_xof: profileData.volume_limit_xof || 2000000,
+        onboarding_completed: profileData.onboarding_completed ?? true,
+      };
+
+      if (!data) {
+        supabase.from("profiles").upsert({
+          id: resolvedProfile.id,
+          email: resolvedProfile.email,
+          full_name: resolvedProfile.full_name,
+          account_type: resolvedProfile.account_type,
+          kyc_status: resolvedProfile.kyc_status,
+          volume_limit_xof: resolvedProfile.volume_limit_xof,
+          onboarding_completed: resolvedProfile.onboarding_completed,
+        }).then();
+      }
+
+      return resolvedProfile;
     },
   });
 }
@@ -109,7 +135,8 @@ export function useIsAdmin() {
       const { data: sessionData } = await supabase.auth.getSession();
       const user = sessionData?.session?.user;
       if (!user) return false;
-      if (user.email?.toLowerCase() === "isidoreagonan@gmail.com") return true;
+      const email = user.email?.toLowerCase() || "";
+      if (email === "isidoreagonan@gmail.com" || email === "dolapoecom1@gmail.com") return true;
       const { data, error } = await supabase
         .from("user_roles")
         .select("role")
