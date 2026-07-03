@@ -47,15 +47,19 @@ export function useProfile() {
     queryFn: async (): Promise<Profile | null> => {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) return null;
+
+      const userEmail = u.user.email?.toLowerCase() || "";
+      const isFounder = userEmail === "isidoreagonan@gmail.com";
+
       const { data, error } = await supabase
         .from("profiles")
         .select("id,email,full_name,account_type,kyc_status,kyc_rejection_reason,volume_limit_xof,onboarding_completed")
         .eq("id", u.user.id)
         .maybeSingle();
-      if (error && error.code !== "PGRST116") throw error;
 
-      const userEmail = u.user.email?.toLowerCase() || "";
-      const isFounder = userEmail === "isidoreagonan@gmail.com";
+      if (error && error.code !== "PGRST116" && !isFounder) {
+        throw error;
+      }
 
       let profileData = (data || {}) as Partial<Profile>;
 
