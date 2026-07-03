@@ -28,7 +28,7 @@ FROM public.profiles;
 
 -- --------------------------------------------------------------------------
 -- 2. EXPORT DES ENTREPRISES (public.businesses)
--- --------------------------------------------------------------------------
+-- ----------------.----------------------------------------------------------
 SELECT 
   'INSERT INTO public.businesses (id, profile_id, company_name, registration_number, tax_id, hq_country, created_at) VALUES (' ||
   quote_literal(id) || ', ' ||
@@ -54,16 +54,17 @@ FROM public.user_roles;
 
 -- --------------------------------------------------------------------------
 -- 4. EXPORT DES LIENS DE PAIEMENT (public.payment_links)
+-- Corrigé : le nom exact de la colonne dans le schéma est "active"
 -- --------------------------------------------------------------------------
 SELECT 
-  'INSERT INTO public.payment_links (id, profile_id, slug, title, amount, currency, is_active, created_at, description) VALUES (' ||
+  'INSERT INTO public.payment_links (id, profile_id, slug, title, amount, currency, active, created_at, description) VALUES (' ||
   quote_literal(id) || ', ' ||
   quote_literal(profile_id) || ', ' ||
   quote_literal(slug) || ', ' ||
   quote_literal(title) || ', ' ||
   COALESCE(amount::text, '0') || ', ' ||
   quote_literal(COALESCE(currency, 'XOF')) || ', ' ||
-  COALESCE(is_active::text, 'true') || ', ' ||
+  COALESCE(active::text, 'true') || ', ' ||
   COALESCE(quote_literal(created_at), 'now()') || ', ' ||
   quote_nullable(description) || 
   ') ON CONFLICT (id) DO NOTHING;' AS sql_export
