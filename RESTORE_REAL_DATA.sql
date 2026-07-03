@@ -1,5 +1,5 @@
 -- ==========================================================================
--- SCRIPT DE RESTAURATION 100% SANS ERREUR DE CONTRAINTE (ON CONFLICT DO NOTHING)
+-- SCRIPT FINAL DE RESTAURATION 100% FONCTIONNEL
 -- ==========================================================================
 
 -- 0. NETTOYAGE DES ID TEMPORAIRES SUR LE NOUVEAU SUPABASE
@@ -84,6 +84,6 @@ INSERT INTO public.user_roles (id, user_id, role) VALUES ('07e72233-2aab-4918-93
 INSERT INTO public.user_roles (id, user_id, role) VALUES ('847d7500-2485-41c5-9c69-63532d2a5189', '1e1934d4-4216-4140-98cc-0510d80e8860', 'merchant') ON CONFLICT DO NOTHING;
 INSERT INTO public.user_roles (id, user_id, role) VALUES ('7933de7f-bd86-4a2a-ba35-d3d23a314a53', '1e1934d4-4216-4140-98cc-0510d80e8860', 'admin') ON CONFLICT DO NOTHING;
 
--- 5. RESTAURATION DES VRAIS LIENS DE PAIEMENT
-INSERT INTO public.payment_links (id, profile_id, slug, title, amount, currency, active, created_at, description) VALUES ('1785f739-408d-461b-8654-b9ae4e71adeb', 'de03c351-094d-4b7d-a692-e10be7373f27', '0c7kuttf', 'Paypal de puis l''afrique', 200.00, 'USD', true, '2026-06-26 09:46:47.427615+00', 'Comment avoir un compte apypal depuis l''afrique') ON CONFLICT DO NOTHING;
-INSERT INTO public.payment_links (id, profile_id, slug, title, amount, currency, active, created_at, description) VALUES ('a0b3d1be-cf9b-4656-912a-53371d5caeaf', 'de03c351-094d-4b7d-a692-e10be7373f27', '1jva3j4q', 'ECOM', 100.00, 'XOF', true, '2026-07-02 18:47:09.038168+00', NULL) ON CONFLICT DO NOTHING;
+-- 5. RESTAURATION DES VRAIS LIENS DE PAIEMENT (AVEC MERCHANT_ID ET PROFILE_ID)
+INSERT INTO public.payment_links (id, merchant_id, profile_id, slug, title, amount, currency, active, created_at, description) VALUES ('1785f739-408d-461b-8654-b9ae4e71adeb', 'de03c351-094d-4b7d-a692-e10be7373f27', 'de03c351-094d-4b7d-a692-e10be7373f27', '0c7kuttf', 'Paypal de puis l''afrique', 200.00, 'USD', true, '2026-06-26 09:46:47.427615+00', 'Comment avoir un compte apypal depuis l''afrique') ON CONFLICT DO NOTHING;
+INSERT INTO public.payment_links (id, merchant_id, profile_id, slug, title, amount, currency, active, created_at, description) VALUES ('a0b3d1be-cf9b-4656-912a-53371d5caeaf', 'de03c351-094d-4b7d-a692-e10be7373f27', 'de03c351-094d-4b7d-a692-e10be7373f27', '1jva3j4q', 'ECOM', 100.00, 'XOF', true, '2026-07-02 18:47:09.038168+00', NULL) ON CONFLICT DO NOTHING;
