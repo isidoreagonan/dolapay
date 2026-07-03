@@ -30,7 +30,8 @@ function SignIn() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
-      toast.error(error.message);
+      const msg = error.message || (typeof error === 'object' && Object.keys(error).length > 0 ? JSON.stringify(error) : "Identifiants incorrects ou mot de passe invalide.");
+      toast.error(msg === "{}" ? "Identifiants incorrects ou compte non initialisé pour le mot de passe." : msg);
       return;
     }
     toast.success("Connexion réussie");
