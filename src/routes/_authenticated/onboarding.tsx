@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 import logoFull from "@/assets/dolapay-logo.png.asset.json";
 import { AddressBlock } from "@/components/onboarding/AddressBlock";
 import { getKybLabels, getKycIdLabel } from "@/lib/kyb-documents";
-import { createDiditSession } from "@/lib/didit.functions";
+import { createDiditSession, deleteDiditSessionFn } from "@/lib/didit.functions";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
   component: OnboardingPage,
@@ -24,7 +24,7 @@ export const Route = createFileRoute("/_authenticated/onboarding")({
 
 type AccountType = "standard" | "enterprise";
 type Ubo = { name: string; share: string; nationality: string };
-type Representative = { id: string; full_name: string; title: string; email: string; verified: boolean };
+type Representative = { id: string; full_name: string; title: string; email: string; verified: boolean; didit_session_id?: string };
 
 
 
@@ -43,30 +43,47 @@ function OnboardingPage() {
     },
   });
 
-  const [step, setStep] = useState(0);
-  const [accountType, setAccountType] = useState<AccountType>("standard");
+  const [draft] = useState(() => {
+    try {
+      const s = localStorage.getItem("dola_onboard_draft");
+      return s ? JSON.parse(s) : null;
+    } catch { return null; }
+  });
+
+  const [step, setStep] = useState(draft?.step ?? 0);
+  const [accountType, setAccountType] = useState<AccountType>(draft?.accountType ?? "standard");
 
   // Standard
-  const [fullName, setFullName] = useState("");
-  const [dob, setDob] = useState("");
-  const [country, setCountry] = useState("");
-  const [city, setCity] = useState("");
-  const [address, setAddress] = useState("");
+  const [fullName, setFullName] = useState(draft?.fullName ?? "");
+  const [dob, setDob] = useState(draft?.dob ?? "");
+  const [country, setCountry] = useState(draft?.country ?? "");
+  const [city, setCity] = useState(draft?.city ?? "");
+  const [address, setAddress] = useState(draft?.address ?? "");
 
   // Enterprise
-  const [companyName, setCompanyName] = useState("");
-  const [hqCountry, setHqCountry] = useState("");
-  const [hqCity, setHqCity] = useState("");
-  const [hqAddress, setHqAddress] = useState("");
-  const [regNum, setRegNum] = useState("");
-  const [taxId, setTaxId] = useState("");
-  const [ubos, setUbos] = useState<Ubo[]>([{ name: "", share: "", nationality: "" }]);
-  const [reps, setReps] = useState<Representative[]>([]);
+  const [companyName, setCompanyName] = useState(draft?.companyName ?? "");
+  const [hqCountry, setHqCountry] = useState(draft?.hqCountry ?? "");
+  const [hqCity, setHqCity] = useState(draft?.hqCity ?? "");
+  const [hqAddress, setHqAddress] = useState(draft?.hqAddress ?? "");
+  const [regNum, setRegNum] = useState(draft?.regNum ?? "");
+  const [taxId, setTaxId] = useState(draft?.taxId ?? "");
+  const [ubos, setUbos] = useState<Ubo[]>(draft?.ubos ?? [{ name: "", share: "", nationality: "" }]);
+  const [reps, setReps] = useState<Representative[]>(draft?.reps ?? []);
   const [verifyingRepId, setVerifyingRepId] = useState<string | null>(null);
   const allRepsVerified = reps.length > 0 && reps.every((r) => r.verified);
 
   // Documents
   const [docs, setDocs] = useState<Record<string, File | null>>({});
+
+  // Bonne mémoire : Sauvegarde automatique en continu dans localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem("dola_onboard_draft", JSON.stringify({
+        step, accountType, fullName, dob, country, city, address,
+        companyName, hqCountry, hqCity, hqAddress, regNum, taxId, ubos, reps
+      }));
+    } catch { /* ignore */ }
+  }, [step, accountType, fullName, dob, country, city, address, companyName, hqCountry, hqCity, hqAddress, regNum, taxId, ubos, reps]);
 
   const kybLabels = getKybLabels(hqCountry);
 
@@ -79,7 +96,7 @@ function OnboardingPage() {
       const requiredDocs = accountType === "standard"
         ? ["id", "selfie", "proof_of_address"]
         : ["rccm", "tax_doc"];
-      const bucket = accountType === "enterprise" ? "enterprise-kyc-docs" : "kyc-documents";
+      const bucket = "kyc-documents"; // Un seul bucket configuré dans Supabase Storage pour éviter l'erreur Bucket not found
       for (const t of requiredDocs) {
         const file = docs[t];
         if (!file) throw new Error(`Document manquant : ${t}`);
@@ -161,6 +178,7 @@ function OnboardingPage() {
 
     },
     onSuccess: () => {
+      try { localStorage.removeItem("dola_onboard_draft"); } catch {}
       toast.success("Dossier soumis ! Vérification en cours.");
       qc.invalidateQueries({ queryKey: ["my-profile"] });
       navigate({ to: "/dashboard" });
@@ -272,7 +290,18 @@ function OnboardingPage() {
                               )}
                             </AnimatePresence>
                           </motion.div>
-                          <Button type="button" size="icon" variant="ghost" onClick={() => setReps(reps.filter((x) => x.id !== r.id))}>
+                          <Button
+                            type="button"
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => {
+                              if (r.didit_session_id) {
+                                deleteDiditSessionFn({ data: { session_id: r.didit_session_id } }).catch(() => {});
+                              }
+                              setReps(reps.filter((x) => x.id !== r.id));
+                              toast.info("Représentant supprimé (session Didit effacée)");
+                            }}
+                          >
                             <Trash2 className="h-3 w-3" />
                           </Button>
                         </div>
@@ -412,8 +441,8 @@ function OnboardingPage() {
       <DiditRepModal
         rep={reps.find((r) => r.id === verifyingRepId) ?? null}
         onClose={() => setVerifyingRepId(null)}
-        onVerified={(id) => {
-          setReps((cur) => cur.map((r) => r.id === id ? { ...r, verified: true } : r));
+        onVerified={(id, sessionId) => {
+          setReps((cur) => cur.map((r) => r.id === id ? { ...r, verified: true, didit_session_id: sessionId } : r));
           setVerifyingRepId(null);
           confetti({ particleCount: 80, spread: 70, origin: { y: 0.4 }, colors: ["#10b981", "#34d399", "#6366f1", "#a78bfa"] });
           toast.success("Représentant vérifié ✓");
@@ -492,7 +521,7 @@ function Row({ k, v }: { k: string; v: string }) {
   return <div className="flex justify-between"><span className="text-muted-foreground">{k}</span><span className="font-medium">{v}</span></div>;
 }
 
-function DiditRepModal({ rep, onClose, onVerified }: { rep: Representative | null; onClose: () => void; onVerified: (id: string) => void }) {
+function DiditRepModal({ rep, onClose, onVerified }: { rep: Representative | null; onClose: () => void; onVerified: (id: string, sessionId?: string) => void }) {
   const open = !!rep;
   const [phase, setPhase] = useState(0);
   const [session, setSession] = useState<{ simulated: boolean; verification_url: string | null; session_id: string } | null>(null);
@@ -523,9 +552,11 @@ function DiditRepModal({ rep, onClose, onVerified }: { rep: Representative | nul
 
   const onVerifiedRef = useRef(onVerified);
   const repIdRef = useRef(rep?.id);
+  const sessionIdRef = useRef(session?.session_id);
   useEffect(() => {
     onVerifiedRef.current = onVerified;
     repIdRef.current = rep?.id;
+    sessionIdRef.current = session?.session_id;
   });
 
   // Exécution de l'animation de simulation uniquement en mode simulation
@@ -535,7 +566,7 @@ function DiditRepModal({ rep, onClose, onVerified }: { rep: Representative | nul
     const t2 = setTimeout(() => setPhase(2), 2800);
     const t3 = setTimeout(() => setPhase(3), 4200);
     const t4 = setTimeout(() => {
-      if (repIdRef.current) onVerifiedRef.current(repIdRef.current);
+      if (repIdRef.current) onVerifiedRef.current(repIdRef.current, sessionIdRef.current);
     }, 5000);
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
   }, [open, session?.session_id, session?.simulated]);
@@ -544,7 +575,7 @@ function DiditRepModal({ rep, onClose, onVerified }: { rep: Representative | nul
   useEffect(() => {
     const handleMessage = (e: MessageEvent) => {
       if (e.data && (e.data.type === "DIDIT_SUCCESS" || e.data === "DIDIT_SUCCESS")) {
-        if (repIdRef.current) onVerifiedRef.current(repIdRef.current);
+        if (repIdRef.current) onVerifiedRef.current(repIdRef.current, sessionIdRef.current);
       }
     };
     window.addEventListener("message", handleMessage);
@@ -623,7 +654,7 @@ function DiditRepModal({ rep, onClose, onVerified }: { rep: Representative | nul
                 variant="outline"
                 className="h-7 text-xs bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 border-emerald-500/30"
                 onClick={() => {
-                  if (repIdRef.current) onVerifiedRef.current(repIdRef.current);
+                  if (repIdRef.current) onVerifiedRef.current(repIdRef.current, sessionIdRef.current);
                 }}
               >
                 <CheckCircle2 className="h-3 w-3 mr-1" /> Terminer la vérification

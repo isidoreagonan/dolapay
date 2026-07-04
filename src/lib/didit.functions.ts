@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { createClient } from "@supabase/supabase-js";
 
 const DIDIT_BASE = "https://verification.didit.me/v1";
 
@@ -139,4 +140,38 @@ export const markRepresentativeSimVerified = createServerFn({ method: "POST" })
     }
     // Just confirm the user context — actual rep persistence happens at submit.
     return { ok: true, profile_id: context.userId };
+  });
+
+/**
+ * Deletes a Didit verification session both on Didit cloud and in local Supabase database.
+ */
+export const deleteDiditSessionFn = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { session_id?: string }) => input)
+  .handler(async ({ data }) => {
+    const apiKey = process.env.DIDIT_API_KEY || "vT8zIJPZpri_4ONDC2Wa8Txej_6YyWs-Shkqb_zDkaA";
+
+    // 1. Delete on Didit servers if a real session_id exists
+    if (data.session_id && !data.session_id.startsWith("sim_")) {
+      try {
+        await fetch(`${DIDIT_BASE}/session/${data.session_id}/`, {
+          method: "DELETE",
+          headers: {
+            "x-api-key": apiKey,
+          },
+        });
+      } catch (e) {
+        console.warn("Didit session delete error:", e);
+      }
+    }
+
+    // 2. Delete from Supabase business_representatives table if present
+    const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "";
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY || "";
+    if (supabaseUrl && supabaseKey && data.session_id) {
+      const supabase = createClient(supabaseUrl, supabaseKey);
+      await supabase.from("business_representatives").delete().eq("didit_session_id", data.session_id);
+    }
+
+    return { success: true };
   });
