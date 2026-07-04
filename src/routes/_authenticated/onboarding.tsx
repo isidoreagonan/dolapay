@@ -540,6 +540,17 @@ function DiditRepModal({ rep, onClose, onVerified }: { rep: Representative | nul
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
   }, [open, session?.session_id, session?.simulated]);
 
+  // Écouteur postMessage pour la fin de vérification réelle dans l'iFrame Didit
+  useEffect(() => {
+    const handleMessage = (e: MessageEvent) => {
+      if (e.data && (e.data.type === "DIDIT_SUCCESS" || e.data === "DIDIT_SUCCESS")) {
+        if (repIdRef.current) onVerifiedRef.current(repIdRef.current);
+      }
+    };
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
+
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) { onClose(); setPhase(0); } }}>
       <DialogContent className="sm:max-w-md">

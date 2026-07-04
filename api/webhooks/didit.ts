@@ -2,7 +2,39 @@ import { createClient } from '@supabase/supabase-js';
 
 export default async function handler(req: any, res: any) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    return res.status(200).send(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <title>Vérification Réussie</title>
+        <style>
+          body { font-family: system-ui, -apple-system, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #065f46; color: white; text-align: center; }
+          .card { background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px); padding: 2.5rem; border-radius: 24px; border: 1px solid rgba(255, 255, 255, 0.25); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2); max-width: 380px; }
+          .icon { font-size: 3.5rem; margin-bottom: 1rem; }
+          h1 { margin: 0 0 0.5rem 0; font-size: 1.4rem; font-weight: 700; }
+          p { margin: 0; font-size: 0.9rem; opacity: 0.9; line-height: 1.4; }
+        </style>
+      </head>
+      <body>
+        <div class="card">
+          <div class="icon">✓</div>
+          <h1>Vérification Didit Terminée !</h1>
+          <p>Vos documents et données biométriques ont été validés avec succès.</p>
+          <p style="margin-top: 1.5rem; font-size: 0.8rem; opacity: 0.75;">Fermeture et validation automatique dans DolaPay...</p>
+        </div>
+        <script>
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ type: 'DIDIT_SUCCESS' }, '*');
+          } else if (window.opener) {
+            window.opener.postMessage({ type: 'DIDIT_SUCCESS' }, '*');
+            setTimeout(() => window.close(), 1500);
+          }
+        </script>
+      </body>
+      </html>
+    `);
   }
 
   try {
