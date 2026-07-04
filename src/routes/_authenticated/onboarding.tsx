@@ -528,9 +528,9 @@ function DiditRepModal({ rep, onClose, onVerified }: { rep: Representative | nul
     repIdRef.current = rep?.id;
   });
 
-  // Exécution en arrière-plan (Background AI check) pour toutes les sessions
+  // Exécution de l'animation de simulation uniquement en mode simulation
   useEffect(() => {
-    if (!open || !session?.session_id) return;
+    if (!open || !session?.session_id || !session.simulated) return;
     const t1 = setTimeout(() => setPhase(1), 1400);
     const t2 = setTimeout(() => setPhase(2), 2800);
     const t3 = setTimeout(() => setPhase(3), 4200);
@@ -538,7 +538,7 @@ function DiditRepModal({ rep, onClose, onVerified }: { rep: Representative | nul
       if (repIdRef.current) onVerifiedRef.current(repIdRef.current);
     }, 5000);
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
-  }, [open, session?.session_id]);
+  }, [open, session?.session_id, session?.simulated]);
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) { onClose(); setPhase(0); } }}>
@@ -562,7 +562,7 @@ function DiditRepModal({ rep, onClose, onVerified }: { rep: Representative | nul
           </div>
         )}
 
-        {session && (
+        {session && session.simulated && (
           <div className="space-y-3 py-2">
             {steps.map((s, i) => {
               const done = i < phase;
@@ -590,6 +590,36 @@ function DiditRepModal({ rep, onClose, onVerified }: { rep: Representative | nul
             })}
             <p className="text-[11px] text-center text-muted-foreground pt-1">
               ✓ Screening exécuté en arrière-plan via Didit API (<span className="font-mono">{session.session_id.slice(0, 16)}…</span>)
+            </p>
+          </div>
+        )}
+
+        {session && !session.simulated && session.verification_url && (
+          <div className="space-y-3 py-2">
+            <div className="overflow-hidden rounded-xl border border-border bg-background shadow-inner">
+              <iframe
+                src={session.verification_url}
+                className="w-full h-[500px] border-0"
+                allow="camera; microphone; geolocation"
+                title="Didit Biometric & Document Verification"
+              />
+            </div>
+            <div className="flex items-center justify-between text-xs text-muted-foreground pt-1 px-1">
+              <span className="flex items-center gap-1"><Sparkles className="h-3.5 w-3.5 text-primary" /> Scanner officiel Didit AI (CNI & Liveness)</span>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="h-7 text-xs bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 border-emerald-500/30"
+                onClick={() => {
+                  if (repIdRef.current) onVerifiedRef.current(repIdRef.current);
+                }}
+              >
+                <CheckCircle2 className="h-3 w-3 mr-1" /> Terminer la vérification
+              </Button>
+            </div>
+            <p className="text-[11px] text-center text-muted-foreground">
+              Session sécurisée : <span className="font-mono">{session.session_id.slice(0, 20)}…</span>
             </p>
           </div>
         )}
