@@ -30,7 +30,7 @@ export const createDiditSession = createServerFn({ method: "POST" })
     }
 
     // Real Didit session creation
-    const callbackUrl = `${process.env.PUBLIC_SITE_URL ?? ""}/api/public/didit-webhook`;
+    const callbackUrl = `${process.env.PUBLIC_SITE_URL ?? process.env.VITE_SITE_URL ?? "https://dola-pay.com"}/api/webhooks/didit`;
     const res = await fetch(`${DIDIT_BASE}/session/`, {
       method: "POST",
       headers: {
@@ -64,6 +64,66 @@ export const createDiditSession = createServerFn({ method: "POST" })
       status: json.status,
     };
   });
+
+/**
+ * Creates a Didit KYB verification session for the entire business / company.
+ */
+export const createDiditBusinessSession = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { company_name: string; country: string; registration_number?: string; email: string }) => {
+    if (!input.company_name || !input.email) throw new Error("company_name and email required");
+    return input;
+  })
+  .handler(async ({ data, context }) => {
+    const apiKey = process.env.DIDIT_API_KEY;
+    const workflowId = process.env.DIDIT_WORKFLOW_ID;
+
+    if (!apiKey || !workflowId) {
+      const fakeId = `sim_bus_${crypto.randomUUID()}`;
+      return {
+        simulated: true,
+        session_id: fakeId,
+        verification_url: null as string | null,
+        status: "pending",
+      };
+    }
+
+    const callbackUrl = `${process.env.PUBLIC_SITE_URL ?? process.env.VITE_SITE_URL ?? "https://dola-pay.com"}/api/webhooks/didit`;
+    const res = await fetch(`${DIDIT_BASE}/session/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+      },
+      body: JSON.stringify({
+        workflow_id: workflowId,
+        callback: callbackUrl,
+        vendor_data: JSON.stringify({
+          profile_id: context.userId,
+          company_name: data.company_name,
+          registration_number: data.registration_number,
+        }),
+        contact_details: {
+          email: data.email,
+          email_lang: "fr",
+        },
+      }),
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(`Didit KYB session creation failed: ${err.slice(0, 200)}`);
+    }
+
+    const json = (await res.json()) as { session_id: string; url: string; status: string };
+    return {
+      simulated: false,
+      session_id: json.session_id,
+      verification_url: json.url,
+      status: json.status,
+    };
+  });
+
 
 /**
  * Marks a representative as verified locally. In simulation mode the client

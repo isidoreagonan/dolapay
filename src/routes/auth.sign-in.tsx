@@ -23,15 +23,39 @@ function SignIn() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [magicLinkMode, setMagicLinkMode] = useState(false);
+  const [magicSent, setMagicSent] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
+
+    if (magicLinkMode) {
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: window.location.origin + "/dashboard",
+        },
+      });
+      setLoading(false);
+      if (error) {
+        toast.error(error.message || "Impossible d'envoyer le lien magique.");
+        return;
+      }
+      setMagicSent(true);
+      toast.success("Lien de connexion envoyé par e-mail !");
+      return;
+    }
+
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
       const msg = error.message || (typeof error === 'object' && Object.keys(error).length > 0 ? JSON.stringify(error) : "Identifiants incorrects ou mot de passe invalide.");
-      toast.error(msg === "{}" ? "Identifiants incorrects ou compte non initialisé pour le mot de passe." : msg);
+      if (msg.toLowerCase().includes("invalid login credentials") || msg === "{}") {
+        toast.error("Identifiants incorrects. Si ce compte a été créé via Google, utilisez 'Continuer avec Google' ou 'Lien magique'.");
+      } else {
+        toast.error(msg);
+      }
       return;
     }
     toast.success("Connexion réussie");
@@ -81,17 +105,41 @@ function SignIn() {
               <div className="h-px flex-1 bg-border" /> ou <div className="h-px flex-1 bg-border" />
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <Field icon={Mail} type="email" placeholder="vous@entreprise.com" label="E-mail" value={email} onChange={setEmail} />
-              <Field icon={Lock} type="password" placeholder="••••••••" label="Mot de passe" value={password} onChange={setPassword} />
-              <button
-                type="submit"
-                disabled={loading}
-                className="group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-glow transition-all hover:scale-[1.01] hover:bg-primary-glow disabled:opacity-60"
-              >
-                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Se connecter <ArrowRight className="h-4 w-4" /></>}
-              </button>
-            </form>
+            {magicSent ? (
+              <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-5 text-center">
+                <p className="text-sm font-semibold text-emerald-400">Lien magique envoyé !</p>
+                <p className="mt-1 text-xs text-muted-foreground">Vérifiez votre boîte de réception (et vos spams) pour vous connecter instantanément.</p>
+                <button type="button" onClick={() => setMagicSent(false)} className="mt-4 text-xs font-medium text-primary hover:underline">
+                  Réessayer avec un autre e-mail / mot de passe
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <Field icon={Mail} type="email" placeholder="vous@entreprise.com" label="E-mail" value={email} onChange={setEmail} />
+                
+                {!magicLinkMode && (
+                  <Field icon={Lock} type="password" placeholder="••••••••" label="Mot de passe" value={password} onChange={setPassword} />
+                )}
+
+                <div className="flex items-center justify-between text-xs">
+                  <button
+                    type="button"
+                    onClick={() => setMagicLinkMode(!magicLinkMode)}
+                    className="font-medium text-primary hover:underline"
+                  >
+                    {magicLinkMode ? "Connexion par mot de passe" : "Mot de passe oublié / Lien magique ?"}
+                  </button>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-glow transition-all hover:scale-[1.01] hover:bg-primary-glow disabled:opacity-60"
+                >
+                  {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <> {magicLinkMode ? "Recevoir le lien magique" : "Se connecter"} <ArrowRight className="h-4 w-4" /></>}
+                </button>
+              </form>
+            )}
 
             <p className="mt-6 text-center text-sm text-muted-foreground">
               Nouveau sur DolaPay ?{" "}

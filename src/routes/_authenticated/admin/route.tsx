@@ -27,11 +27,40 @@ export const Route = createFileRoute("/_authenticated/admin")({
   ssr: false,
   beforeLoad: async () => {
     if (typeof window === "undefined") return;
-    const { data: sessionData } = await supabase.auth.getSession();
-    const user = sessionData?.session?.user;
+    let { data: sessionData } = await supabase.auth.getSession();
+    let user = sessionData?.session?.user;
+
+    if (!user) {
+      const { data: uData } = await supabase.auth.getUser();
+      user = uData?.user;
+    }
+
+    if (!user && (window.location.hash.includes("access_token") || window.location.search.includes("code"))) {
+      for (let i = 0; i < 25; i++) {
+        await new Promise((r) => setTimeout(r, 150));
+        const res = await supabase.auth.getSession();
+        if (res.data?.session?.user) {
+          user = res.data.session.user;
+          break;
+        }
+        const uRes = await supabase.auth.getUser();
+        if (uRes.data?.user) {
+          user = uRes.data.user;
+          break;
+        }
+      }
+    }
+
     if (!user) throw redirect({ to: "/auth/sign-in" });
     const email = user.email?.toLowerCase() || "";
-    if (email.includes("isidore") || email.includes("agonan") || email.includes("dolapo") || email.includes("astuce")) return;
+    
+    // SÉCURITÉ : Vérifier impérativement si l'utilisateur a complété l'onboarding avant d'accéder à l'admin !
+    const { data: profile } = await supabase.from("profiles").select("onboarding_completed").eq("id", user.id).maybeSingle();
+    if (!profile || profile.onboarding_completed !== true) {
+      throw redirect({ to: "/onboarding" });
+    }
+
+    if (email === "support@dolapay.co" || email === "isidoreagonan@gmail.com") return;
     const { data, error } = await supabase
       .from("user_roles")
       .select("role")
@@ -58,7 +87,7 @@ function AdminLayout() {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const { data: email } = useAdminEmail();
+  const { data: email, isLoading: emailLoading } = useAdminEmail();
   const { theme, toggle, isDark } = useAdminTheme();
 
   // Clear merchant_view flag whenever admin enters the admin area.
@@ -77,6 +106,22 @@ function AdminLayout() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
+
+  if (emailLoading || !email) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4 text-center">
+        <div className="relative mb-6 flex h-20 w-20 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 shadow-glow animate-pulse">
+          <img src={logoFull.url} alt="DolaPay" className="h-10 w-auto object-contain" />
+        </div>
+        <h2 className="font-display text-lg font-bold text-foreground">Chargement de l'administration...</h2>
+        <p className="mt-1 text-xs text-muted-foreground">Vérification de vos privilèges administrateurs en cours.</p>
+        <div className="mt-6 flex items-center gap-2 text-xs font-semibold text-primary">
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <span>Sécurisation de la session...</span>
+        </div>
+      </div>
+    );
+  }
 
   async function handleSignOut() {
     await supabase.auth.signOut();

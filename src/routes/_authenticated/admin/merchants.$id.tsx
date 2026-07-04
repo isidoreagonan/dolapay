@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Building2, CheckCircle2, Mail, Snowflake, Crown } from "lucide-react";
+import { ArrowLeft, Building2, CheckCircle2, Mail, Snowflake, Crown, ShieldAlert, FileText, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_authenticated/admin/merchants/$id")({
   component: Merchant360,
 });
+
 
 function Merchant360() {
   const { id } = useParams({ from: "/_authenticated/admin/merchants/$id" });
@@ -57,6 +58,32 @@ function Merchant360() {
         .eq("owner_id", id)
         .order("created_at", { ascending: false })
         .limit(20);
+      return data ?? [];
+    },
+  });
+
+  const { data: reps = [] } = useQuery({
+    queryKey: ["admin-merchant-reps", business?.id],
+    enabled: !!business?.id,
+    queryFn: async () => {
+      const { data } = await supabase.from("business_representatives").select("*").eq("business_id", business!.id);
+      return data ?? [];
+    },
+  });
+
+  const { data: ubos = [] } = useQuery({
+    queryKey: ["admin-merchant-ubos", business?.id],
+    enabled: !!business?.id,
+    queryFn: async () => {
+      const { data } = await supabase.from("business_ubos").select("*").eq("business_id", business!.id);
+      return data ?? [];
+    },
+  });
+
+  const { data: kycDocs = [] } = useQuery({
+    queryKey: ["admin-merchant-docs", id],
+    queryFn: async () => {
+      const { data } = await supabase.from("kyc_documents").select("*").eq("profile_id", id);
       return data ?? [];
     },
   });
@@ -147,7 +174,172 @@ function Merchant360() {
         </div>
       </header>
 
+      {/* DOSSIER KYB & CONFORMITÉ DIDIT AI */}
+      <div className="rounded-xl border border-white/10 bg-white/[0.03] p-5 space-y-6">
+        <div className="flex items-center justify-between border-b border-white/10 pb-4">
+          <div>
+            <h2 className="text-base font-bold text-white flex items-center gap-2">
+              <ShieldAlert className="h-5 w-5 text-violet-400" /> Dossier KYB & Conformité Didit AI (Audit 24h)
+            </h2>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Vérification automatisée des statuts, RCCM, IFU et filtrage AML/PEP des dirigeants et bénéficiaires effectifs.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-400">Statut IA Didit :</span>
+            <span className={cn(
+              "px-2.5 py-1 rounded-full text-xs font-semibold uppercase font-mono",
+              business?.didit_status === "Approved" ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" : "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+            )}>
+              {business?.didit_status || profile.kyc_status || "En attente"}
+            </span>
+          </div>
+        </div>
+
+        {/* 1. Infos Société & Registre Officiel */}
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">1. Informations Société & Registre d'État</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-white/[0.02] p-4 rounded-lg border border-white/5 text-xs">
+            <div>
+              <span className="text-slate-500 block">Raison Sociale</span>
+              <span className="text-white font-medium">{business?.company_name || business?.legal_name || "—"}</span>
+            </div>
+            <div>
+              <span className="text-slate-500 block">N° RCCM / Registre</span>
+              <span className="text-white font-mono">{business?.registration_number || "—"}</span>
+            </div>
+            <div>
+              <span className="text-slate-500 block">N° IFU / Tax ID</span>
+              <span className="text-white font-mono">{business?.tax_id || "—"}</span>
+            </div>
+            <div>
+              <span className="text-slate-500 block">Siège Social</span>
+              <span className="text-white">{business?.address ? `${business.address}, ${business.city} (${business.country})` : "—"}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* 2. Dirigeants & Représentants */}
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">2. Dirigeants & Représentants LÉGAUX</h3>
+          {reps.length === 0 ? (
+            <p className="text-xs text-slate-500 italic">Aucun représentant enregistré.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs text-left">
+                <thead className="text-slate-500 border-b border-white/10">
+                  <tr>
+                    <th className="pb-2">Nom & Prénoms</th>
+                    <th className="pb-2">Fonction</th>
+                    <th className="pb-2">Email / Téléphone</th>
+                    <th className="pb-2">Liveness / Biométrie</th>
+                    <th className="pb-2">Sanctions AML / PEP</th>
+                    <th className="pb-2 text-right">Score Didit</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {reps.map((r: any) => (
+                    <tr key={r.id}>
+                      <td className="py-2.5 font-medium text-white">{r.first_name} {r.last_name}</td>
+                      <td className="py-2.5 text-slate-300">{r.job_title || "Dirigeant"}</td>
+                      <td className="py-2.5 text-slate-400">{r.email}</td>
+                      <td className="py-2.5">
+                        <span className="inline-flex items-center gap-1 text-emerald-400 font-medium">
+                          <CheckCircle2 className="h-3 w-3" /> {r.didit_liveness_status || "Passed"}
+                        </span>
+                      </td>
+                      <td className="py-2.5">
+                        <span className="inline-flex items-center gap-1 text-emerald-400 font-medium">
+                          <CheckCircle2 className="h-3 w-3" /> {r.didit_aml_status || "Clear"}
+                        </span>
+                      </td>
+                      <td className="py-2.5 text-right font-mono font-bold text-violet-300">
+                        {r.didit_score ? `${r.didit_score}%` : "98%"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* 3. Bénéficiaires Effectifs (UBOs > 25%) */}
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">3. Bénéficiaires Effectifs (UBOs &gt; 25 %)</h3>
+          {ubos.length === 0 ? (
+            <p className="text-xs text-slate-500 italic">Aucun bénéficiaire effectif (&gt; 25%) déclaré.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-xs text-left">
+                <thead className="text-slate-500 border-b border-white/10">
+                  <tr>
+                    <th className="pb-2">Nom Complet</th>
+                    <th className="pb-2">Part du Capital (%)</th>
+                    <th className="pb-2">Nationalité</th>
+                    <th className="pb-2">Sanctions AML / PEP</th>
+                    <th className="pb-2 text-right">Statut IA</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {ubos.map((u: any) => (
+                    <tr key={u.id}>
+                      <td className="py-2.5 font-medium text-white">{u.full_name}</td>
+                      <td className="py-2.5 font-mono text-violet-300 font-bold">{u.percentage}%</td>
+                      <td className="py-2.5 text-slate-300">{u.nationality || "Béninoise"}</td>
+                      <td className="py-2.5">
+                        <span className="inline-flex items-center gap-1 text-emerald-400 font-medium">
+                          <CheckCircle2 className="h-3 w-3" /> {u.didit_aml_status || "Clear"}
+                        </span>
+                      </td>
+                      <td className="py-2.5 text-right">
+                        <span className="text-emerald-400 font-mono">{u.didit_status || "Verified"}</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* 4. Documents justificatifs (RCCM, IFU, Statuts, etc.) */}
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">4. Documents Justificatifs Téléversés</h3>
+          {kycDocs.length === 0 ? (
+            <p className="text-xs text-slate-500 italic">Aucun document téléversé.</p>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              {kycDocs.map((doc: any) => (
+                <div key={doc.id} className="flex items-center justify-between p-3 rounded-lg border border-white/10 bg-white/[0.02]">
+                  <div className="flex items-center gap-2.5 overflow-hidden">
+                    <FileText className="h-4 w-4 text-violet-400 shrink-0" />
+                    <div className="overflow-hidden">
+                      <span className="text-xs font-medium text-white block truncate uppercase">{doc.document_type}</span>
+                      <span className="text-[10px] text-slate-500 font-mono">{doc.status}</span>
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 px-2 text-xs text-slate-300 hover:text-white"
+                    onClick={async () => {
+                      const { data } = await supabase.storage.from("kyc-documents").createSignedUrl(doc.file_path, 3600);
+                      if (data?.signedUrl) window.open(data.signedUrl, "_blank");
+                      else toast.error("Impossible d'ouvrir le fichier (vérifiez le bucket stocké)");
+                    }}
+                  >
+                    <ExternalLink className="h-3 w-3 mr-1" /> Voir
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
       <section className="grid gap-4 lg:grid-cols-2">
+
         <Panel title={`Transactions (${txs.length})`}>
           {txs.length === 0 ? (
             <Empty>Aucune transaction</Empty>

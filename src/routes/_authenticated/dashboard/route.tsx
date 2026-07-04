@@ -49,7 +49,7 @@ export function useProfile() {
       if (!u.user) return null;
 
       const userEmail = u.user.email?.toLowerCase() || "";
-      const isVIP = userEmail.includes("isidore") || userEmail.includes("agonan") || userEmail.includes("dolapo") || userEmail.includes("astuce");
+      const isMasterAdmin = userEmail === "support@dolapay.co" || userEmail === "isidoreagonan@gmail.com";
 
       let data: any = null;
       try {
@@ -73,10 +73,43 @@ export function useProfile() {
       }
 
       let profileData = (data || {}) as Partial<Profile>;
+      const isOnboarded = profileData.onboarding_completed === true;
 
-      if (isVIP) {
-        const founderName = userEmail.includes("dolapo") ? "Dolapo ECOM" : "AGONAN ISIDORE ABRAHAM";
-        const overrideProfile: Profile = {
+      // SÉCURITÉ : Si l'utilisateur n'a pas terminé l'onboarding, AUCUN passe-droit ni auto-approbation !
+      if (!isOnboarded) {
+        const fallbackName = profileData.full_name || u.user.user_metadata?.full_name || u.user.user_metadata?.name || userEmail.split("@")[0] || "Utilisateur";
+        const pendingProfile: Profile = {
+          id: u.user.id,
+          email: u.user.email || userEmail,
+          full_name: fallbackName,
+          account_type: "standard",
+          kyc_status: "pending", // Strictement dévérifié ("pending")
+          kyc_rejection_reason: profileData.kyc_rejection_reason || null,
+          volume_limit_xof: 2000000,
+          onboarding_completed: false, // Strictement non onboardé
+        };
+
+        try {
+          if (!data) {
+            supabase.from("profiles").upsert({
+              id: pendingProfile.id,
+              email: pendingProfile.email,
+              full_name: pendingProfile.full_name,
+              account_type: "standard",
+              kyc_status: "pending",
+              volume_limit_xof: 2000000,
+              onboarding_completed: false,
+            }).then();
+          }
+        } catch (_) {}
+
+        return pendingProfile;
+      }
+
+      // Si l'utilisateur a COMPLÉTÉ l'onboarding et que c'est le fondateur (Master Admin)
+      if (isMasterAdmin) {
+        const founderName = userEmail.includes("support") ? "DolaPay Support" : "AGONAN ISIDORE ABRAHAM";
+        return {
           id: u.user.id,
           email: u.user.email || userEmail,
           full_name: profileData.full_name || u.user.user_metadata?.full_name || u.user.user_metadata?.name || founderName,
@@ -86,20 +119,6 @@ export function useProfile() {
           volume_limit_xof: 999999999999,
           onboarding_completed: true,
         };
-
-        try {
-          supabase.from("profiles").upsert({
-            id: u.user.id,
-            email: u.user.email || userEmail,
-            full_name: overrideProfile.full_name,
-            account_type: "enterprise",
-            kyc_status: "approved",
-            volume_limit_xof: 999999999999,
-            onboarding_completed: true,
-          }).then();
-        } catch (_) {}
-
-        return overrideProfile;
       }
 
       const fallbackName = profileData.full_name || u.user.user_metadata?.full_name || u.user.user_metadata?.name || userEmail.split("@")[0] || "Utilisateur";
@@ -109,25 +128,11 @@ export function useProfile() {
         email: u.user.email || userEmail,
         full_name: fallbackName,
         account_type: profileData.account_type || "standard",
-        kyc_status: profileData.kyc_status || "approved",
+        kyc_status: profileData.kyc_status || "pending",
         kyc_rejection_reason: profileData.kyc_rejection_reason || null,
         volume_limit_xof: profileData.volume_limit_xof || 2000000,
-        onboarding_completed: profileData.onboarding_completed ?? true,
+        onboarding_completed: true,
       };
-
-      try {
-        if (!data) {
-          supabase.from("profiles").upsert({
-            id: resolvedProfile.id,
-            email: resolvedProfile.email,
-            full_name: resolvedProfile.full_name,
-            account_type: resolvedProfile.account_type,
-            kyc_status: resolvedProfile.kyc_status,
-            volume_limit_xof: resolvedProfile.volume_limit_xof,
-            onboarding_completed: resolvedProfile.onboarding_completed,
-          }).then();
-        }
-      } catch (_) {}
 
       return resolvedProfile;
     },
@@ -143,7 +148,14 @@ export function useIsAdmin() {
       const user = sessionData?.session?.user;
       if (!user) return false;
       const email = user.email?.toLowerCase() || "";
-      if (email.includes("isidore") || email.includes("agonan") || email.includes("dolapo") || email.includes("astuce")) return true;
+      
+      // SÉCURITÉ : Vérifier impérativement si l'utilisateur a complété l'onboarding dans la base !
+      const { data: profile } = await supabase.from("profiles").select("onboarding_completed").eq("id", user.id).maybeSingle();
+      if (!profile || profile.onboarding_completed !== true) {
+        return false;
+      }
+
+      if (email === "support@dolapay.co" || email === "isidoreagonan@gmail.com") return true;
       try {
         const { data, error } = await supabase
           .from("user_roles")
@@ -161,12 +173,14 @@ export function useIsAdmin() {
 }
 
 function DashboardLayout() {
-  const { data: profile } = useProfile();
-  const { data: isAdmin } = useIsAdmin();
+  const { data: profile, isLoading: profileLoading } = useProfile();
+  const { data: isAdmin, isLoading: adminLoading } = useIsAdmin();
   const [open, setOpen] = useState(false);
+  const [showPayoutsModal, setShowPayoutsModal] = useState(false);
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
+  // IMPORTANT : Tous les hooks React (useEffect, useState) DOIVENT être appelés AVANT tout return conditionnel pour éviter les crashs de rendu !
   useEffect(() => {
     if (typeof window !== "undefined") {
       setTimeout(() => {
@@ -185,6 +199,21 @@ function DashboardLayout() {
     }
   }, [profile, isAdmin, navigate]);
 
+  if (profileLoading || adminLoading || !profile) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4 text-center">
+        <div className="relative mb-6 flex h-20 w-20 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 shadow-glow animate-pulse">
+          <img src={logoFull.url} alt="DolaPay" className="h-10 w-auto object-contain" />
+        </div>
+        <h2 className="font-display text-lg font-bold text-foreground">Chargement sécurisé de votre espace...</h2>
+        <p className="mt-1 text-xs text-muted-foreground">Vérification chiffrée de votre profil, de vos permissions et de votre niveau de compte.</p>
+        <div className="mt-6 flex items-center gap-2 text-xs font-semibold text-primary">
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <span>Synchronisation des données...</span>
+        </div>
+      </div>
+    );
+  }
 
   async function handleSignOut() {
     await supabase.auth.signOut();
@@ -194,7 +223,6 @@ function DashboardLayout() {
 
   const tier = getTier(profile?.account_type);
   const payoutsLocked = !tier.capabilities.payouts;
-  const [showPayoutsModal, setShowPayoutsModal] = useState(false);
 
   const navItems: { to: string; icon: typeof LayoutDashboard; label: string; exact?: boolean; locked?: boolean; lockedTip?: string }[] = [
     { to: "/dashboard", icon: LayoutDashboard, label: "Vue d'ensemble", exact: true },
