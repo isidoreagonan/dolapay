@@ -1,1 +1,0 @@
-import{r as e}from"./ClientOnly-DkZshjmP.js";import{t}from"./useRouter-BCafHaR4.js";import{n}from"./useMatch-Bxfclono.js";function r(r){let i=t({warn:r?.router===void 0}),a=r?.router||i;return e(a.stores.__store,n(r,a))}export{r as t};
