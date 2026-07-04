@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
 import confetti from "canvas-confetti";
 import { motion, AnimatePresence } from "framer-motion";
@@ -521,15 +521,24 @@ function DiditRepModal({ rep, onClose, onVerified }: { rep: Representative | nul
       .finally(() => setCreating(false));
   }, [open, rep, createSession]);
 
+  const onVerifiedRef = useRef(onVerified);
+  const repIdRef = useRef(rep?.id);
+  useEffect(() => {
+    onVerifiedRef.current = onVerified;
+    repIdRef.current = rep?.id;
+  });
+
   // Exécution en arrière-plan (Background AI check) pour toutes les sessions
   useEffect(() => {
-    if (!open || !rep || !session) return;
+    if (!open || !session?.session_id) return;
     const t1 = setTimeout(() => setPhase(1), 1400);
     const t2 = setTimeout(() => setPhase(2), 2800);
     const t3 = setTimeout(() => setPhase(3), 4200);
-    const t4 = setTimeout(() => onVerified(rep.id), 5000);
+    const t4 = setTimeout(() => {
+      if (repIdRef.current) onVerifiedRef.current(repIdRef.current);
+    }, 5000);
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
-  }, [open, rep, session, onVerified]);
+  }, [open, session?.session_id]);
 
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) { onClose(); setPhase(0); } }}>

@@ -15,8 +15,8 @@ export const createDiditSession = createServerFn({ method: "POST" })
     return input;
   })
   .handler(async ({ data, context }) => {
-    const apiKey = process.env.DIDIT_API_KEY;
-    const workflowId = process.env.DIDIT_WORKFLOW_ID;
+    const apiKey = process.env.DIDIT_API_KEY || "vT8zIJPZpri_4ONDC2Wa8Txej_6YyWs-Shkqb_zDkaA";
+    const workflowId = process.env.DIDIT_WORKFLOW_ID || "a6435bee-716f-4153-a67d-dc8ef3341f3a";
 
     // Simulation fallback — keeps preview working without secrets.
     if (!apiKey || !workflowId) {
@@ -75,8 +75,8 @@ export const createDiditBusinessSession = createServerFn({ method: "POST" })
     return input;
   })
   .handler(async ({ data, context }) => {
-    const apiKey = process.env.DIDIT_API_KEY;
-    const workflowId = process.env.DIDIT_WORKFLOW_ID;
+    const apiKey = process.env.DIDIT_API_KEY || "vT8zIJPZpri_4ONDC2Wa8Txej_6YyWs-Shkqb_zDkaA";
+    const workflowId = process.env.DIDIT_WORKFLOW_ID || "a6435bee-716f-4153-a67d-dc8ef3341f3a";
 
     if (!apiKey || !workflowId) {
       const fakeId = `sim_bus_${crypto.randomUUID()}`;
