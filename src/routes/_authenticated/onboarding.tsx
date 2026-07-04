@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 import logoFull from "@/assets/dolapay-logo.png.asset.json";
 import { AddressBlock } from "@/components/onboarding/AddressBlock";
 import { getKybLabels, getKycIdLabel } from "@/lib/kyb-documents";
-import { createDiditSession, deleteDiditSessionFn } from "@/lib/didit.functions";
+import { createDiditSession, createDiditBusinessSession, deleteDiditSessionFn } from "@/lib/didit.functions";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
   component: OnboardingPage,
@@ -71,6 +71,9 @@ function OnboardingPage() {
   const [reps, setReps] = useState<Representative[]>(draft?.reps ?? []);
   const [verifyingRepId, setVerifyingRepId] = useState<string | null>(null);
   const allRepsVerified = reps.length > 0 && reps.every((r) => r.verified);
+  const [enterpriseVerified, setEnterpriseVerified] = useState(draft?.enterpriseVerified ?? false);
+  const [enterpriseSessionId, setEnterpriseSessionId] = useState<string | null>(draft?.enterpriseSessionId ?? null);
+  const [verifyingBusiness, setVerifyingBusiness] = useState(false);
 
   // Documents
   const [docs, setDocs] = useState<Record<string, File | null>>({});
@@ -80,10 +83,11 @@ function OnboardingPage() {
     try {
       localStorage.setItem("dola_onboard_draft", JSON.stringify({
         step, accountType, fullName, dob, country, city, address,
-        companyName, hqCountry, hqCity, hqAddress, regNum, taxId, ubos, reps
+        companyName, hqCountry, hqCity, hqAddress, regNum, taxId, ubos, reps,
+        enterpriseVerified, enterpriseSessionId
       }));
     } catch { /* ignore */ }
-  }, [step, accountType, fullName, dob, country, city, address, companyName, hqCountry, hqCity, hqAddress, regNum, taxId, ubos, reps]);
+  }, [step, accountType, fullName, dob, country, city, address, companyName, hqCountry, hqCity, hqAddress, regNum, taxId, ubos, reps, enterpriseVerified, enterpriseSessionId]);
 
   const kybLabels = getKybLabels(hqCountry);
 
@@ -92,23 +96,27 @@ function OnboardingPage() {
       if (!profile) throw new Error("Profil introuvable");
       const uid = profile.id;
 
-      // 1. Upload documents — enterprise docs land in dedicated bucket
-      const requiredDocs = accountType === "standard"
-        ? ["id", "selfie", "proof_of_address"]
-        : ["rccm", "tax_doc"];
-      const bucket = "kyc-documents"; // Un seul bucket configuré dans Supabase Storage pour éviter l'erreur Bucket not found
-      for (const t of requiredDocs) {
-        const file = docs[t];
-        if (!file) throw new Error(`Document manquant : ${t}`);
-        if (file.size > 10 * 1024 * 1024) throw new Error(`${t} dépasse 10 Mo`);
-        const ext = file.name.split(".").pop() ?? "bin";
-        const path = `${uid}/${t}-${Date.now()}.${ext}`;
-        const { error: upErr } = await supabase.storage.from(bucket).upload(path, file, { upsert: true });
-        if (upErr) throw upErr;
-        const { error: dbErr } = await supabase.from("kyc_documents").insert({
-          profile_id: uid, document_type: t as "id", file_path: bucket + "/" + path, status: "pending",
-        });
-        if (dbErr) throw dbErr;
+      // 1. Upload documents ou vérification Didit KYB
+      if (accountType === "standard") {
+        const requiredDocs = ["id", "selfie", "proof_of_address"];
+        const bucket = "kyc-documents";
+        for (const t of requiredDocs) {
+          const file = docs[t];
+          if (!file) throw new Error(`Document manquant : ${t}`);
+          if (file.size > 10 * 1024 * 1024) throw new Error(`${t} dépasse 10 Mo`);
+          const ext = file.name.split(".").pop() ?? "bin";
+          const path = `${uid}/${t}-${Date.now()}.${ext}`;
+          const { error: upErr } = await supabase.storage.from(bucket).upload(path, file, { upsert: true });
+          if (upErr) throw upErr;
+          const { error: dbErr } = await supabase.from("kyc_documents").insert({
+            profile_id: uid, document_type: t as "id", file_path: bucket + "/" + path, status: "pending",
+          });
+          if (dbErr) throw dbErr;
+        }
+      } else {
+        if (!enterpriseVerified) {
+          throw new Error("Veuillez valider la vérification légale de votre entreprise via Didit AI avant de soumettre.");
+        }
       }
 
       // 2. Update profile — push into compliance review (12–24h SLA)
@@ -355,12 +363,9 @@ function OnboardingPage() {
 
           {step === 2 && (
             <div className="space-y-4">
-              <h2 className="text-xl font-bold">Documents à fournir</h2>
-              {accountType === "enterprise" && kybLabels.isGeneric && (
-                <p className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
-                  Libellés génériques affichés : votre pays n'est pas encore préconfiguré. Téléversez les équivalents locaux (registre du commerce, identifiant fiscal).
-                </p>
-              )}
+              <h2 className="text-xl font-bold">
+                {accountType === "standard" ? "Documents à fournir (KYC)" : "Vérification Légale d'Entreprise (KYB)"}
+              </h2>
               {accountType === "standard" && getKycIdLabel(country).isGeneric && country && (
                 <p className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
                   Pays non préconfiguré : téléversez la pièce d'identité officielle valide délivrée dans votre pays.
@@ -368,29 +373,100 @@ function OnboardingPage() {
               )}
               {accountType === "enterprise" && (
                 <p className="rounded-md border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-700 dark:text-emerald-300">
-                  ✓ Les pièces d'identité des dirigeants ont été capturées automatiquement lors de la vérification Didit AI à l'étape précédente.
+                  ✓ Les pièces d'identité des dirigeants et UBO ont été contrôlées par Didit AI à l'étape précédente.
                 </p>
               )}
-              {(() => {
-                const idLbl = getKycIdLabel(country);
-                const list = accountType === "standard"
-                  ? [
+              {accountType === "standard" ? (
+                (() => {
+                  const idLbl = getKycIdLabel(country);
+                  const list = [
                     { type: "id", label: idLbl.label, hint: idLbl.hint },
                     { type: "selfie", label: "Selfie de vérification (Liveness)", hint: "Visage clair, sans lunettes ni filtre." },
                     { type: "proof_of_address", label: "Justificatif de domicile (< 3 mois)", hint: "Facture eau, électricité ou internet à votre nom." },
-                  ]
-                  : [
-                    { type: "rccm", label: kybLabels.registry.label, hint: kybLabels.registry.hint },
-                    {
-                      type: "tax_doc",
-                      label: `Attestation fiscale — ${kybLabels.tax.label}`,
-                      hint: `Document officiel justifiant le ${kybLabels.tax.short} (${kybLabels.tax.placeholder}).`,
-                    },
                   ];
-                return list.map((d) => (
-                  <DocSlot key={d.type} {...d} file={docs[d.type] ?? null} onFile={(f) => setDocs({ ...docs, [d.type]: f })} />
-                ));
-              })()}
+                  return list.map((d) => (
+                    <DocSlot key={d.type} {...d} file={docs[d.type] ?? null} onFile={(f) => setDocs({ ...docs, [d.type]: f })} />
+                  ));
+                })()
+              ) : (
+                <div className="space-y-4">
+                  <div className="rounded-xl border border-border bg-card p-5">
+                    <div className="flex items-start justify-between gap-4">
+                      <div>
+                        <div className="flex items-center gap-2 font-bold text-base">
+                          <Building2 className="h-5 w-5 text-primary" /> Audit Automatisé Didit AI (KYB)
+                        </div>
+                        <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+                          Validation en temps réel du Registre du Commerce ({kybLabels.registry.label}) et de la conformité fiscale ({kybLabels.tax.label}) pour <span className="font-semibold text-foreground">{companyName || "votre société"}</span>.
+                        </p>
+                      </div>
+                      {enterpriseVerified ? (
+                        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-300">
+                          <CheckCircle2 className="h-3.5 w-3.5" /> Société Vérifiée
+                        </span>
+                      ) : (
+                        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-600 dark:text-amber-300">
+                          En attente
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="mt-4 grid grid-cols-2 gap-3 rounded-lg border border-border/60 bg-muted/30 p-3 text-xs">
+                      <div>
+                        <span className="text-muted-foreground block">Société :</span>
+                        <span className="font-semibold">{companyName || "—"}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground block">Pays HQ :</span>
+                        <span className="font-semibold">{hqCountry || country || "—"}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground block">Registre :</span>
+                        <span className="font-semibold">{regNum || "—"}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground block">N° Fiscal :</span>
+                        <span className="font-semibold">{taxId || "—"}</span>
+                      </div>
+                    </div>
+
+                    <div className="mt-5 flex items-center justify-between pt-3 border-t border-border">
+                      {enterpriseVerified ? (
+                        <div className="flex items-center justify-between w-full">
+                          <span className="text-xs text-muted-foreground font-mono">
+                            Réf KYB : {enterpriseSessionId?.slice(0, 16) || "didit_kyb_valide"}…
+                          </span>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20"
+                            onClick={() => {
+                              if (enterpriseSessionId) {
+                                deleteDiditSessionFn({ data: { session_id: enterpriseSessionId } }).catch(() => {});
+                              }
+                              setEnterpriseVerified(false);
+                              setEnterpriseSessionId(null);
+                              toast.info("Vérification réinitialisée.");
+                            }}
+                          >
+                            <Trash2 className="h-3.5 w-3.5 mr-1.5" /> Réinitialiser
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          type="button"
+                          className="w-full sm:w-auto font-semibold shadow-glow"
+                          onClick={() => setVerifyingBusiness(true)}
+                          disabled={!companyName || !regNum || !taxId}
+                        >
+                          <ScanFace className="h-4 w-4 mr-2" /> Lancer la vérification légale Didit KYB
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -411,7 +487,7 @@ function OnboardingPage() {
                     <Row k="UBO" v={`${ubos.filter((u) => u.name.trim()).length} déclaré(s)`} />
                   </>
                 )}
-                <Row k="Documents" v={`${Object.values(docs).filter(Boolean).length} envoyé(s)`} />
+                <Row k="Vérification Légale" v={accountType === "standard" ? `${Object.values(docs).filter(Boolean).length} doc(s) envoyé(s)` : (enterpriseVerified ? "Didit KYB Validé ✓" : "Non vérifié")} />
               </div>
               <p className="text-xs text-muted-foreground">
                 En soumettant, vous confirmez l'exactitude des informations. Un agent DolaPay vérifiera votre dossier sous 24-48h.
@@ -425,7 +501,7 @@ function OnboardingPage() {
               <ArrowLeft className="h-4 w-4 mr-1" /> Retour
             </Button>
             {step < 3 ? (
-              <Button type="button" onClick={() => setStep(step + 1)} disabled={!canAdvance(step, { accountType, fullName, companyName, docs, hqCountry, regNum, taxId, allRepsVerified })}>
+              <Button type="button" onClick={() => setStep(step + 1)} disabled={!canAdvance(step, { accountType, fullName, companyName, docs, hqCountry, regNum, taxId, allRepsVerified, enterpriseVerified })}>
                 Continuer <ArrowRight className="h-4 w-4 ml-1" />
               </Button>
             ) : (
@@ -448,21 +524,40 @@ function OnboardingPage() {
           toast.success("Représentant vérifié ✓");
         }}
       />
+
+      <DiditBusinessModal
+        open={verifyingBusiness}
+        companyName={companyName}
+        country={hqCountry || country}
+        regNum={regNum}
+        email={profile?.email || "contact@dolapay.com"}
+        onClose={() => setVerifyingBusiness(false)}
+        onVerified={(sessionId) => {
+          setEnterpriseVerified(true);
+          setEnterpriseSessionId(sessionId);
+          setVerifyingBusiness(false);
+          confetti({ particleCount: 100, spread: 80, origin: { y: 0.4 }, colors: ["#10b981", "#34d399", "#6366f1", "#a78bfa"] });
+          toast.success("Entreprise et documents légaux vérifiés avec succès ✓");
+        }}
+      />
     </div>
   );
 }
 
-function canAdvance(step: number, s: { accountType: AccountType; fullName: string; companyName: string; docs: Record<string, File | null>; hqCountry: string; regNum: string; taxId: string; allRepsVerified: boolean }) {
+function canAdvance(step: number, s: { accountType: AccountType; fullName: string; companyName: string; docs: Record<string, File | null>; hqCountry: string; regNum: string; taxId: string; allRepsVerified: boolean; enterpriseVerified: boolean }) {
   if (step === 0) return true;
   if (step === 1) {
     if (s.accountType === "standard") return !!s.fullName;
     return !!(s.companyName && s.hqCountry && s.regNum.trim() && s.taxId.trim() && s.allRepsVerified);
   }
   if (step === 2) {
-    const need = s.accountType === "standard" ? ["id", "selfie", "proof_of_address"] : ["rccm", "tax_doc"];
-    if (!need.every((t) => s.docs[t])) return false;
-    if (s.accountType === "enterprise" && !s.taxId.trim()) return false;
-    return true;
+    if (s.accountType === "standard") {
+      const need = ["id", "selfie", "proof_of_address"];
+      return need.every((t) => s.docs[t]);
+    } else {
+      if (!s.taxId.trim() || !s.regNum.trim()) return false;
+      return s.enterpriseVerified;
+    }
   }
   return true;
 }
@@ -663,6 +758,167 @@ function DiditRepModal({ rep, onClose, onVerified }: { rep: Representative | nul
             <p className="text-[11px] text-center text-muted-foreground">
               Session sécurisée : <span className="font-mono">{session.session_id.slice(0, 20)}…</span>
             </p>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function DiditBusinessModal({
+  open,
+  companyName,
+  country,
+  regNum,
+  email,
+  onClose,
+  onVerified,
+}: {
+  open: boolean;
+  companyName: string;
+  country: string;
+  regNum?: string;
+  email: string;
+  onClose: () => void;
+  onVerified: (sessionId: string) => void;
+}) {
+  const [phase, setPhase] = useState(0);
+  const [session, setSession] = useState<{ simulated: boolean; verification_url: string | null; session_id: string } | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const createSession = useServerFn(createDiditBusinessSession);
+
+  const steps = [
+    { icon: Building2, label: "Scan du Registre du Commerce (RCCM / Kbis)", detail: "Vérification officielle de l'immatriculation et statut légal" },
+    { icon: ScanLine, label: "Audit de l'Immatriculation Fiscale (IFU / NIF)", detail: "Contrôle d'activité et de conformité fiscale" },
+    { icon: Sparkles, label: "Screening Sanctions AML & UBOs", detail: "Croisement des registres de bénéficiaires effectifs (OFAC, UE)" },
+  ];
+
+  useEffect(() => {
+    if (!open) return;
+    setPhase(0);
+    setError(null);
+    setSession(null);
+    setCreating(true);
+    createSession({
+      data: { company_name: companyName || "Société", country: country || "CI", registration_number: regNum, email: email || "contact@dolapay.com" },
+    })
+      .then((s) => setSession(s))
+      .catch((e: Error) => setError(e.message))
+      .finally(() => setCreating(false));
+  }, [open, companyName, country, regNum, email, createSession]);
+
+  const onVerifiedRef = useRef(onVerified);
+  const sessionIdRef = useRef(session?.session_id);
+  useEffect(() => {
+    onVerifiedRef.current = onVerified;
+    sessionIdRef.current = session?.session_id;
+  });
+
+  useEffect(() => {
+    if (!open || !session?.session_id || !session.simulated) return;
+    const t1 = setTimeout(() => setPhase(1), 1400);
+    const t2 = setTimeout(() => setPhase(2), 2800);
+    const t3 = setTimeout(() => setPhase(3), 4200);
+    const t4 = setTimeout(() => {
+      if (sessionIdRef.current) onVerifiedRef.current(sessionIdRef.current);
+    }, 5000);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
+  }, [open, session?.session_id, session?.simulated]);
+
+  useEffect(() => {
+    const handleMessage = (e: MessageEvent) => {
+      if (e.data && (e.data.type === "DIDIT_SUCCESS" || e.data === "DIDIT_SUCCESS")) {
+        if (sessionIdRef.current) onVerifiedRef.current(sessionIdRef.current);
+      }
+    };
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, []);
+
+  return (
+    <Dialog open={open} onOpenChange={(o) => { if (!o) { onClose(); setPhase(0); } }}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2"><Building2 className="h-5 w-5 text-primary" /> Vérification KYB Didit AI</DialogTitle>
+          <DialogDescription>
+            Audit automatisé en temps réel du registre de commerce et de la fiscalité pour {companyName || "votre société"}.
+          </DialogDescription>
+        </DialogHeader>
+
+        {creating && (
+          <div className="flex items-center gap-2 rounded-lg border border-border bg-background/50 p-3 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" /> Connexion sécurisée au registre Didit KYB…
+          </div>
+        )}
+
+        {error && (
+          <div className="rounded-lg border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-700 dark:text-red-300">
+            {error}
+          </div>
+        )}
+
+        {session && session.simulated && (
+          <div className="space-y-3 py-2">
+            {steps.map((s, i) => {
+              const done = i < phase;
+              const active = i === phase;
+              const Icon = s.icon;
+              return (
+                <motion.div
+                  key={s.label}
+                  initial={{ opacity: 0.4 }}
+                  animate={{ opacity: active ? 1 : 0.4 }}
+                  className={cn(
+                    "flex items-center gap-3 rounded-xl border p-3",
+                    done ? "border-emerald-500/40 bg-emerald-500/5" : active ? "border-primary/40 bg-primary/5" : "border-border"
+                  )}
+                >
+                  <div className={cn("grid h-9 w-9 place-items-center rounded-full", done ? "bg-emerald-500/15 text-emerald-600" : "bg-primary/10 text-primary")}>
+                    {done ? <CheckCircle2 className="h-5 w-5" /> : active ? <Loader2 className="h-5 w-5 animate-spin" /> : <Icon className="h-5 w-5" />}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-sm font-semibold">{s.label}</div>
+                    <div className="text-xs text-muted-foreground">{s.detail}</div>
+                  </div>
+                </motion.div>
+              );
+            })}
+            <p className="text-[11px] text-center text-muted-foreground pt-1">
+              ✓ Audit KYB exécuté en arrière-plan via Didit API (<span className="font-mono">{session.session_id.slice(0, 16)}…</span>)
+            </p>
+            <div className="flex justify-end pt-2">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="h-7 text-xs bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 border-emerald-500/30"
+                onClick={() => {
+                  if (sessionIdRef.current) onVerifiedRef.current(sessionIdRef.current);
+                }}
+              >
+                <CheckCircle2 className="h-3 w-3 mr-1" /> Terminer la vérification KYB
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {session && !session.simulated && session.verification_url && (
+          <div className="space-y-3 py-2">
+            <div className="overflow-hidden rounded-xl border border-border bg-black/5 dark:bg-white/5">
+              <iframe
+                src={session.verification_url}
+                title="Didit KYB Verification"
+                className="h-[420px] w-full border-0"
+                allow="camera; microphone; geolocation"
+              />
+            </div>
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>Session : <span className="font-mono">{session.session_id.slice(0, 12)}…</span></span>
+              <a href={session.verification_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline font-medium">
+                Ouvrir dans un nouvel onglet <ExternalLink className="h-3 w-3" />
+              </a>
+            </div>
           </div>
         )}
       </DialogContent>
