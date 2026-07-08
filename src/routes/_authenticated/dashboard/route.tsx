@@ -241,7 +241,7 @@ function DashboardLayout() {
       : []),
     { to: "/dashboard/verify", icon: ShieldCheck, label: profile?.kyc_status === "approved" ? "Vérifié" : "Vérification" },
     { to: "/dashboard/settings", icon: SettingsIcon, label: "Compte & KYC" },
-    ...(isAdmin ? [{ to: "/dashboard/admin", icon: ShieldCheck, label: "Admin" }] : []),
+    ...(isAdmin ? [{ to: "/admin", icon: Crown, label: "Système Admin" }] : []),
   ];
 
   const locked = profile && profile.kyc_status !== "approved";
@@ -326,7 +326,12 @@ function DashboardLayout() {
                 <Link
                   key={it.to}
                   to={it.to as "/dashboard"}
-                  onClick={() => setOpen(false)}
+                  onClick={() => {
+                    if (it.to === "/admin" && typeof window !== "undefined") {
+                      sessionStorage.removeItem("merchant_view");
+                    }
+                    setOpen(false);
+                  }}
                   className={linkClass}
                 >
                   {inner}
