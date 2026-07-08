@@ -2,7 +2,7 @@
 -- SCRIPT SQL D'EXPORTATION COMPLÈTE EN UNE SEULE REQUÊTE
 -- ==========================================================================
 -- Instructions :
--- 1. Connecte-toi à l'espace SQL Editor de ton ancien projet Lovable Cloud (wwqhjoukvimkfhlzwtqn).
+-- 1. Connecte-toi à l'espace SQL Editor de ton ancien projet (base de données d'origine).
 -- 2. Copie et exécute LA REQUÊTE UNIQUE ci-dessous.
 -- 3. Elle va te donner toutes les lignes d'insertion pour l'ensemble de ta base de données
 --    dans le bon ordre (profils -> entreprises -> rôles -> liens -> transactions).

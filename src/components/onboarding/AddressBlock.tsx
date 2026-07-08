@@ -5,6 +5,7 @@ import { MapPin } from "lucide-react";
 import { SUPPORTED_COUNTRIES } from "@/lib/supported-countries";
 
 const BROWSER_KEY = (import.meta as { env: Record<string, string | undefined> }).env
+  ?.VITE_GOOGLE_MAPS_API_KEY || (import.meta as { env: Record<string, string | undefined> }).env
   ?.VITE_LOVABLE_CONNECTOR_GOOGLE_MAPS_BROWSER_KEY;
 
 type Props = {
@@ -119,7 +120,7 @@ export function AddressBlock({ label = "Adresse", country, city, address, onCoun
       </div>
       {!BROWSER_KEY && (
         <p className="text-[11px] text-muted-foreground">
-          💡 Astuce : connectez Google Maps dans les intégrations pour activer l'auto-complétion d'adresse.
+          💡 Astuce : configurez la clé API Google Maps (VITE_GOOGLE_MAPS_API_KEY) dans vos variables d'environnement pour activer l'auto-complétion d'adresse.
         </p>
       )}
     </div>
