@@ -76,27 +76,35 @@ function PaymentLinksPage() {
     queryKey: ["my-payment-links"],
     queryFn: async (): Promise<PL[]> => {
       try {
-        const { data: rawLinks, error } = await supabase
-          .from("payment_links")
-          .select("*")
-          .order("created_at", { ascending: false });
-        if (error) {
-          console.error("Error fetching payment links:", error);
-          throw error;
+        let rawLinks: any[] = [];
+        try {
+          const { data, error } = await supabase
+            .from("payment_links")
+            .select("*")
+            .order("created_at", { ascending: false });
+          if (error) throw error;
+          rawLinks = data ?? [];
+        } catch (e: any) {
+          console.error("Error fetching payment_links table:", e);
+          throw new Error(`[Table payment_links] ${e.message || String(e)}`);
         }
-        if (!rawLinks || rawLinks.length === 0) return [];
+        
+        if (rawLinks.length === 0) return [];
 
-        // Fetch revenue per link from successful transactions of type "payment_link"
-        const { data, error: txsErr } = await supabase
-          .from("transactions")
-          .select("amount, status, description")
-          .eq("type", "payment_link")
-          .eq("status", "success");
-        if (txsErr) {
-          console.error("Error fetching transactions for payment links:", txsErr);
-          throw txsErr;
+        let txs: any[] = [];
+        try {
+          // Fetch revenue per link from successful transactions of type "payment_link"
+          const { data, error: txsErr } = await supabase
+            .from("transactions")
+            .select("amount, status, description")
+            .eq("type", "payment_link")
+            .eq("status", "success");
+          if (txsErr) throw txsErr;
+          txs = data ?? [];
+        } catch (e: any) {
+          console.error("Error fetching transactions table:", e);
+          throw new Error(`[Table transactions] ${e.message || String(e)}`);
         }
-        const txs = data ?? [];
 
         const revenueMap: Record<string, { revenue: number; count: number }> = {};
         
