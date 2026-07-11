@@ -59,6 +59,11 @@ function TransactionsPage() {
     );
   }, [rawTxs, testMode]);
 
+  const getDerivedType = (t: Tx) => {
+    if (t.type === "pay-in" && t.description?.includes("[API_CHARGE")) return "api_charge";
+    return t.type;
+  };
+
   const filtered = useMemo(() => {
     return txs.filter((t) => {
       const matchSearch =
@@ -68,7 +73,8 @@ function TransactionsPage() {
         t.customer_phone?.toLowerCase().includes(search.toLowerCase()) ||
         t.payment_method?.toLowerCase().includes(search.toLowerCase());
 
-      const matchType = typeFilter === "ALL" || t.type === typeFilter;
+      const derivedType = getDerivedType(t);
+      const matchType = typeFilter === "ALL" || derivedType === typeFilter;
       const matchStatus = statusFilter === "ALL" || t.status === statusFilter;
 
       return matchSearch && matchType && matchStatus;
@@ -91,7 +97,7 @@ function TransactionsPage() {
     const rows = filtered.map((t) => [
       t.id,
       new Date(t.created_at).toISOString(),
-      t.type,
+      getDerivedType(t),
       t.payment_method ?? "",
       t.customer_phone ?? "",
       t.amount,
@@ -288,7 +294,7 @@ function TransactionsPage() {
                     </td>
 
                     <td className="px-4 py-3.5 whitespace-nowrap">
-                      <TypeBadge type={t.type} />
+                      <TypeBadge type={getDerivedType(t)} />
                     </td>
 
                     <td className="px-4 py-3.5">
