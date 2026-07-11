@@ -321,7 +321,17 @@ function PayPage() {
           customer_email: email
         }),
       });
-      const body = (await res.json()) as { transaction_id?: string; status?: TxStatus; success_url?: string | null; failure_url?: string | null; error?: string };
+      
+      let body: any = {};
+      const contentType = res.headers.get("content-type") || "";
+      if (contentType.includes("application/json")) {
+        body = await res.json();
+      } else {
+        const text = await res.text();
+        console.error("Non-JSON response from server:", text);
+        throw new Error(`Server returned ${res.status}: ${text.slice(0, 150)}`);
+      }
+
       if (res.status === 429) { toast.error("Trop de tentatives. Patientez un instant."); setStatus(null); setSubmitting(false); return; }
       if (!res.ok || !body.transaction_id) {
         toast.error(body.error ?? "Échec");
@@ -332,8 +342,9 @@ function PayPage() {
       setRedirectUrls({ success_url: body.success_url, failure_url: body.failure_url });
       setTxId(body.transaction_id);
       if (body.status) setStatus(body.status);
-    } catch {
-      toast.error("Erreur réseau");
+    } catch (err: any) {
+      console.error("Payment submission failed:", err);
+      toast.error(err.message || "Erreur réseau");
       setStatus(null);
       setSubmitting(false);
     }
