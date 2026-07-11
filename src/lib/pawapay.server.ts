@@ -196,7 +196,10 @@ export class PawaPayClient {
   private async request<T>(endpoint: string, method: string, body?: unknown): Promise<T> {
     if (!this.apiToken) {
       console.warn(`[PawaPay] PAWAPAY_API_TOKEN non défini. Simulation en mode Sandbox pour ${endpoint}`);
-      // Return simulated success response
+      if (method === "GET" && endpoint.startsWith("/deposits/")) {
+        const id = endpoint.split("/")[2] || "simulated_dep";
+        return [{ depositId: id, status: "ACCEPTED" }] as unknown as T;
+      }
       if (endpoint.includes("/deposits")) {
         return {
           depositId: (body as PawaPayDepositRequest)?.depositId || "simulated_dep",
@@ -286,6 +289,29 @@ export class PawaPayClient {
     };
 
     return this.request<PawaPayPayoutResponse>("/payouts", "POST", payload);
+  }
+
+  async getDepositStatus(depositId: string): Promise<{
+    depositId: string;
+    status: "ACCEPTED" | "SUBMITTED" | "COMPLETED" | "FAILED";
+    failureReason?: {
+      failureCode?: string;
+      failureMessage?: string;
+    } | null;
+  } | null> {
+    try {
+      const res = await this.request<any>(`/deposits/${encodeURIComponent(depositId)}`, "GET");
+      if (Array.isArray(res) && res.length > 0) {
+        return res[0];
+      }
+      if (res && !Array.isArray(res) && res.status) {
+        return res;
+      }
+      return null;
+    } catch (e) {
+      console.warn(`[PawaPay] getDepositStatus failed for ${depositId}:`, e);
+      return null;
+    }
   }
 }
 

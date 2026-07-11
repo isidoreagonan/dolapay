@@ -712,7 +712,7 @@ function StatusView({ status, amount, currency, countdown, thankYou, failureReas
       <div className="space-y-2">
         <h2 className="text-lg font-bold text-slate-900 dark:text-white">Paiement échoué</h2>
         <p className="mt-1 text-xs font-semibold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/20 px-3.5 py-2 rounded-xl border border-rose-100 dark:border-rose-900/30 max-w-xs mx-auto">
-          {translateFailureCode(failureReason?.code)}
+          {translateFailureCode(failureReason?.code, failureReason?.message)}
         </p>
         <p className="text-[11px] text-slate-400">
           Veuillez réessayer avec un autre numéro ou vérifier vos fonds.
@@ -724,19 +724,20 @@ function StatusView({ status, amount, currency, countdown, thankYou, failureReas
   );
 }
 
-function translateFailureCode(code?: string): string {
-  if (!code) return "La transaction a été rejetée ou a expiré.";
-  const normalized = code.toUpperCase();
-  if (normalized.includes("FUNDS") || normalized.includes("BALANCE") || normalized.includes("INSUFFICIENT")) {
+function translateFailureCode(code?: string, message?: string): string {
+  const combined = `${code || ""} ${message || ""}`.toUpperCase();
+  if (!combined.trim()) return "La transaction a été rejetée ou a expiré.";
+  
+  if (combined.includes("FUNDS") || combined.includes("BALANCE") || combined.includes("INSUFFICIENT") || combined.includes("SOLDE")) {
     return "Solde insuffisant sur votre compte Mobile Money.";
   }
-  if (normalized.includes("CANCEL") || normalized.includes("REJECT") || normalized.includes("DECLINE") || normalized.includes("ABORT")) {
+  if (combined.includes("CANCEL") || combined.includes("REJECT") || combined.includes("DECLINE") || combined.includes("ABORT") || combined.includes("ANNUL") || combined.includes("INVALID_PIN")) {
     return "Paiement annulé ou rejeté sur votre téléphone.";
   }
-  if (normalized.includes("TIMEOUT") || normalized.includes("EXPIRE")) {
+  if (combined.includes("TIMEOUT") || combined.includes("EXPIRE") || combined.includes("DELAI")) {
     return "Délai de validation USSD dépassé.";
   }
-  return `Transaction refusée (${code}).`;
+  return `Transaction refusée (${code || "Opérateur"}).`;
 }
 
 function CenteredCard({ children }: { children: React.ReactNode }) {
