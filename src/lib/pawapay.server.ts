@@ -16,7 +16,9 @@ export interface PawaPayDepositRequest {
   correspondent: CorrespondentCode | string;
   payer: {
     type: "MSISDN";
-    address: string; // E.164 without leading '+' e.g. "22670000000"
+    address: {
+      value: string; // E.164 without leading '+' e.g. "22670000000"
+    };
   };
   statementDescription?: string;
 }
@@ -37,7 +39,9 @@ export interface PawaPayPayoutRequest {
   correspondent: CorrespondentCode | string;
   recipient: {
     type: "MSISDN";
-    address: string;
+    address: {
+      value: string;
+    };
   };
   statementDescription?: string;
 }
@@ -242,7 +246,9 @@ export class PawaPayClient {
       correspondent,
       payer: {
         type: "MSISDN",
-        address: cleanPhone,
+        address: {
+          value: cleanPhone,
+        },
       },
       statementDescription: (params.description || "DolaPay Charge").slice(0, 22),
     };
@@ -268,7 +274,9 @@ export class PawaPayClient {
       correspondent,
       recipient: {
         type: "MSISDN",
-        address: cleanPhone,
+        address: {
+          value: cleanPhone,
+        },
       },
       statementDescription: (params.description || "DolaPay Payout").slice(0, 22),
     };
