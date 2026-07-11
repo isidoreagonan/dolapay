@@ -72,50 +72,61 @@ function PaymentLinksPage() {
   const [search, setSearch] = useState("");
 
   // Fetch links with revenue stats
-  const { data: links = [], isLoading } = useQuery({
+  const { data: links = [], isLoading, error: queryError } = useQuery({
     queryKey: ["my-payment-links"],
     queryFn: async (): Promise<PL[]> => {
-      const { data: rawLinks, error } = await supabase
-        .from("payment_links")
-        .select("*")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      if (!rawLinks || rawLinks.length === 0) return [];
-
-      // Fetch revenue per link from successful transactions of type "payment_link"
-      const { data, error: txsErr } = await supabase
-        .from("transactions")
-        .select("amount, status, description")
-        .eq("type", "payment_link")
-        .eq("status", "success");
-      if (txsErr) throw txsErr;
-      const txs = data ?? [];
-
-      const revenueMap: Record<string, { revenue: number; count: number }> = {};
-      
-      txs.forEach((t) => {
-        if (!t.description) return;
-        const desc = t.description;
-        // Find which raw link matches this transaction
-        const matched = rawLinks.find((l) => 
-          desc.startsWith(`[${l.slug}]`) || 
-          desc.includes(` · ${l.title} · `) || 
-          desc.startsWith(`${l.title} · `)
-        );
-        if (matched) {
-          if (!revenueMap[matched.id]) {
-            revenueMap[matched.id] = { revenue: 0, count: 0 };
-          }
-          revenueMap[matched.id].revenue += Number(t.amount);
-          revenueMap[matched.id].count += 1;
+      try {
+        const { data: rawLinks, error } = await supabase
+          .from("payment_links")
+          .select("*")
+          .order("created_at", { ascending: false });
+        if (error) {
+          console.error("Error fetching payment links:", error);
+          throw error;
         }
-      });
+        if (!rawLinks || rawLinks.length === 0) return [];
 
-      return rawLinks.map((l) => ({
-        ...l,
-        revenue: revenueMap[l.id]?.revenue ?? 0,
-        tx_count: revenueMap[l.id]?.count ?? 0,
-      })) as PL[];
+        // Fetch revenue per link from successful transactions of type "payment_link"
+        const { data, error: txsErr } = await supabase
+          .from("transactions")
+          .select("amount, status, description")
+          .eq("type", "payment_link")
+          .eq("status", "success");
+        if (txsErr) {
+          console.error("Error fetching transactions for payment links:", txsErr);
+          throw txsErr;
+        }
+        const txs = data ?? [];
+
+        const revenueMap: Record<string, { revenue: number; count: number }> = {};
+        
+        txs.forEach((t) => {
+          if (!t.description) return;
+          const desc = t.description;
+          // Find which raw link matches this transaction
+          const matched = rawLinks.find((l) => 
+            desc.startsWith(`[${l.slug}]`) || 
+            desc.includes(` · ${l.title} · `) || 
+            desc.startsWith(`${l.title} · `)
+          );
+          if (matched) {
+            if (!revenueMap[matched.id]) {
+              revenueMap[matched.id] = { revenue: 0, count: 0 };
+            }
+            revenueMap[matched.id].revenue += Number(t.amount);
+            revenueMap[matched.id].count += 1;
+          }
+        });
+
+        return rawLinks.map((l) => ({
+          ...l,
+          revenue: revenueMap[l.id]?.revenue ?? 0,
+          tx_count: revenueMap[l.id]?.count ?? 0,
+        })) as PL[];
+      } catch (err) {
+        console.error("Detailed query error in payment-links.tsx:", err);
+        throw err;
+      }
     },
   });
 
@@ -206,7 +217,15 @@ function PaymentLinksPage() {
 
       {/* Links Grid */}
       <AnimatePresence mode="popLayout">
-        {isLoading ? (
+        {queryError ? (
+          <Card className="border-rose-300/40 bg-rose-50/60 p-5 text-sm text-rose-900 dark:bg-rose-500/5 dark:text-rose-200 flex flex-col gap-2">
+            <div className="flex items-center gap-2 font-bold text-rose-500">
+              <AlertTriangle className="h-4 w-4 shrink-0" />
+              Erreur de chargement des liens
+            </div>
+            <p className="text-xs font-mono opacity-80">{(queryError as Error).message || String(queryError)}</p>
+          </Card>
+        ) : isLoading ? (
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             {[1, 2, 3].map((i) => (
               <div key={i} className="h-64 rounded-2xl border border-border/40 bg-muted/20 animate-pulse" />
