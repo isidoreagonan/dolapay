@@ -20,6 +20,7 @@ export interface PawaPayDepositRequest {
       value: string; // E.164 without leading '+' e.g. "22670000000"
     };
   };
+  customerTimestamp: string;
   statementDescription?: string;
 }
 
@@ -43,6 +44,7 @@ export interface PawaPayPayoutRequest {
       value: string;
     };
   };
+  customerTimestamp: string;
   statementDescription?: string;
 }
 
@@ -250,6 +252,7 @@ export class PawaPayClient {
           value: cleanPhone,
         },
       },
+      customerTimestamp: new Date().toISOString(),
       statementDescription: (params.description || "DolaPay Charge").slice(0, 22),
     };
 
@@ -278,6 +281,7 @@ export class PawaPayClient {
           value: cleanPhone,
         },
       },
+      customerTimestamp: new Date().toISOString(),
       statementDescription: (params.description || "DolaPay Payout").slice(0, 22),
     };
 
