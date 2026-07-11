@@ -19,6 +19,7 @@ function ApiKeysPage() {
   const qc = useQueryClient();
   const { data: profile } = useProfile();
   const [label, setLabel] = useState("");
+  const [mode, setMode] = useState<"live" | "test">("live");
   const [newKey, setNewKey] = useState<string | null>(null);
 
   const { data: keys = [] } = useQuery({
@@ -37,7 +38,8 @@ function ApiKeysPage() {
     mutationFn: async () => {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) throw new Error("Non connecté");
-      const raw = "dp_live_" + crypto.randomUUID().replace(/-/g, "");
+      const prefixStr = mode === "test" ? "dp_test_" : "dp_live_";
+      const raw = prefixStr + crypto.randomUUID().replace(/-/g, "");
       const prefix = raw.slice(0, 12);
       // Simple hash via Web Crypto SHA-256
       const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(raw));
@@ -87,9 +89,17 @@ function ApiKeysPage() {
       <Card className="p-6">
         <form
           onSubmit={(e) => { e.preventDefault(); create.mutate(); }}
-          className="grid gap-3 sm:grid-cols-[1fr_auto]"
+          className="grid gap-3 sm:grid-cols-[1fr_auto_auto]"
         >
-          <Input placeholder="Libellé (ex: production-server)" value={label} onChange={(e) => setLabel(e.target.value)} required />
+          <Input placeholder="Libellé (ex: serveur-test)" value={label} onChange={(e) => setLabel(e.target.value)} required />
+          <select
+            className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            value={mode}
+            onChange={(e) => setMode(e.target.value as "live" | "test")}
+          >
+            <option value="live">Clé Live (Production)</option>
+            <option value="test">Clé de Test (Sandbox)</option>
+          </select>
           <Button type="submit" disabled={create.isPending}><KeyRound className="h-4 w-4 mr-2" />Générer</Button>
         </form>
 
@@ -109,7 +119,14 @@ function ApiKeysPage() {
         {keys.map((k) => (
           <Card key={k.id} className="flex items-center justify-between p-4">
             <div>
-              <div className="font-semibold">{k.label}</div>
+              <div className="font-semibold flex items-center gap-2">
+                {k.label}
+                {k.prefix.includes("test") && (
+                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-800 dark:bg-amber-900/30 dark:text-amber-500">
+                    Test
+                  </span>
+                )}
+              </div>
               <div className="font-mono text-xs text-muted-foreground">{k.prefix}…••••••••</div>
             </div>
             {k.revoked_at ? (
