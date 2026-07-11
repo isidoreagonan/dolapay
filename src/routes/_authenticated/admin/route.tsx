@@ -28,7 +28,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
   beforeLoad: async () => {
     if (typeof window === "undefined") return;
     let { data: sessionData } = await supabase.auth.getSession();
-    let user = sessionData?.session?.user;
+    let user: any = sessionData?.session?.user;
 
     if (!user) {
       const { data: uData } = await supabase.auth.getUser();

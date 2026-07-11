@@ -21,7 +21,7 @@ export const Route = createFileRoute("/api/v1/charges/$id")({
 
         const { data: tx, error } = await supabaseAdmin
           .from("transactions")
-          .select("id, status, amount, currency, created_at, payment_method")
+          .select("id, status, amount, currency, created_at, description")
           .eq("id", params.id)
           .eq("profile_id", auth.profile_id)
           .maybeSingle();
@@ -31,13 +31,22 @@ export const Route = createFileRoute("/api/v1/charges/$id")({
         }
 
         const mappedStatus = tx.status === "success" ? "succeeded" : tx.status;
+        
+        let operator = "orange_bfa";
+        const desc = tx.description || "";
+        if (desc.startsWith("[API_CHARGE]")) {
+          const match = desc.match(/^\[API_CHARGE\] ([^\s·]+)/);
+          if (match && match[1]) {
+            operator = match[1].toLowerCase();
+          }
+        }
 
         return Response.json({
           id: tx.id,
           status: mappedStatus,
           amount: Number(tx.amount),
           currency: tx.currency,
-          operator: tx.payment_method?.toLowerCase() || "orange_bfa",
+          operator,
           settled_at: tx.status === "success" ? tx.created_at : null,
         });
       },

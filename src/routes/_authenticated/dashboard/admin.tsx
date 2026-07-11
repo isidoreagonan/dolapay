@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -62,7 +62,10 @@ function AdminPage() {
       </Card>
     );
   }
-  return <AdminCenter />;
+  if (typeof window !== "undefined") {
+    sessionStorage.removeItem("merchant_view");
+  }
+  return <Navigate to="/admin/compliance" replace />;
 }
 
 function AdminCenter() {

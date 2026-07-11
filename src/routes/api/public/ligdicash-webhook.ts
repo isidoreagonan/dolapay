@@ -38,13 +38,13 @@ export const Route = createFileRoute("/api/public/ligdicash-webhook")({
         if (txId) {
           const { data: tx } = await supabaseAdmin
             .from("transactions")
-            .select("id, amount, profile_id, status, type, payment_method")
+            .select("id, amount, profile_id, status, type, description")
             .eq("id", txId)
             .maybeSingle();
 
           if (tx && tx.status !== "success") {
             const amount = Number(tx.amount || payload.amount || 0);
-            const method = (String(tx.payment_method || customDataObj.method || "ORANGE").toUpperCase() as LigdiCashMethod);
+            const method = (String(customDataObj.method || "ORANGE").toUpperCase() as LigdiCashMethod);
             
             // Calcul officiel des commissions LigdiCash (Article 6.3 du Contrat)
             const feeCalc = calculateLigdiCashFee("PAYIN", method, amount);
@@ -53,14 +53,6 @@ export const Route = createFileRoute("/api/public/ligdicash-webhook")({
               .from("transactions")
               .update({
                 status: newStatus,
-                fee_amount: feeCalc.feeAmount,
-                net_amount: feeCalc.netAmount,
-                metadata: {
-                  ...customDataObj,
-                  ligdicash_token: payload.token,
-                  ligdicash_operator_id: payload.operator_id,
-                  ligdicash_fee_rate: feeCalc.feeRate,
-                },
               })
               .eq("id", txId);
 
@@ -82,7 +74,7 @@ export const Route = createFileRoute("/api/public/ligdicash-webhook")({
               .from("payout_batch_items")
               .update({
                 status: newStatus,
-                error_message: isSuccess ? null : `LigdiCash: ${payload.status}`,
+                error: isSuccess ? null : `LigdiCash: ${payload.status}`,
               })
               .eq("id", itemId);
 
@@ -97,7 +89,7 @@ export const Route = createFileRoute("/api/public/ligdicash-webhook")({
                 const allSuccess = items.every((i) => i.status === "success");
                 await supabaseAdmin
                   .from("payout_batches")
-                  .update({ status: allSuccess ? "completed" : "completed_with_errors" })
+                  .update({ status: allSuccess ? "completed" : "failed" })
                   .eq("id", item.batch_id);
               }
             }

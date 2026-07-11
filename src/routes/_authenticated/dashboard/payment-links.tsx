@@ -10,12 +10,12 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Copy, Link as LinkIcon, Sparkles, Hash, Image as ImageIcon, Wallet,
   Receipt, MessageSquareHeart, ArrowRight, Eye, ExternalLink, Search,
-  QrCode, CheckCircle2, Plus, ShieldCheck, Zap,
+  QrCode, CheckCircle2, Plus, ShieldCheck, Zap, Pencil, Trash2, TrendingUp, AlertTriangle,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "./route";
@@ -43,6 +43,8 @@ type PL = {
   fees_paid_by: FeesPaidBy;
   success_url: string | null;
   failure_url: string | null;
+  revenue?: number;
+  tx_count?: number;
 };
 
 const CURRENCIES: { code: Currency; label: string; symbol: string }[] = [
@@ -63,19 +65,57 @@ function PaymentLinksPage() {
   const qc = useQueryClient();
   const { data: profile } = useProfile();
   const locked = profile?.kyc_status !== "approved";
-  const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
+  const [createOpen, setCreateOpen] = useState(false);
+  const [editLink, setEditLink] = useState<PL | null>(null);
   const [previewLink, setPreviewLink] = useState<PL | null>(null);
+  const [deleteLink, setDeleteLink] = useState<PL | null>(null);
+  const [search, setSearch] = useState("");
 
-  const { data: links = [] } = useQuery({
+  // Fetch links with revenue stats
+  const { data: links = [], isLoading } = useQuery({
     queryKey: ["my-payment-links"],
     queryFn: async (): Promise<PL[]> => {
-      const { data, error } = await supabase
+      const { data: rawLinks, error } = await supabase
         .from("payment_links")
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []) as PL[];
+      if (!rawLinks || rawLinks.length === 0) return [];
+
+      // Fetch revenue per link from successful transactions of type "payment_link"
+      const { data, error: txsErr } = await supabase
+        .from("transactions")
+        .select("amount, status, description")
+        .eq("type", "payment_link")
+        .eq("status", "success");
+      if (txsErr) throw txsErr;
+      const txs = data ?? [];
+
+      const revenueMap: Record<string, { revenue: number; count: number }> = {};
+      
+      txs.forEach((t) => {
+        if (!t.description) return;
+        const desc = t.description;
+        // Find which raw link matches this transaction
+        const matched = rawLinks.find((l) => 
+          desc.startsWith(`[${l.slug}]`) || 
+          desc.includes(` · ${l.title} · `) || 
+          desc.startsWith(`${l.title} · `)
+        );
+        if (matched) {
+          if (!revenueMap[matched.id]) {
+            revenueMap[matched.id] = { revenue: 0, count: 0 };
+          }
+          revenueMap[matched.id].revenue += Number(t.amount);
+          revenueMap[matched.id].count += 1;
+        }
+      });
+
+      return rawLinks.map((l) => ({
+        ...l,
+        revenue: revenueMap[l.id]?.revenue ?? 0,
+        tx_count: revenueMap[l.id]?.count ?? 0,
+      })) as PL[];
     },
   });
 
@@ -96,10 +136,28 @@ function PaymentLinksPage() {
       if (error) throw error;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["my-payment-links"] }),
+    onError: () => toast.error("Erreur lors de la mise à jour"),
   });
+
+  const deleteLink_ = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("payment_links").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Lien supprimé");
+      setDeleteLink(null);
+      qc.invalidateQueries({ queryKey: ["my-payment-links"] });
+    },
+    onError: () => toast.error("Impossible de supprimer ce lien"),
+  });
+
+  const totalRevenue = links.reduce((s, l) => s + (l.revenue ?? 0), 0);
+  const activeCount = links.filter((l) => l.active).length;
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary">
@@ -107,32 +165,35 @@ function PaymentLinksPage() {
           </div>
           <h1 className="mt-1 text-3xl font-black tracking-tight">Liens de paiement</h1>
           <p className="text-sm text-muted-foreground">
-            Créez des liens élégants — devise, image, redirection, remerciement, frais — sans une ligne de code.
+            Créez, modifiez et supprimez vos liens Mobile Money — connectés à PawaPay Live.
           </p>
         </div>
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button size="lg" disabled={locked} className="gap-2 shadow-lg shadow-primary/30">
-              <Plus className="h-4 w-4" /> Nouveau lien
-            </Button>
-          </DialogTrigger>
-          <CreateLinkDialog onClose={() => setOpen(false)} />
-        </Dialog>
+        <Button
+          size="lg"
+          disabled={locked}
+          className="gap-2 shadow-lg shadow-primary/30"
+          onClick={() => setCreateOpen(true)}
+        >
+          <Plus className="h-4 w-4" /> Nouveau lien
+        </Button>
       </div>
 
       {locked && (
-        <Card className="border-amber-300/40 bg-amber-50/60 p-4 text-sm text-amber-900 dark:bg-amber-500/5 dark:text-amber-200">
-          Vérification KYC requise pour créer des liens de paiement.
+        <Card className="border-amber-300/40 bg-amber-50/60 p-4 text-sm text-amber-900 dark:bg-amber-500/5 dark:text-amber-200 flex items-center gap-2">
+          <ShieldCheck className="h-4 w-4 shrink-0" />
+          Vérification KYC requise pour créer des liens de paiement connectés à PawaPay.
         </Card>
       )}
 
+      {/* KPIs */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatCard icon={LinkIcon} label="Liens" value={links.length} />
-        <StatCard icon={Zap} label="Actifs" value={links.filter((l) => l.active).length} accent="emerald" />
-        <StatCard icon={Receipt} label="Avec facture" value={links.filter((l) => l.invoice_number).length} />
-        <StatCard icon={ShieldCheck} label="Sécurisés" value={"100%"} accent="primary" />
+        <StatCard icon={LinkIcon} label="Liens créés" value={links.length} />
+        <StatCard icon={Zap} label="Actifs" value={activeCount} accent="emerald" />
+        <StatCard icon={TrendingUp} label="Revenus collectés" value={new Intl.NumberFormat("fr-FR").format(Math.round(totalRevenue)) + " F"} accent="primary" />
+        <StatCard icon={Receipt} label="Transactions" value={links.reduce((s, l) => s + (l.tx_count ?? 0), 0)} />
       </div>
 
+      {/* Search */}
       <div className="relative">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
@@ -143,15 +204,24 @@ function PaymentLinksPage() {
         />
       </div>
 
+      {/* Links Grid */}
       <AnimatePresence mode="popLayout">
-        {filtered.length === 0 ? (
+        {isLoading ? (
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-64 rounded-2xl border border-border/40 bg-muted/20 animate-pulse" />
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="rounded-2xl border border-dashed border-border bg-muted/30 p-12 text-center"
           >
             <LinkIcon className="mx-auto h-10 w-10 text-muted-foreground/60" />
-            <p className="mt-3 text-sm text-muted-foreground">Aucun lien pour l'instant.</p>
+            <p className="mt-3 text-sm text-muted-foreground">
+              {search ? "Aucun résultat pour cette recherche." : "Aucun lien pour l'instant. Créez-en un !"}
+            </p>
           </motion.div>
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -168,6 +238,8 @@ function PaymentLinksPage() {
                   link={l}
                   onToggle={(v) => toggleActive.mutate({ id: l.id, active: v })}
                   onPreview={() => setPreviewLink(l)}
+                  onEdit={() => setEditLink(l)}
+                  onDelete={() => setDeleteLink(l)}
                 />
               </motion.div>
             ))}
@@ -175,8 +247,49 @@ function PaymentLinksPage() {
         )}
       </AnimatePresence>
 
+      {/* Create Dialog */}
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <LinkFormDialog onClose={() => setCreateOpen(false)} />
+      </Dialog>
+
+      {/* Edit Dialog */}
+      <Dialog open={!!editLink} onOpenChange={(v) => !v && setEditLink(null)}>
+        {editLink && <LinkFormDialog link={editLink} onClose={() => { setEditLink(null); }} />}
+      </Dialog>
+
+      {/* Preview Dialog */}
       <Dialog open={!!previewLink} onOpenChange={(v) => !v && setPreviewLink(null)}>
         {previewLink && <PreviewDialog link={previewLink} />}
+      </Dialog>
+
+      {/* Delete Confirm Dialog */}
+      <Dialog open={!!deleteLink} onOpenChange={(v) => !v && setDeleteLink(null)}>
+        <DialogContent className="max-w-sm border-rose-500/20 bg-card/95">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-rose-500">
+              <AlertTriangle className="h-5 w-5" /> Supprimer ce lien ?
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Le lien <span className="font-semibold text-foreground">"{deleteLink?.title}"</span> sera définitivement supprimé.
+              Les transactions existantes ne seront pas affectées.
+            </p>
+            <div className="flex gap-3">
+              <Button variant="outline" className="flex-1" onClick={() => setDeleteLink(null)}>
+                Annuler
+              </Button>
+              <Button
+                variant="destructive"
+                className="flex-1"
+                disabled={deleteLink_.isPending}
+                onClick={() => deleteLink && deleteLink_.mutate(deleteLink.id)}
+              >
+                {deleteLink_.isPending ? "Suppression…" : "Supprimer"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
       </Dialog>
     </div>
   );
@@ -198,157 +311,157 @@ function StatCard({
   );
 }
 
-function LinkCard({ link, onToggle, onPreview }: { link: PL; onToggle: (v: boolean) => void; onPreview: () => void }) {
+function LinkCard({
+  link, onToggle, onPreview, onEdit, onDelete,
+}: {
+  link: PL;
+  onToggle: (v: boolean) => void;
+  onPreview: () => void;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
   const url = `${typeof window !== "undefined" ? window.location.origin : ""}/pay/${link.slug}`;
   const sym = CURRENCIES.find((c) => c.code === link.currency)?.symbol ?? link.currency;
   const amount = new Intl.NumberFormat("fr-FR").format(Number(link.amount));
+  const revenue = new Intl.NumberFormat("fr-FR").format(Math.round(link.revenue ?? 0));
+
   return (
     <Card className="group relative overflow-hidden border-white/10 bg-gradient-to-br from-card/80 via-card/60 to-card/40 p-0 backdrop-blur-2xl transition-all hover:shadow-2xl hover:shadow-primary/10">
-      {/* Mobile compact layout */}
-      <div className="flex gap-3 p-3 sm:hidden">
-        <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-gradient-to-br from-primary/30 via-primary/10 to-transparent">
-          {link.image_url ? (
-            <img src={link.image_url} alt="" className="h-full w-full object-cover" />
-          ) : (
-            <div className="absolute inset-0 grid place-items-center">
-              <LinkIcon className="h-7 w-7 text-primary/50" />
-            </div>
-          )}
+      {/* Image banner */}
+      <div className="relative h-28 overflow-hidden bg-gradient-to-br from-primary/30 via-primary/10 to-transparent">
+        {link.image_url ? (
+          <img src={link.image_url} alt="" className="h-full w-full object-cover" />
+        ) : (
+          <div className="absolute inset-0 grid place-items-center">
+            <LinkIcon className="h-10 w-10 text-primary/40" />
+          </div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-card via-card/20 to-transparent" />
+        <div className="absolute right-3 top-3 flex items-center gap-2">
+          <Badge variant={link.active ? "default" : "secondary"} className="backdrop-blur">
+            {link.active ? "Actif" : "Inactif"}
+          </Badge>
         </div>
-        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0 flex-1">
-              <h3 className="truncate text-sm font-bold leading-tight">{link.title}</h3>
-              {link.invoice_number && (
-                <div className="mt-0.5 inline-flex items-center gap-1 text-[10px] font-mono text-muted-foreground">
-                  <Hash className="h-2.5 w-2.5" /> {link.invoice_number}
-                </div>
-              )}
-            </div>
-            <Switch checked={link.active} onCheckedChange={onToggle} className="scale-90" />
-          </div>
-          <div className="flex items-baseline gap-1">
-            <span className="text-lg font-black tracking-tight">{amount}</span>
-            <span className="text-[11px] text-muted-foreground">{sym}</span>
-            <Badge variant={link.active ? "default" : "secondary"} className="ml-auto h-4 px-1.5 text-[9px]">
-              {link.active ? "Actif" : "Inactif"}
-            </Badge>
-          </div>
-          <div className="mt-1 grid grid-cols-3 gap-1.5">
-            <Button size="sm" variant="outline" className="h-8 gap-1 px-2 text-[11px]" onClick={() => { navigator.clipboard.writeText(url); toast.success("Lien copié"); }}>
-              <Copy className="h-3 w-3" /> Copier
-            </Button>
-            <Button size="sm" variant="outline" className="h-8 gap-1 px-2 text-[11px]" onClick={onPreview}>
-              <Eye className="h-3 w-3" /> Voir
-            </Button>
-            <Button size="sm" variant="outline" className="h-8 gap-1 px-2 text-[11px]" asChild>
-              <a href={url} target="_blank" rel="noreferrer"><ExternalLink className="h-3 w-3" /> Ouvrir</a>
-            </Button>
-          </div>
+        {/* Edit / Delete buttons on hover */}
+        <div className="absolute left-3 top-3 flex items-center gap-1.5 opacity-0 transition-opacity group-hover:opacity-100">
+          <button
+            onClick={onEdit}
+            className="h-7 w-7 rounded-lg bg-white/10 backdrop-blur flex items-center justify-center hover:bg-white/20 transition-colors"
+            title="Modifier"
+          >
+            <Pencil className="h-3.5 w-3.5 text-white" />
+          </button>
+          <button
+            onClick={onDelete}
+            className="h-7 w-7 rounded-lg bg-rose-500/20 backdrop-blur flex items-center justify-center hover:bg-rose-500/40 transition-colors"
+            title="Supprimer"
+          >
+            <Trash2 className="h-3.5 w-3.5 text-rose-300" />
+          </button>
         </div>
       </div>
 
-      {/* Desktop / tablet rich layout */}
-      <div className="hidden sm:block">
-        <div className="relative h-28 overflow-hidden bg-gradient-to-br from-primary/30 via-primary/10 to-transparent">
-          {link.image_url ? (
-            <img src={link.image_url} alt="" className="h-full w-full object-cover" />
-          ) : (
-            <div className="absolute inset-0 grid place-items-center">
-              <LinkIcon className="h-10 w-10 text-primary/40" />
+      <div className="space-y-3 p-5">
+        <div>
+          <div className="flex items-start justify-between gap-2">
+            <h3 className="font-bold leading-tight">{link.title}</h3>
+            <Switch checked={link.active} onCheckedChange={onToggle} />
+          </div>
+          {link.invoice_number && (
+            <div className="mt-1 inline-flex items-center gap-1 text-[11px] font-mono text-muted-foreground">
+              <Hash className="h-3 w-3" /> {link.invoice_number}
             </div>
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-card via-card/20 to-transparent" />
-          <div className="absolute right-3 top-3 flex items-center gap-2">
-            <Badge variant={link.active ? "default" : "secondary"} className="backdrop-blur">
-              {link.active ? "Actif" : "Inactif"}
-            </Badge>
-          </div>
         </div>
 
-        <div className="space-y-3 p-5">
-          <div>
-            <div className="flex items-start justify-between gap-2">
-              <h3 className="font-bold leading-tight">{link.title}</h3>
-              <Switch checked={link.active} onCheckedChange={onToggle} />
-            </div>
-            {link.invoice_number && (
-              <div className="mt-1 inline-flex items-center gap-1 text-[11px] font-mono text-muted-foreground">
-                <Hash className="h-3 w-3" /> {link.invoice_number}
-              </div>
-            )}
-          </div>
+        <div className="flex items-baseline gap-1">
+          <span className="text-2xl font-black tracking-tight">{amount}</span>
+          <span className="text-sm text-muted-foreground">{sym}</span>
+        </div>
 
-          <div className="flex items-baseline gap-1">
-            <span className="text-2xl font-black tracking-tight">{amount}</span>
-            <span className="text-sm text-muted-foreground">{sym}</span>
-            <span className="ml-auto text-[10px] font-semibold uppercase text-muted-foreground">
-              Frais: {link.fees_paid_by === "customer" ? "Client" : "Vous"}
-            </span>
-          </div>
+        {/* Revenue stats */}
+        <div className="flex items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-3 py-1.5">
+          <TrendingUp className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+          <span className="text-xs font-semibold text-emerald-300">{revenue} {sym} collectés</span>
+          <span className="ml-auto text-[10px] text-muted-foreground">{link.tx_count ?? 0} paiements</span>
+        </div>
 
-          <div className="flex items-center gap-2 rounded-xl border border-border/60 bg-background/60 px-3 py-2 backdrop-blur">
-            <LinkIcon className="h-3.5 w-3.5 shrink-0 text-primary" />
-            <span className="truncate font-mono text-[11px] text-muted-foreground">{url}</span>
-          </div>
+        <div className="flex items-center gap-2 rounded-xl border border-border/60 bg-background/60 px-3 py-2 backdrop-blur">
+          <LinkIcon className="h-3.5 w-3.5 shrink-0 text-primary" />
+          <span className="truncate font-mono text-[11px] text-muted-foreground">{url}</span>
+        </div>
 
-          <div className="grid grid-cols-3 gap-2">
-            <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(url); toast.success("Lien copié"); }}>
-              <Copy className="h-3 w-3" />
-            </Button>
-            <Button size="sm" variant="outline" onClick={onPreview}>
-              <Eye className="h-3 w-3" />
-            </Button>
-            <Button size="sm" variant="outline" asChild>
-              <a href={url} target="_blank" rel="noreferrer"><ExternalLink className="h-3 w-3" /></a>
-            </Button>
-          </div>
+        <div className="grid grid-cols-4 gap-1.5">
+          <Button size="sm" variant="outline" onClick={() => { navigator.clipboard.writeText(url); toast.success("Lien copié !"); }} title="Copier">
+            <Copy className="h-3 w-3" />
+          </Button>
+          <Button size="sm" variant="outline" onClick={onPreview} title="QR Code">
+            <Eye className="h-3 w-3" />
+          </Button>
+          <Button size="sm" variant="outline" onClick={onEdit} title="Modifier">
+            <Pencil className="h-3 w-3" />
+          </Button>
+          <Button size="sm" variant="outline" asChild title="Ouvrir">
+            <a href={url} target="_blank" rel="noreferrer"><ExternalLink className="h-3 w-3" /></a>
+          </Button>
         </div>
       </div>
     </Card>
   );
 }
 
-function CreateLinkDialog({ onClose }: { onClose: () => void }) {
+// ─── Form Dialog (Create + Edit) ──────────────────────────────────────────────
+function LinkFormDialog({ link, onClose }: { link?: PL; onClose: () => void }) {
   const qc = useQueryClient();
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [amount, setAmount] = useState("");
-  const [currency, setCurrency] = useState<Currency>("XOF");
-  const [imageUrl, setImageUrl] = useState("");
-  const [invoiceNumber, setInvoiceNumber] = useState("");
-  const [feesPaidBy, setFeesPaidBy] = useState<FeesPaidBy>("merchant");
-  const [successUrl, setSuccessUrl] = useState("");
-  const [failureUrl, setFailureUrl] = useState("");
-  const [thankYou, setThankYou] = useState("");
+  const isEdit = !!link;
 
-  const create = useMutation({
+  const [title, setTitle] = useState(link?.title ?? "");
+  const [description, setDescription] = useState(link?.description ?? "");
+  const [amount, setAmount] = useState(link?.amount?.toString() ?? "");
+  const [currency, setCurrency] = useState<Currency>(link?.currency ?? "XOF");
+  const [imageUrl, setImageUrl] = useState(link?.image_url ?? "");
+  const [invoiceNumber, setInvoiceNumber] = useState(link?.invoice_number ?? "");
+  const [feesPaidBy, setFeesPaidBy] = useState<FeesPaidBy>(link?.fees_paid_by ?? "merchant");
+  const [successUrl, setSuccessUrl] = useState(link?.success_url ?? "");
+  const [failureUrl, setFailureUrl] = useState(link?.failure_url ?? "");
+  const [thankYou, setThankYou] = useState(link?.thank_you_message ?? "");
+
+  const validUrl = (s: string) => {
+    if (!s.trim()) return null;
+    try { return new URL(s.trim()).toString(); } catch { throw new Error("URL invalide"); }
+  };
+
+  const save = useMutation({
     mutationFn: async () => {
-      const { data: u } = await supabase.auth.getUser();
-      if (!u.user) throw new Error("Non connecté");
-      const slug = Math.random().toString(36).slice(2, 10);
-      const validUrl = (s: string) => {
-        if (!s.trim()) return null;
-        try { return new URL(s.trim()).toString(); } catch { throw new Error("URL invalide"); }
-      };
-      const { error } = await supabase.from("payment_links").insert({
-        profile_id: u.user.id,
+      const payload = {
         title: title.trim(),
         description: description.trim() || null,
         amount: Number(amount),
         currency,
-        slug,
         image_url: imageUrl || null,
         invoice_number: invoiceNumber.trim() || null,
         fees_paid_by: feesPaidBy,
         success_url: validUrl(successUrl),
         failure_url: validUrl(failureUrl),
         thank_you_message: thankYou.trim() || null,
-      });
-      if (error) throw error;
+      };
+      if (isEdit) {
+        const { error } = await supabase.from("payment_links").update(payload).eq("id", link.id);
+        if (error) throw error;
+      } else {
+        const { data: u } = await supabase.auth.getUser();
+        if (!u.user) throw new Error("Non connecté");
+        const slug = Math.random().toString(36).slice(2, 10);
+        const { error } = await supabase.from("payment_links").insert({
+          ...payload,
+          profile_id: u.user.id,
+          slug,
+        });
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
-      toast.success("Lien créé avec succès");
+      toast.success(isEdit ? "Lien mis à jour ✓" : "Lien créé avec succès ✓");
       qc.invalidateQueries({ queryKey: ["my-payment-links"] });
       onClose();
     },
@@ -359,11 +472,12 @@ function CreateLinkDialog({ onClose }: { onClose: () => void }) {
     <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto border-white/10 bg-card/90 backdrop-blur-2xl">
       <DialogHeader>
         <DialogTitle className="flex items-center gap-2 text-2xl">
-          <Sparkles className="h-5 w-5 text-primary" /> Nouveau lien de paiement
+          {isEdit ? <Pencil className="h-5 w-5 text-primary" /> : <Sparkles className="h-5 w-5 text-primary" />}
+          {isEdit ? "Modifier le lien" : "Nouveau lien de paiement"}
         </DialogTitle>
       </DialogHeader>
       <form
-        onSubmit={(e) => { e.preventDefault(); create.mutate(); }}
+        onSubmit={(e) => { e.preventDefault(); save.mutate(); }}
         className="space-y-5"
       >
         <Section icon={Receipt} title="Informations principales">
@@ -436,7 +550,6 @@ function CreateLinkDialog({ onClose }: { onClose: () => void }) {
           <ImageUploader value={imageUrl} onChange={setImageUrl} />
         </Section>
 
-
         <Section icon={ArrowRight} title="Redirection après paiement">
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
@@ -462,8 +575,9 @@ function CreateLinkDialog({ onClose }: { onClose: () => void }) {
 
         <div className="sticky bottom-0 -mx-6 -mb-6 flex gap-3 border-t border-border bg-card/95 px-6 py-4 backdrop-blur">
           <Button type="button" variant="outline" onClick={onClose} className="flex-1">Annuler</Button>
-          <Button type="submit" disabled={create.isPending} className="flex-1 gap-2">
-            <CheckCircle2 className="h-4 w-4" /> Créer le lien
+          <Button type="submit" disabled={save.isPending} className="flex-1 gap-2">
+            <CheckCircle2 className="h-4 w-4" />
+            {save.isPending ? "Enregistrement…" : isEdit ? "Sauvegarder" : "Créer le lien"}
           </Button>
         </div>
       </form>

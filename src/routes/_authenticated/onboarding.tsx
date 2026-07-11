@@ -131,55 +131,41 @@ function OnboardingPage() {
 
       // 3. Enterprise business row
       if (accountType === "enterprise") {
-        const primary = reps.find((r) => r.verified) ?? reps[0];
-        const [pFirst, ...pRest] = (primary?.full_name ?? "").trim().split(/\s+/);
-        const pLast = pRest.join(" ");
-        const { data: bizData, error: bErr } = await supabase.from("businesses").upsert({
-          profile_id: uid,
-          company_name: companyName,
-          address: hqAddress,
-          city: hqCity,
-          country: hqCountry,
-          hq_country: hqCountry,
-          registration_number: regNum,
-          tax_id: taxId,
-          kyb_status: "under_review",
-          kyb_submitted_at: new Date().toISOString()
-        } as never, { onConflict: "profile_id" }).select("id").maybeSingle();
-        if (bErr) throw bErr;
-
-        const bizId = bizData?.id;
-
-        // 4. Persist UBOs into business_ubos table
-        if (bizId && ubos.length) {
-          const validUbos = ubos.filter((u) => u.name.trim()).map((u) => ({
-            business_id: bizId,
+        // Format UBOs as JSON
+        const validUbos = ubos
+          .filter((u) => u.name.trim())
+          .map((u) => ({
             full_name: u.name,
             percentage: Number(u.share) || 0,
             nationality: u.nationality || "Béninoise",
             didit_status: "unverified",
             didit_aml_status: "clear"
           }));
-          if (validUbos.length) {
-            await supabase.from("business_ubos").insert(validUbos as never);
-          }
-        }
 
-        // 5. Persist verified representatives
+        const { data: bizData, error: bErr } = await supabase.from("businesses").upsert({
+          profile_id: uid,
+          company_name: companyName,
+          headquarters_address: hqAddress,
+          hq_city: hqCity,
+          hq_country: hqCountry,
+          registration_number: regNum,
+          tax_id: taxId,
+          ubos: validUbos as any,
+        }, { onConflict: "profile_id" }).select("id").maybeSingle();
+        if (bErr) throw bErr;
+
+        // 4. Persist verified representatives
         if (reps.length) {
           const rows = reps.map((r) => ({
-            business_id: bizId,
-            first_name: r.full_name.split(" ")[0],
-            last_name: r.full_name.split(" ").slice(1).join(" ") || "—",
-            job_title: r.title,
+            profile_id: uid,
+            full_name: r.full_name,
+            title: r.title,
             email: r.email,
+            verified: r.verified,
+            verified_at: r.verified ? new Date().toISOString() : null,
             didit_status: r.verified ? "Approved" : "unverified",
-            didit_liveness_status: r.verified ? "passed" : "unverified",
-            didit_aml_status: r.verified ? "clear" : "unverified",
-            didit_score: r.verified ? 98.5 : null,
-            didit_verified_at: r.verified ? new Date().toISOString() : null
           }));
-          const { error: rErr } = await supabase.from("business_representatives").insert(rows as never);
+          const { error: rErr } = await supabase.from("business_representatives").insert(rows);
           if (rErr) throw rErr;
         }
       }

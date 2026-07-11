@@ -81,7 +81,7 @@ export const Route = createFileRoute("/api/public/pay/$slug")({
             type: "payment_link",
             status: "pending",
             idempotency_key: idemKey,
-            description: `${link.title} · ${parsed.data.customer_name} · ${parsed.data.provider} ${parsed.data.customer_phone}`,
+            description: `[${params.slug}] ${link.title} · ${parsed.data.customer_name} · ${parsed.data.provider} ${parsed.data.customer_phone}`,
           })
           .select("id")
           .single();

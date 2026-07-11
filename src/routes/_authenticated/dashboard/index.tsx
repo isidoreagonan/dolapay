@@ -27,6 +27,31 @@ type Tx = {
   status: string;
   type: string;
   created_at: string;
+  description?: string | null;
+};
+
+// Utilitaire d'extraction des métadonnées stockées dans la description
+const parseTxDetails = (description: string | null | undefined, type: string) => {
+  const desc = description || "";
+  let providerName = type.replace("_", " ");
+  let phone = "";
+  
+  if (desc.startsWith("[API_CHARGE]")) {
+    const match = desc.match(/^\[API_CHARGE\] ([^\s·]+)(?: · ([^\s·]+))?/);
+    if (match) {
+      if (match[1]) providerName = match[1];
+      if (match[2]) phone = match[2];
+    }
+  } else if (desc.includes(" · ")) {
+    const parts = desc.split(" · ");
+    const lastPart = parts[parts.length - 1];
+    if (lastPart) {
+      const subparts = lastPart.trim().split(/\s+/);
+      if (subparts[0]) providerName = subparts[0];
+      if (subparts[1]) phone = subparts[1];
+    }
+  }
+  return { providerName, phone };
 };
 
 const PERIOD_DAYS = 30;
@@ -49,7 +74,7 @@ function Overview() {
       since.setDate(since.getDate() - PERIOD_DAYS * 2);
       const { data, error } = await supabase
         .from("transactions")
-        .select("id,amount,currency,status,type,created_at")
+        .select("id,amount,currency,status,type,created_at,description")
         .gte("created_at", since.toISOString())
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -101,10 +126,11 @@ function Overview() {
     };
   });
 
-  // Top types (proxy for top channels until provider field is added)
+  // Top opérateurs (Mobile Money ou canal)
   const typeMap = new Map<string, number>();
   successful.forEach((t) => {
-    const p = t.type || "Autre";
+    const { providerName } = parseTxDetails(t.description, t.type);
+    const p = providerName || "Autre";
     typeMap.set(p, (typeMap.get(p) || 0) + Number(t.amount));
   });
   const topProviders = Array.from(typeMap.entries())
@@ -195,21 +221,60 @@ function Overview() {
           </div>
         </Card>
 
-        <Card className="p-6">
-          <div className="mb-3 flex items-center gap-2 text-sm font-semibold"><ArrowDownRight className="h-4 w-4 text-emerald-500" /> Dernières transactions</div>
-          <ul className="space-y-2 text-sm">
-            {current.slice(0, 6).map((t) => (
-              <li key={t.id} className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
-                <span className="capitalize">{t.type}</span>
-                <span className="font-mono">{fmt(Number(t.amount))} {t.currency}</span>
-              </li>
-            ))}
-            {current.length === 0 && (
-              <li className="text-muted-foreground">
-                Aucune transaction. <Link to="/dashboard/payment-links" className="text-primary underline">Créez votre premier lien</Link>.
-              </li>
-            )}
-          </ul>
+        <Card className="p-6 flex flex-col justify-between">
+          <div>
+            <div className="mb-3 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm font-semibold">
+                <ArrowDownRight className="h-4 w-4 text-emerald-500" /> Dernières transactions
+              </div>
+              <Link to="/dashboard/transactions" className="text-xs font-semibold text-primary hover:underline">
+                Tout voir →
+              </Link>
+            </div>
+            <ul className="space-y-2.5 text-sm">
+              {current.slice(0, 5).map((t) => {
+                const isSuccess = t.status === "success";
+                const isPayout = t.type === "pay-out";
+                const { providerName, phone } = parseTxDetails(t.description, t.type);
+                return (
+                  <li key={t.id} className="flex items-center justify-between rounded-xl border border-border/60 bg-background/50 px-3 py-2.5 transition-colors hover:bg-muted/40">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className={cn(
+                        "grid h-8 w-8 shrink-0 place-items-center rounded-lg text-xs font-bold",
+                        isSuccess ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-amber-500/10 text-amber-600"
+                      )}>
+                        {isPayout ? "-" : "+"}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-semibold text-xs uppercase truncate text-foreground">
+                            {providerName}
+                          </span>
+                          {phone && <span className="text-[11px] font-mono text-muted-foreground">({phone})</span>}
+                        </div>
+                        <div className="text-[10px] text-muted-foreground truncate max-w-[160px]">
+                          {t.description || new Date(t.created_at).toLocaleString("fr-FR")}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className={cn("font-mono font-bold text-xs", isPayout ? "text-rose-500" : "text-foreground")}>
+                        {isPayout ? "-" : "+"}{fmt(Number(t.amount))} {t.currency}
+                      </div>
+                      <div className="text-[9px] uppercase font-semibold text-muted-foreground">
+                        {t.status === "success" ? "Réussi" : t.status === "pending" ? "En attente" : "Échoué"}
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+              {current.length === 0 && (
+                <li className="text-center py-8 text-muted-foreground">
+                  Aucune transaction. <Link to="/dashboard/payment-links" className="text-primary underline">Créez votre premier lien</Link>.
+                </li>
+              )}
+            </ul>
+          </div>
         </Card>
       </div>
     </div>

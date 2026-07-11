@@ -63,22 +63,14 @@ function Merchant360() {
   });
 
   const { data: reps = [] } = useQuery({
-    queryKey: ["admin-merchant-reps", business?.id],
-    enabled: !!business?.id,
+    queryKey: ["admin-merchant-reps", id],
     queryFn: async () => {
-      const { data } = await supabase.from("business_representatives").select("*").eq("business_id", business!.id);
+      const { data } = await supabase.from("business_representatives").select("*").eq("profile_id", id);
       return data ?? [];
     },
   });
 
-  const { data: ubos = [] } = useQuery({
-    queryKey: ["admin-merchant-ubos", business?.id],
-    enabled: !!business?.id,
-    queryFn: async () => {
-      const { data } = await supabase.from("business_ubos").select("*").eq("business_id", business!.id);
-      return data ?? [];
-    },
-  });
+  const ubos = (business?.ubos as any[]) || [];
 
   const { data: kycDocs = [] } = useQuery({
     queryKey: ["admin-merchant-docs", id],
@@ -186,12 +178,12 @@ function Merchant360() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400">Statut IA Didit :</span>
+            <span className="text-xs text-slate-400">Statut KYC / KYB :</span>
             <span className={cn(
               "px-2.5 py-1 rounded-full text-xs font-semibold uppercase font-mono",
-              business?.didit_status === "Approved" ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" : "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+              profile?.kyc_status === "approved" ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" : "bg-amber-500/20 text-amber-300 border border-amber-500/30"
             )}>
-              {business?.didit_status || profile.kyc_status || "En attente"}
+              {profile?.kyc_status || "En attente"}
             </span>
           </div>
         </div>
@@ -202,7 +194,7 @@ function Merchant360() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-white/[0.02] p-4 rounded-lg border border-white/5 text-xs">
             <div>
               <span className="text-slate-500 block">Raison Sociale</span>
-              <span className="text-white font-medium">{business?.company_name || business?.legal_name || "—"}</span>
+              <span className="text-white font-medium">{business?.company_name || "—"}</span>
             </div>
             <div>
               <span className="text-slate-500 block">N° RCCM / Registre</span>
@@ -214,7 +206,11 @@ function Merchant360() {
             </div>
             <div>
               <span className="text-slate-500 block">Siège Social</span>
-              <span className="text-white">{business?.address ? `${business.address}, ${business.city} (${business.country})` : "—"}</span>
+              <span className="text-white">
+                {business?.headquarters_address 
+                  ? `${business.headquarters_address}${business.hq_city ? `, ${business.hq_city}` : ""}${business.hq_country ? ` (${business.hq_country})` : ""}`
+                  : "—"}
+              </span>
             </div>
           </div>
         </div>

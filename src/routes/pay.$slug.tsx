@@ -29,7 +29,14 @@ type Link = {
 };
 type TxStatus = "pending" | "success" | "failed";
 
-const PROVIDERS = ["MTN", "MOOV", "Orange", "Wave", "Airtel", "M-PESA"];
+const ALL_PROVIDERS = [
+  { id: "Orange", label: "Orange Money", badge: "ORANGE" },
+  { id: "MTN", label: "MTN MoMo", badge: "MTN" },
+  { id: "MOOV", label: "Moov Money", badge: "MOOV" },
+  { id: "Wave", label: "Wave", badge: "WAVE" },
+  { id: "Telecel", label: "Telecel", badge: "TELECEL" },
+  { id: "Airtel", label: "Airtel Money", badge: "AIRTEL" },
+];
 
 function PayPage() {
   const { slug } = Route.useParams();
@@ -51,8 +58,31 @@ function PayPage() {
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [provider, setProvider] = useState("MTN");
+  const [provider, setProvider] = useState("Orange");
+  const [userSelectedProvider, setUserSelectedProvider] = useState(false);
   const [txId, setTxId] = useState<string | null>(null);
+
+  // Auto-detect operator when phone changes if user hasn't manually clicked an operator button
+  useEffect(() => {
+    if (userSelectedProvider || !phone) return;
+    const clean = phone.replace(/\D/g, "");
+    if (clean.startsWith("226") || (clean.length === 8 && !clean.startsWith("2"))) {
+      if (/^2267[0145678]/.test(clean) || /^7[0145678]/.test(clean)) setProvider("Orange");
+      else if (/^2266[0123]/.test(clean) || /^6[0123]/.test(clean)) setProvider("MOOV");
+      else if (/^2265[89]/.test(clean) || /^5[89]/.test(clean)) setProvider("Telecel");
+    } else if (clean.startsWith("225") || (clean.length === 10 && /^[0157]/.test(clean))) {
+      if (/^22507/.test(clean) || /^07/.test(clean)) setProvider("Orange");
+      else if (/^22505/.test(clean) || /^05/.test(clean)) setProvider("MTN");
+      else if (/^22501/.test(clean) || /^01/.test(clean)) setProvider("MOOV");
+      else if (/^22506/.test(clean) || /^06/.test(clean)) setProvider("Wave");
+    } else if (clean.startsWith("221") || (clean.length === 9 && /^7[05678]/.test(clean))) {
+      if (/^2217[78]/.test(clean) || /^7[78]/.test(clean)) setProvider("Orange");
+      else if (/^22176/.test(clean) || /^76/.test(clean)) setProvider("Wave");
+    } else if (clean.startsWith("229")) {
+      if (/^229(61|62|66|67|69|90|91|96|97)/.test(clean)) setProvider("MTN");
+      else setProvider("MOOV");
+    }
+  }, [phone, userSelectedProvider]);
   const [status, setStatus] = useState<TxStatus | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [idemKey] = useState(() => crypto.randomUUID());
@@ -191,24 +221,32 @@ function PayPage() {
                   <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} required maxLength={20} placeholder="+229 ..." />
                 </div>
                 <div>
-                  <Label>Opérateur</Label>
-                  <div className="mt-1 grid grid-cols-3 gap-2">
-                    {PROVIDERS.map((p) => (
-                      <button
-                        key={p}
-                        type="button"
-                        onClick={() => setProvider(p)}
-                        className={cn(
-                          "rounded-xl border px-3 py-2 text-xs font-semibold transition-colors",
-                          provider === p
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-border hover:bg-accent",
-                        )}
-                      >
-                        <Smartphone className="mx-auto mb-1 h-4 w-4" />
-                        {p}
-                      </button>
-                    ))}
+                  <div className="flex items-center justify-between">
+                    <Label>Opérateur Mobile Money</Label>
+                    <span className="text-[10px] font-semibold text-primary/80 uppercase">
+                      Détection automatique
+                    </span>
+                  </div>
+                  <div className="mt-1.5 grid grid-cols-3 gap-2">
+                    {ALL_PROVIDERS.map((p) => {
+                      const active = provider === p.id;
+                      return (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => { setProvider(p.id); setUserSelectedProvider(true); }}
+                          className={cn(
+                            "rounded-xl border px-3 py-2.5 text-xs font-semibold transition-all flex flex-col items-center justify-center gap-1",
+                            active
+                              ? "border-primary bg-primary/10 text-primary ring-2 ring-primary/30 shadow-sm"
+                              : "border-border/80 bg-background/50 hover:border-primary/50 hover:bg-accent/40 text-muted-foreground hover:text-foreground",
+                          )}
+                        >
+                          <Smartphone className={cn("h-4 w-4", active ? "text-primary" : "text-muted-foreground")} />
+                          <span>{p.label}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
                 <Button type="submit" className="w-full" size="lg" disabled={submitting}>

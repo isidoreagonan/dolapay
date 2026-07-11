@@ -1,15 +1,33 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type { PawaPayWebhookPayload } from "@/lib/pawapay.server";
+import crypto from "node:crypto";
 
 export const Route = createFileRoute("/api/public/pawapay-webhook")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        let rawBody: string;
         let payload: PawaPayWebhookPayload;
         try {
-          payload = await request.json();
+          rawBody = await request.text();
+          payload = JSON.parse(rawBody);
         } catch {
           return Response.json({ error: "Invalid JSON" }, { status: 400 });
+        }
+
+        // Vérification de signature HMAC PawaPay (si configurée en variable d'environnement)
+        const secret = process.env.PAWAPAY_WEBHOOK_SECRET;
+        if (secret) {
+          const sigHeader = request.headers.get("x-pawapay-signature") || request.headers.get("x-signature");
+          if (!sigHeader) {
+            console.warn("[PawaPay Webhook] Rejeté: En-tête de signature manquant.");
+            return Response.json({ error: "Signature manquante" }, { status: 401 });
+          }
+          const expectedSig = crypto.createHmac("sha256", secret).update(rawBody).digest("hex");
+          if (sigHeader.toLowerCase() !== expectedSig.toLowerCase()) {
+            console.warn("[PawaPay Webhook] Rejeté: Signature invalide.");
+            return Response.json({ error: "Signature invalide" }, { status: 403 });
+          }
         }
 
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -26,17 +44,10 @@ export const Route = createFileRoute("/api/public/pawapay-webhook")({
             .maybeSingle();
 
           if (tx && tx.status !== "success") {
-            const amount = Number(tx.amount || payload.amount || 0);
-            // Calcul des frais DolaPay (2% standard)
-            const feeAmount = Math.round(amount * 0.02);
-            const netAmount = amount - feeAmount;
-
             await supabaseAdmin
               .from("transactions")
               .update({
                 status: newStatus,
-                fee_amount: feeAmount,
-                net_amount: netAmount,
               })
               .eq("id", payload.depositId);
           }
@@ -50,7 +61,7 @@ export const Route = createFileRoute("/api/public/pawapay-webhook")({
             .from("payout_batch_items")
             .update({
               status: newStatus,
-              error_message: payload.failureReason?.failureMessage || null,
+              error: payload.failureReason?.failureMessage || null,
             })
             .eq("id", payload.payoutId);
 
@@ -71,7 +82,7 @@ export const Route = createFileRoute("/api/public/pawapay-webhook")({
               const allSuccess = items.every((i) => i.status === "success");
               await supabaseAdmin
                 .from("payout_batches")
-                .update({ status: allSuccess ? "completed" : "completed_with_errors" })
+                .update({ status: allSuccess ? "completed" : "failed" })
                 .eq("id", item.batch_id);
             }
           }

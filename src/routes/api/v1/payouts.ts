@@ -53,14 +53,11 @@ export const Route = createFileRoute("/api/v1/payouts")({
           .from("payout_batches")
           .insert({
             owner_id: auth.profile_id,
-            profile_id: auth.profile_id,
-            name: reference || `Payout API (${auth.prefix})`,
-            reference: reference || `po_${Date.now()}`,
+            name: `[${correspondent}] ${reference || 'Payout API'} (${auth.prefix})`,
             total_amount: amount,
             currency,
             total_count: 1,
             status: "processing",
-            provider: correspondent,
           })
           .select("id, created_at")
           .single();
@@ -74,6 +71,7 @@ export const Route = createFileRoute("/api/v1/payouts")({
           .insert({
             batch_id: batch.id,
             recipient_phone,
+            recipient_name: recipient_phone, // recipient_name is required in schema
             amount,
             currency,
             provider: correspondent,

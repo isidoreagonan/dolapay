@@ -6,7 +6,7 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const ChargeBody = z.object({
   amount: z.number().int().positive("Le montant doit être un entier positif"),
-  currency: z.string().default("XOF"),
+  currency: z.enum(["XOF", "XAF", "USD"]).default("XOF"),
   customer_phone: z.string().min(8, "Numéro de téléphone invalide"),
   provider: z.string().default("Orange"),
   metadata: z.record(z.unknown()).optional(),
@@ -56,14 +56,11 @@ export const Route = createFileRoute("/api/v1/charges")({
           .from("transactions")
           .insert({
             profile_id: auth.profile_id,
-            merchant_id: auth.profile_id,
             amount,
             currency,
-            type: "api_charge",
+            type: "pay-in",
             status: "pending",
-            payment_method: correspondent,
-            customer_phone,
-            description: description || `Encaissement API (${auth.prefix})`,
+            description: `[API_CHARGE] ${correspondent} · ${customer_phone} · ${description || 'Encaissement API'}`,
           })
           .select("id, created_at")
           .single();
