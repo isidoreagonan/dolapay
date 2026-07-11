@@ -201,6 +201,7 @@ function PayPage() {
   const [idemKey] = useState(() => crypto.randomUUID());
   const [redirectUrls, setRedirectUrls] = useState<{ success_url?: string | null; failure_url?: string | null }>({});
   const [redirectCountdown, setRedirectCountdown] = useState<number | null>(null);
+  const [failureReason, setFailureReason] = useState<{ code: string; message: string } | null>(null);
 
   const activeCountry = useMemo(() => {
     return COUNTRIES.find((c) => c.code === selectedCountryCode) || COUNTRIES[0];
@@ -289,9 +290,12 @@ function PayPage() {
       try {
         const res = await fetch(`/api/public/tx-status/${txId}`, { cache: "no-store" });
         if (!res.ok) return;
-        const json = (await res.json()) as { status?: TxStatus };
+        const json = (await res.json()) as { status?: TxStatus; failure_reason?: { code: string; message: string } | null };
         if (json?.status) {
           setStatus(json.status);
+          if (json.failure_reason) {
+            setFailureReason(json.failure_reason);
+          }
           if (json.status === "success" || json.status === "failed") {
             clearInterval(poll);
           }
@@ -649,6 +653,7 @@ function PayPage() {
               currency={link.currency}
               countdown={redirectCountdown}
               thankYou={link.thank_you_message}
+              failureReason={failureReason}
             />
           )}
         </div>
@@ -668,7 +673,7 @@ function PayPage() {
   );
 }
 
-function StatusView({ status, amount, currency, countdown, thankYou }: { status: TxStatus; amount: number; currency: string; countdown: number | null; thankYou: string | null }) {
+function StatusView({ status, amount, currency, countdown, thankYou, failureReason }: { status: TxStatus; amount: number; currency: string; countdown: number | null; thankYou: string | null; failureReason: { code: string; message: string } | null }) {
   if (status === "pending") {
     return (
       <div className="py-8 text-center space-y-4">
@@ -704,16 +709,34 @@ function StatusView({ status, amount, currency, countdown, thankYou }: { status:
   return (
     <div className="py-8 text-center space-y-4">
       <XCircle className="mx-auto h-14 w-14 text-rose-500" />
-      <div>
+      <div className="space-y-2">
         <h2 className="text-lg font-bold text-slate-900 dark:text-white">Paiement échoué</h2>
-        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-          La transaction a été rejetée ou a expiré. Veuillez réessayer.
+        <p className="mt-1 text-xs font-semibold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/20 px-3.5 py-2 rounded-xl border border-rose-100 dark:border-rose-900/30 max-w-xs mx-auto">
+          {translateFailureCode(failureReason?.code)}
+        </p>
+        <p className="text-[11px] text-slate-400">
+          Veuillez réessayer avec un autre numéro ou vérifier vos fonds.
         </p>
       </div>
       {countdown !== null && <p className="mt-3 text-xs text-slate-400 italic">Redirection dans {countdown}s…</p>}
       <Button className="mt-4 rounded-xl px-5" variant="outline" onClick={() => window.location.reload()}>Réessayer</Button>
     </div>
   );
+}
+
+function translateFailureCode(code?: string): string {
+  if (!code) return "La transaction a été rejetée ou a expiré.";
+  const normalized = code.toUpperCase();
+  if (normalized.includes("FUNDS") || normalized.includes("BALANCE") || normalized.includes("INSUFFICIENT")) {
+    return "Solde insuffisant sur votre compte Mobile Money.";
+  }
+  if (normalized.includes("CANCEL") || normalized.includes("REJECT") || normalized.includes("DECLINE") || normalized.includes("ABORT")) {
+    return "Paiement annulé ou rejeté sur votre téléphone.";
+  }
+  if (normalized.includes("TIMEOUT") || normalized.includes("EXPIRE")) {
+    return "Délai de validation USSD dépassé.";
+  }
+  return `Transaction refusée (${code}).`;
 }
 
 function CenteredCard({ children }: { children: React.ReactNode }) {

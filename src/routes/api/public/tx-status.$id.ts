@@ -12,13 +12,25 @@ export const Route = createFileRoute("/api/public/tx-status/$id")({
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { data, error } = await supabaseAdmin
           .from("transactions")
-          .select("status")
+          .select("status, description")
           .eq("id", params.id)
           .maybeSingle();
         if (error) return Response.json({ error: "Server error" }, { status: 500 });
         if (!data) return Response.json({ error: "Not found" }, { status: 404 });
+
+        let failureReason = null;
+        if (data.description && data.description.includes("[Échec]")) {
+          const match = data.description.match(/\[Échec\]\s*([^:]+):?\s*(.*)/);
+          if (match) {
+            failureReason = {
+              code: match[1]?.trim(),
+              message: match[2]?.trim(),
+            };
+          }
+        }
+
         return Response.json(
-          { status: data.status },
+          { status: data.status, failure_reason: failureReason },
           { headers: { "Cache-Control": "no-store" } },
         );
       },

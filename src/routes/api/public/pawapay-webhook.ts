@@ -39,16 +39,23 @@ export const Route = createFileRoute("/api/public/pawapay-webhook")({
           // Récupérer la transaction existante pour recalculer net/frais si nécessaire
           const { data: tx } = await supabaseAdmin
             .from("transactions")
-            .select("id, amount, profile_id, status")
+            .select("id, amount, profile_id, status, description")
             .eq("id", payload.depositId)
             .maybeSingle();
 
           if (tx && tx.status !== "success") {
+            const failureCode = payload.failureReason?.failureCode || "";
+            const failureMessage = payload.failureReason?.failureMessage || "";
+            const extraDesc = failureCode 
+              ? ` · [Échec] ${failureCode}: ${failureMessage}`
+              : "";
+
             await supabaseAdmin
               .from("transactions")
               .update({
                 status: newStatus,
-              })
+                description: tx.description ? tx.description + extraDesc : extraDesc,
+              } as any)
               .eq("id", payload.depositId);
           }
         }
