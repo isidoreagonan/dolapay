@@ -444,7 +444,7 @@ function PayPage() {
             </p>
           </div>
 
-          {!txId ? (
+          {!txId && !submitting ? (
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Email Address */}
               <div className="space-y-1.5">
