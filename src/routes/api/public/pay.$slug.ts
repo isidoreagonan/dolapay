@@ -96,6 +96,7 @@ export const Route = createFileRoute("/api/public/pay/$slug")({
 
           // Handle duplicate-key race (unique partial index on (profile_id, idempotency_key))
           if (txErr) {
+            console.error("Postgres transactions insert failed:", txErr);
             const isDup = (txErr as { code?: string }).code === "23505";
             if (isDup) {
               const { data: again } = await supabaseAdmin
@@ -114,7 +115,7 @@ export const Route = createFileRoute("/api/public/pay/$slug")({
                 });
               }
             }
-            return Response.json({ error: "Échec de création" }, { status: 500 });
+            return Response.json({ error: `Échec de création (${txErr.code || 'unknown'}): ${txErr.message}` }, { status: 500 });
           }
 
           // Déclenchement de la collecte PawaPay (USSD Mobile Money)
