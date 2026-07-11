@@ -1,12 +1,12 @@
-// 🔑 Remplacez par votre clé de test générée sur le Dashboard
-const API_KEY = "dp_test_90a2daec99c6440089fbe6581535dcb2"; 
+// 🔑 Clé LIVE : ce test va déclencher un VRAI débit sur votre téléphone !
+const API_KEY = "dp_live_02daffd5a441422c94917522760025aa";
 const API_URL = "https://dola-pay.com/api/v1/charges";
 
 async function testerPaiement() {
   const payload = {
     amount: 100,
     currency: "XOF",
-    customer_phone: "22997000000", // Mettez un vrai numéro MTN Bénin ici
+    customer_phone: "2290157385885", // Mettez un vrai numéro MTN Bénin ici
     provider: "MTN",
     description: "Test de paiement API DolaPay"
   };
@@ -24,7 +24,7 @@ async function testerPaiement() {
     });
 
     const data = await response.json();
-    
+
     if (!response.ok) {
       console.error("❌ Erreur de l'API DolaPay :", data);
     } else {
