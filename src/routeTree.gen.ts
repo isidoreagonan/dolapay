@@ -33,6 +33,7 @@ import { Route as AuthenticatedDashboardRouteRouteImport } from './routes/_authe
 import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard/index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
+import { Route as ApiWebhooksDiditRouteImport } from './routes/api/webhooks/didit'
 import { Route as ApiV1PayoutsRouteImport } from './routes/api/v1/payouts'
 import { Route as ApiV1ChargesRouteImport } from './routes/api/v1/charges'
 import { Route as ApiPublicPawapayWebhookRouteImport } from './routes/api/public/pawapay-webhook'
@@ -178,6 +179,11 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
+} as any)
+const ApiWebhooksDiditRoute = ApiWebhooksDiditRouteImport.update({
+  id: '/api/webhooks/didit',
+  path: '/api/webhooks/didit',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiV1PayoutsRoute = ApiV1PayoutsRouteImport.update({
   id: '/api/v1/payouts',
@@ -349,6 +355,7 @@ export interface FileRoutesByFullPath {
   '/api/public/pawapay-webhook': typeof ApiPublicPawapayWebhookRoute
   '/api/v1/charges': typeof ApiV1ChargesRouteWithChildren
   '/api/v1/payouts': typeof ApiV1PayoutsRoute
+  '/api/webhooks/didit': typeof ApiWebhooksDiditRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/admin/merchants/$id': typeof AuthenticatedAdminMerchantsIdRoute
@@ -395,6 +402,7 @@ export interface FileRoutesByTo {
   '/api/public/pawapay-webhook': typeof ApiPublicPawapayWebhookRoute
   '/api/v1/charges': typeof ApiV1ChargesRouteWithChildren
   '/api/v1/payouts': typeof ApiV1PayoutsRoute
+  '/api/webhooks/didit': typeof ApiWebhooksDiditRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/admin/merchants/$id': typeof AuthenticatedAdminMerchantsIdRoute
@@ -445,6 +453,7 @@ export interface FileRoutesById {
   '/api/public/pawapay-webhook': typeof ApiPublicPawapayWebhookRoute
   '/api/v1/charges': typeof ApiV1ChargesRouteWithChildren
   '/api/v1/payouts': typeof ApiV1PayoutsRoute
+  '/api/webhooks/didit': typeof ApiWebhooksDiditRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/_authenticated/admin/merchants/$id': typeof AuthenticatedAdminMerchantsIdRoute
@@ -495,6 +504,7 @@ export interface FileRouteTypes {
     | '/api/public/pawapay-webhook'
     | '/api/v1/charges'
     | '/api/v1/payouts'
+    | '/api/webhooks/didit'
     | '/admin/'
     | '/dashboard/'
     | '/admin/merchants/$id'
@@ -541,6 +551,7 @@ export interface FileRouteTypes {
     | '/api/public/pawapay-webhook'
     | '/api/v1/charges'
     | '/api/v1/payouts'
+    | '/api/webhooks/didit'
     | '/admin'
     | '/dashboard'
     | '/admin/merchants/$id'
@@ -590,6 +601,7 @@ export interface FileRouteTypes {
     | '/api/public/pawapay-webhook'
     | '/api/v1/charges'
     | '/api/v1/payouts'
+    | '/api/webhooks/didit'
     | '/_authenticated/admin/'
     | '/_authenticated/dashboard/'
     | '/_authenticated/admin/merchants/$id'
@@ -622,6 +634,7 @@ export interface RootRouteChildren {
   ApiPublicPawapayWebhookRoute: typeof ApiPublicPawapayWebhookRoute
   ApiV1ChargesRoute: typeof ApiV1ChargesRouteWithChildren
   ApiV1PayoutsRoute: typeof ApiV1PayoutsRoute
+  ApiWebhooksDiditRoute: typeof ApiWebhooksDiditRoute
   ApiPublicPaySlugRoute: typeof ApiPublicPaySlugRoute
   ApiPublicTxStatusIdRoute: typeof ApiPublicTxStatusIdRoute
 }
@@ -795,6 +808,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/api/webhooks/didit': {
+      id: '/api/webhooks/didit'
+      path: '/api/webhooks/didit'
+      fullPath: '/api/webhooks/didit'
+      preLoaderRoute: typeof ApiWebhooksDiditRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/v1/payouts': {
       id: '/api/v1/payouts'
@@ -1087,6 +1107,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicPawapayWebhookRoute: ApiPublicPawapayWebhookRoute,
   ApiV1ChargesRoute: ApiV1ChargesRouteWithChildren,
   ApiV1PayoutsRoute: ApiV1PayoutsRoute,
+  ApiWebhooksDiditRoute: ApiWebhooksDiditRoute,
   ApiPublicPaySlugRoute: ApiPublicPaySlugRoute,
   ApiPublicTxStatusIdRoute: ApiPublicTxStatusIdRoute,
 }
