@@ -116,8 +116,7 @@ charge = dola.charges.create(
   "currency": "XOF",
   "operator": "mtn_benin",
   "customer_phone": "+22961000000"
-}`,961000000"
-}`,
+}`
   },
   {
     id: "retrieve",
