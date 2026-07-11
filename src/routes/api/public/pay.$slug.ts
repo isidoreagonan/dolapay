@@ -84,7 +84,12 @@ export const Route = createFileRoute("/api/public/pay/$slug")({
             status: "pending",
             idempotency_key: idemKey,
             description: `[${params.slug}] ${link.title} · ${parsed.data.customer_name}${emailInfo} · ${parsed.data.provider} ${parsed.data.customer_phone}`,
-          })
+            // Add required live DB columns
+            net_amount: link.amount,
+            merchant_id: link.profile_id,
+            customer_phone: parsed.data.customer_phone,
+            provider: parsed.data.provider,
+          } as any)
           .select("id")
           .single();
 

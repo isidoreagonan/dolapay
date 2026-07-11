@@ -61,7 +61,12 @@ export const Route = createFileRoute("/api/v1/charges")({
             type: "pay-in",
             status: "pending",
             description: `[API_CHARGE] ${correspondent} · ${customer_phone} · ${description || 'Encaissement API'}`,
-          })
+            // Add required live DB columns
+            net_amount: amount,
+            merchant_id: auth.profile_id,
+            customer_phone,
+            provider,
+          } as any)
           .select("id, created_at")
           .single();
 
