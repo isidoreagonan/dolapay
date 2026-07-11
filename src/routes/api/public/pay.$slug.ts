@@ -130,18 +130,33 @@ export const Route = createFileRoute("/api/public/pay/$slug")({
             });
 
             if (depositRes.status === "REJECTED") {
+              const extraDesc = " · [Échec] REJECTED: Paiement refusé par l'opérateur Mobile Money";
               await supabaseAdmin
                 .from("transactions")
-                .update({ status: "failed" })
+                .update({ 
+                  status: "failed",
+                  description: `[${params.slug}] ${link.title} · ${parsed.data.customer_name}${emailInfo} · ${parsed.data.provider} ${parsed.data.customer_phone}${extraDesc}`
+                } as any)
                 .eq("id", tx!.id);
               return Response.json(
                 { error: "Paiement refusé par l'opérateur Mobile Money" },
                 { status: 400 }
               );
             }
-          } catch (err) {
+          } catch (err: any) {
             console.error("Erreur PawaPay initDeposit:", err);
-            // On laisse pending si c'est une erreur réseau temporaire ou on bascule en failed
+            const extraDesc = ` · [Échec] API_ERROR: ${err.message || String(err)}`;
+            await supabaseAdmin
+              .from("transactions")
+              .update({ 
+                status: "failed",
+                description: `[${params.slug}] ${link.title} · ${parsed.data.customer_name}${emailInfo} · ${parsed.data.provider} ${parsed.data.customer_phone}${extraDesc}`
+              } as any)
+              .eq("id", tx!.id);
+            return Response.json(
+              { error: `Échec d'initiation PawaPay: ${err.message || String(err)}` },
+              { status: 400 }
+            );
           }
 
           return Response.json({
