@@ -455,8 +455,9 @@ function LinkFormDialog({ link, onClose }: { link?: PL; onClose: () => void }) {
         const { error } = await supabase.from("payment_links").insert({
           ...payload,
           profile_id: u.user.id,
+          merchant_id: u.user.id,
           slug,
-        });
+        } as any);
         if (error) throw error;
       }
     },
