@@ -38,7 +38,7 @@ export const Route = createFileRoute("/api/v1/charges")({
         const { amount, currency, customer_phone, provider, description } = parsed.data;
         const correspondent = getCorrespondentCode(provider);
 
-        // Si le merchant utilise la clé de test sandbox illustrative
+        // Si le merchant utilise la clé de test sandbox illustrative (sans compte)
         if (auth.is_test && auth.profile_id === "00000000-0000-0000-0000-000000000000") {
           return Response.json({
             id: `ch_${crypto.randomUUID().slice(0, 12)}`,
@@ -59,12 +59,11 @@ export const Route = createFileRoute("/api/v1/charges")({
             amount,
             currency,
             type: "pay-in",
-            status: "pending",
-            description: `[API_CHARGE] ${correspondent} · ${customer_phone} · ${description || 'Encaissement API'}`,
-            // Add required live DB columns
+            status: auth.is_test ? "success" : "pending", // Mode Test = Success immédiat
+            description: `[API_CHARGE${auth.is_test ? '_TEST' : ''}] ${correspondent} · ${customer_phone} · ${description || 'Encaissement API'}`,
             net_amount: amount,
             customer_phone,
-            provider: "pawapay",
+            provider: auth.is_test ? "sandbox" : "pawapay",
             payment_method: provider,
           } as any)
           .select("id, created_at")
@@ -74,26 +73,28 @@ export const Route = createFileRoute("/api/v1/charges")({
           return Response.json({ error: { code: "db_error", message: "Impossible de créer la transaction." } }, { status: 500 });
         }
 
-        // Appeler PawaPay
-        try {
-          const res = await pawapay.initiateDeposit({
-            depositId: tx.id,
-            amount,
-            currency,
-            phone: customer_phone,
-            provider,
-            description: description || `DolaPay API Charge`,
-          });
+        // Appeler PawaPay SEULEMENT si c'est une clé Live
+        if (!auth.is_test) {
+          try {
+            const res = await pawapay.initiateDeposit({
+              depositId: tx.id,
+              amount,
+              currency,
+              phone: customer_phone,
+              provider,
+              description: description || `DolaPay API Charge`,
+            });
 
-          if (res.status === "REJECTED") {
-            await supabaseAdmin.from("transactions").update({ status: "failed" }).eq("id", tx.id);
-            return Response.json(
-              { error: { code: "operator_rejected", message: res.rejectionReason?.rejectionMessage || "Rejeté par l'opérateur." } },
-              { status: 400 }
-            );
+            if (res.status === "REJECTED") {
+              await supabaseAdmin.from("transactions").update({ status: "failed" }).eq("id", tx.id);
+              return Response.json(
+                { error: { code: "operator_rejected", message: res.rejectionReason?.rejectionMessage || "Rejeté par l'opérateur." } },
+                { status: 400 }
+              );
+            }
+          } catch (err) {
+            console.error("PawaPay charge error:", err);
           }
-        } catch (err) {
-          console.error("PawaPay charge error:", err);
         }
 
         return Response.json({
