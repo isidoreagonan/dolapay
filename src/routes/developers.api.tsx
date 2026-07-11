@@ -1,4 +1,4 @@
-﻿import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -67,39 +67,47 @@ const endpoints: Endpoint[] = [
       { name: "amount", type: "integer", required: true, description: "Montant à encaisser dans l'unité principale de la devise." },
       { name: "currency", type: "string", required: true, description: "Devise ISO : XOF, XAF, KES, CDF, RWF, ZMW." },
       { name: "customer_phone", type: "string", required: true, description: "Numéro client au format international E.164." },
+      { name: "provider", type: "string", required: true, description: "Nom de l'opérateur (ex: MTN, Orange, Moov, Airtel, Vodacom)." },
+      { name: "description", type: "string", required: false, description: "Titre de la transaction visible par le client." },
       { name: "metadata", type: "object", required: false, description: "Références internes, identifiant commande ou contexte métier." },
     ],
     snippets: {
       curl: `curl -X POST https://api.dola-pay.com/v1/charges \\
-  -H "Authorization: Bearer test_sk_dola_xxxxxx" \\
+  -H "Authorization: Bearer dp_test_xxxxxx" \\
   -H "Content-Type: application/json" \\
   -d '{
     "amount": 5000,
     "currency": "XOF",
     "customer_phone": "+22961000000",
+    "provider": "MTN",
+    "description": "Paiement Commande #9K2",
     "metadata": { "order_id": "ord_9K2" }
   }'`,
       node: `import DolaPay from '@dolapay/node';
 
-const dola = new DolaPay(process.env.DOLAPAY_SECRET_KEY);
+const dola = new DolaPay(process.env.DOLAPAY_SECRET_KEY); // dp_test_...
 
 const charge = await dola.charges.create({
   amount: 5000,
   currency: 'XOF',
   customer_phone: '+22961000000',
+  provider: 'MTN',
+  description: 'Paiement Commande #9K2',
   metadata: { order_id: 'ord_9K2' },
 });`,
       python: `import os
 import dolapay
 
-dola = dolapay.Client(api_key=os.environ["DOLAPAY_SECRET_KEY"])
+dola = dolapay.Client(api_key=os.environ["DOLAPAY_SECRET_KEY"]) # dp_test_...
 
 charge = dola.charges.create(
     amount=5000,
     currency="XOF",
     customer_phone="+22961000000",
+    provider="MTN",
+    description="Paiement Commande #9K2",
     metadata={"order_id": "ord_9K2"},
-)`,
+)`
     },
     response: `{
   "id": "ch_01J2K8M2P9",
@@ -108,6 +116,7 @@ charge = dola.charges.create(
   "currency": "XOF",
   "operator": "mtn_benin",
   "customer_phone": "+22961000000"
+}`,961000000"
 }`,
   },
   {
@@ -125,7 +134,7 @@ charge = dola.charges.create(
     ],
     snippets: {
       curl: `curl https://api.dola-pay.com/v1/charges/ch_01J2K8M2P9 \\
-  -H "Authorization: Bearer test_sk_dola_xxxxxx"`,
+  -H "Authorization: Bearer dp_test_xxxxxx"`,
       node: `const charge = await dola.charges.retrieve('ch_01J2K8M2P9');`,
       python: `charge = dola.charges.retrieve("ch_01J2K8M2P9")`,
     },
@@ -155,7 +164,7 @@ charge = dola.charges.create(
     ],
     snippets: {
       curl: `curl -X POST https://api.dola-pay.com/v1/payouts \\
-  -H "Authorization: Bearer test_sk_dola_xxxxxx" \\
+  -H "Authorization: Bearer dp_test_xxxxxx" \\
   -H "Idempotency-Key: payout_2026_001" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -424,7 +433,7 @@ function ApiDocsPage() {
                 Ajoutez votre clé secrète dans l'en-tête Authorization. Utilisez les clés test pour vos intégrations sandbox et les clés live uniquement côté serveur.
               </p>
               <div className="mt-4 rounded-lg bg-[#0b1024] p-4 font-mono text-xs text-white/85 sm:text-[13px]">
-                <span className="text-white/45">Authorization:</span> <span className="text-emerald-300">Bearer</span> test_sk_dola_xxxxxx
+                <span className="text-white/45">Authorization:</span> <span className="text-emerald-300">Bearer</span> dp_test_xxxxxx
               </div>
             </div>
 
