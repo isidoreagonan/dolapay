@@ -535,6 +535,7 @@ export type Database = {
           description: string | null
           id: string
           idempotency_key: string | null
+          ligdicash_token: string | null
           profile_id: string
           status: Database["public"]["Enums"]["tx_status"]
           type: Database["public"]["Enums"]["tx_type"]
@@ -546,6 +547,7 @@ export type Database = {
           description?: string | null
           id?: string
           idempotency_key?: string | null
+          ligdicash_token?: string | null
           profile_id: string
           status?: Database["public"]["Enums"]["tx_status"]
           type: Database["public"]["Enums"]["tx_type"]
@@ -557,6 +559,7 @@ export type Database = {
           description?: string | null
           id?: string
           idempotency_key?: string | null
+          ligdicash_token?: string | null
           profile_id?: string
           status?: Database["public"]["Enums"]["tx_status"]
           type?: Database["public"]["Enums"]["tx_type"]

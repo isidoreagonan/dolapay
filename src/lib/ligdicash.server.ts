@@ -206,3 +206,68 @@ export async function createLigdiCashPayout(
 
   return response.json();
 }
+
+/**
+ * Confirmer un paiement (Pay-in) via LigdiCash REST API
+ */
+export async function confirmLigdiCashPayin(
+  invoiceToken: string,
+  config?: { apiKey?: string; authToken?: string; baseUrl?: string }
+): Promise<{ response_code: string; response_text: string; status: "completed" | "pending" | "notcompleted" }> {
+  const apiKey = config?.apiKey || process.env.LIGDICASH_API_KEY;
+  const authToken = config?.authToken || process.env.LIGDICASH_AUTH_TOKEN;
+  const baseUrl = config?.baseUrl || `https://app.ligdicash.com/pay/v01/redirect/checkout-invoice/confirm/?invoiceToken=${invoiceToken}`;
+
+  if (!apiKey || !authToken) {
+    throw new Error("LigdiCash API Key ou Auth Token manquant.");
+  }
+
+  const response = await fetch(baseUrl, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${authToken}`,
+      "Apikey": apiKey,
+    },
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`LigdiCash Payin Confirm Error (${response.status}): ${errText}`);
+  }
+
+  return response.json();
+}
+
+/**
+ * Confirmer un décaissement (Pay-out) via LigdiCash REST API
+ */
+export async function confirmLigdiCashPayout(
+  withdrawalToken: string,
+  config?: { apiKey?: string; authToken?: string; baseUrl?: string }
+): Promise<{ response_code: string; response_text: string; status: "completed" | "pending" | "notcompleted" }> {
+  const apiKey = config?.apiKey || process.env.LIGDICASH_API_KEY;
+  const authToken = config?.authToken || process.env.LIGDICASH_AUTH_TOKEN;
+  const baseUrl = config?.baseUrl || `https://app.ligdicash.com/pay/v01/withdrawal/confirm/?withdrawalToken=${withdrawalToken}`;
+
+  if (!apiKey || !authToken) {
+    throw new Error("LigdiCash API Key ou Auth Token manquant.");
+  }
+
+  const response = await fetch(baseUrl, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${authToken}`,
+      "Apikey": apiKey,
+    },
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`LigdiCash Payout Confirm Error (${response.status}): ${errText}`);
+  }
+
+  return response.json();
+}
+

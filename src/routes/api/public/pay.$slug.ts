@@ -74,6 +74,10 @@ export const Route = createFileRoute("/api/public/pay/$slug")({
             });
           }
 
+          const isLigdiCash =
+            parsed.data.customer_phone.replace(/\D/g, "").startsWith("226") ||
+            parsed.data.provider.toUpperCase() === "CARD";
+
           const emailInfo = parsed.data.customer_email ? ` (${parsed.data.customer_email})` : "";
           const { data: tx, error: txErr } = await supabaseAdmin
             .from("transactions")
@@ -88,7 +92,7 @@ export const Route = createFileRoute("/api/public/pay/$slug")({
               // Add required live DB columns
               net_amount: link.amount,
               customer_phone: parsed.data.customer_phone,
-              provider: "pawapay",
+              provider: isLigdiCash ? "ligdicash" : "pawapay",
               payment_method: parsed.data.provider,
             } as any)
             .select("id")
@@ -116,6 +120,76 @@ export const Route = createFileRoute("/api/public/pay/$slug")({
               }
             }
             return Response.json({ error: `Échec de création (${txErr.code || 'unknown'}): ${txErr.message}` }, { status: 500 });
+          }
+
+          if (isLigdiCash) {
+            const nameParts = parsed.data.customer_name.trim().split(/\s+/);
+            const firstname = nameParts[0] || "Client";
+            const lastname = nameParts.slice(1).join(" ") || "DolaPay";
+            const origin = new URL(request.url).origin;
+            const returnUrl = `${origin}/pay/${params.slug}?tx_id=${tx!.id}`;
+            const callbackUrl = `${origin}/api/public/ligdicash-webhook`;
+
+            try {
+              const { createLigdiCashPayin } = await import("@/lib/ligdicash.server");
+              const cleanPhone = parsed.data.customer_phone.replace(/\D/g, "");
+              const payinRes = await createLigdiCashPayin({
+                amount: Number(link.amount),
+                currency: (link.currency || "XOF").toLowerCase(),
+                description: `${link.title} · ${parsed.data.customer_name}`,
+                customer: {
+                  firstname,
+                  lastname,
+                  email: parsed.data.customer_email || undefined,
+                  phone: cleanPhone,
+                },
+                customData: {
+                  transaction_id: tx!.id,
+                  method: parsed.data.provider.toUpperCase(),
+                },
+                returnUrl,
+                callbackUrl,
+              });
+
+              if (payinRes.response_code === "00" && payinRes.response_content?.payment_url) {
+                const token = payinRes.token || payinRes.response_content.token || null;
+                await supabaseAdmin
+                  .from("transactions")
+                  .update({
+                    ligdicash_token: token,
+                  } as any)
+                  .eq("id", tx!.id);
+
+                return Response.json({
+                  transaction_id: tx!.id,
+                  status: "redirect",
+                  redirect_url: payinRes.response_content.payment_url,
+                  success_url: link.success_url,
+                  failure_url: link.failure_url,
+                });
+              } else {
+                throw new Error(payinRes.response_text || "LigdiCash initiation failed");
+              }
+            } catch (err: any) {
+              console.error("Erreur LigdiCash Payin initiation:", err);
+              const errMsg = err.message || String(err);
+              const extraDesc = ` · [Échec] API_ERROR: ${errMsg}`;
+              await supabaseAdmin
+                .from("transactions")
+                .update({
+                  status: "failed",
+                  description: `[${params.slug}] ${link.title} · ${parsed.data.customer_name}${emailInfo} · ${parsed.data.provider} ${parsed.data.customer_phone}${extraDesc}`
+                } as any)
+                .eq("id", tx!.id);
+
+              return Response.json({
+                transaction_id: tx!.id,
+                status: "failed",
+                failure_reason: { code: "API_ERROR", message: `Échec d'initiation LigdiCash: ${errMsg}` },
+                success_url: link.success_url,
+                failure_url: link.failure_url,
+              });
+            }
           }
 
           // Déclenchement de la collecte PawaPay (USSD Mobile Money)

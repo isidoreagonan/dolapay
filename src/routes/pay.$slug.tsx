@@ -39,6 +39,7 @@ type Link = {
   id: string; title: string; amount: number; currency: string; active: boolean;
   description: string | null; image_url: string | null; invoice_number: string | null;
   thank_you_message: string | null; fees_paid_by: "merchant" | "customer";
+  success_url: string | null; failure_url: string | null;
 };
 type TxStatus = "pending" | "success" | "failed";
 
@@ -67,6 +68,7 @@ const COUNTRIES: CountryConfig[] = [
       { id: "Orange", name: "Orange Money", logoUrl: pmOrange.url, color: "bg-[#FF6600]" },
       { id: "MOOV", name: "Moov Money", logoUrl: pmMoov.url, color: "bg-[#005B94]" },
       { id: "Telecel", name: "Telecel", logoUrl: pmZamtel.url, color: "bg-[#E60000]" },
+      { id: "CARD", name: "Carte Bancaire", logoUrl: null, color: "bg-[#0F172A] text-white" },
     ]
   },
   {
@@ -178,7 +180,7 @@ function PayPage() {
     queryFn: async (): Promise<Link> => {
       const { data, error } = await supabase
         .from("payment_links")
-        .select("id,title,amount,currency,active,description,image_url,invoice_number,thank_you_message,fees_paid_by")
+        .select("id,title,amount,currency,active,description,image_url,invoice_number,thank_you_message,fees_paid_by,success_url,failure_url")
         .eq("slug", slug)
         .eq("active", true)
         .maybeSingle();
@@ -225,6 +227,29 @@ function PayPage() {
       setPhone(`+${activeCountry.prefix} `);
     }
   }, [link]);
+
+  // Prefill redirectUrls when link loads
+  useEffect(() => {
+    if (link) {
+      setRedirectUrls({
+        success_url: link.success_url,
+        failure_url: link.failure_url,
+      });
+    }
+  }, [link]);
+
+  // Automatically trigger polling if tx_id query param is present on page load
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const searchParams = new URLSearchParams(window.location.search);
+      const queryTxId = searchParams.get("tx_id");
+      if (queryTxId && !txId) {
+        setTxId(queryTxId);
+        setStatus("pending");
+        setSubmitting(true);
+      }
+    }
+  }, [txId]);
 
   // Auto-detect country & operator from typed phone number (if user hasn't explicitly clicked a provider)
   useEffect(() => {
@@ -385,6 +410,10 @@ function PayPage() {
       }
       setRedirectUrls({ success_url: body.success_url, failure_url: body.failure_url });
       setTxId(body.transaction_id);
+      if (body.status === "redirect" && body.redirect_url) {
+        window.location.href = body.redirect_url;
+        return;
+      }
       if (body.status) setStatus(body.status);
       if (body.failure_reason) setFailureReason(body.failure_reason);
     } catch (err: any) {

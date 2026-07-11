@@ -1,5 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { type LigdiCashWebhookPayload, calculateLigdiCashFee, type LigdiCashMethod } from "@/lib/ligdicash.server";
+import {
+  type LigdiCashWebhookPayload,
+  calculateLigdiCashFee,
+  type LigdiCashMethod,
+  confirmLigdiCashPayin,
+  confirmLigdiCashPayout,
+} from "@/lib/ligdicash.server";
 
 export const Route = createFileRoute("/api/public/ligdicash-webhook")({
   server: {
@@ -38,11 +44,25 @@ export const Route = createFileRoute("/api/public/ligdicash-webhook")({
         if (txId) {
           const { data: tx } = await supabaseAdmin
             .from("transactions")
-            .select("id, amount, profile_id, status, type, description")
+            .select("id, amount, profile_id, status, type, description, ligdicash_token")
             .eq("id", txId)
             .maybeSingle();
 
           if (tx && tx.status !== "success") {
+            const tokenToVerify = tx.ligdicash_token || payload.token;
+            let verifiedStatus = newStatus;
+
+            if (tokenToVerify) {
+              try {
+                const confirmRes = await confirmLigdiCashPayin(tokenToVerify);
+                const liveStatus = String(confirmRes.status || "").toLowerCase();
+                const isVerifiedSuccess = liveStatus === "completed" || liveStatus === "success";
+                verifiedStatus = isVerifiedSuccess ? "success" : "failed";
+              } catch (e) {
+                console.error("Webhook secure Payin verify failed, falling back to payload status:", e);
+              }
+            }
+
             const amount = Number(tx.amount || payload.amount || 0);
             const method = (String(customDataObj.method || "ORANGE").toUpperCase() as LigdiCashMethod);
             
@@ -52,11 +72,11 @@ export const Route = createFileRoute("/api/public/ligdicash-webhook")({
             await supabaseAdmin
               .from("transactions")
               .update({
-                status: newStatus,
+                status: verifiedStatus,
               })
               .eq("id", txId);
 
-            return Response.json({ received: true, processed: "payin", status: newStatus });
+            return Response.json({ received: true, processed: "payin", status: verifiedStatus });
           }
         }
 
@@ -70,11 +90,26 @@ export const Route = createFileRoute("/api/public/ligdicash-webhook")({
             .maybeSingle();
 
           if (item && item.status !== "success") {
+            let verifiedStatus = newStatus;
+            let verifiedError = isSuccess ? null : `LigdiCash: ${payload.status}`;
+
+            if (payload.token) {
+              try {
+                const confirmRes = await confirmLigdiCashPayout(payload.token);
+                const liveStatus = String(confirmRes.status || "").toLowerCase();
+                const isVerifiedSuccess = liveStatus === "completed" || liveStatus === "success";
+                verifiedStatus = isVerifiedSuccess ? "success" : "failed";
+                verifiedError = isVerifiedSuccess ? null : `LigdiCash: ${confirmRes.status}`;
+              } catch (e) {
+                console.error("Webhook secure Payout verify failed, falling back to payload status:", e);
+              }
+            }
+
             await supabaseAdmin
               .from("payout_batch_items")
               .update({
-                status: newStatus,
-                error: isSuccess ? null : `LigdiCash: ${payload.status}`,
+                status: verifiedStatus,
+                error: verifiedError,
               })
               .eq("id", itemId);
 
@@ -94,7 +129,7 @@ export const Route = createFileRoute("/api/public/ligdicash-webhook")({
               }
             }
 
-            return Response.json({ received: true, processed: "payout", status: newStatus });
+            return Response.json({ received: true, processed: "payout", status: verifiedStatus });
           }
         }
 
