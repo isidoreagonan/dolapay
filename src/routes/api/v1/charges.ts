@@ -63,7 +63,6 @@ export const Route = createFileRoute("/api/v1/charges")({
             description: `[API_CHARGE] ${correspondent} · ${customer_phone} · ${description || 'Encaissement API'}`,
             // Add required live DB columns
             net_amount: amount,
-            merchant_id: auth.profile_id,
             customer_phone,
             provider: "pawapay",
             payment_method: provider,

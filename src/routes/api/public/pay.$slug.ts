@@ -87,7 +87,6 @@ export const Route = createFileRoute("/api/public/pay/$slug")({
               description: `[${params.slug}] ${link.title} · ${parsed.data.customer_name}${emailInfo} · ${parsed.data.provider} ${parsed.data.customer_phone}`,
               // Add required live DB columns
               net_amount: link.amount,
-              merchant_id: link.profile_id,
               customer_phone: parsed.data.customer_phone,
               provider: "pawapay",
               payment_method: parsed.data.provider,
