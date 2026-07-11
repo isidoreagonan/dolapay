@@ -89,7 +89,8 @@ export const Route = createFileRoute("/api/public/pay/$slug")({
               net_amount: link.amount,
               merchant_id: link.profile_id,
               customer_phone: parsed.data.customer_phone,
-              provider: parsed.data.provider,
+              provider: "pawapay",
+              payment_method: parsed.data.provider,
             } as any)
             .select("id")
             .single();

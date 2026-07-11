@@ -65,7 +65,8 @@ export const Route = createFileRoute("/api/v1/charges")({
             net_amount: amount,
             merchant_id: auth.profile_id,
             customer_phone,
-            provider,
+            provider: "pawapay",
+            payment_method: provider,
           } as any)
           .select("id, created_at")
           .single();
