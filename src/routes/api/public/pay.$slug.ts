@@ -15,139 +15,147 @@ export const Route = createFileRoute("/api/public/pay/$slug")({
   server: {
     handlers: {
       POST: async ({ request, params }) => {
-        let json: unknown;
-        try { json = await request.json(); } catch { return Response.json({ error: "Invalid JSON" }, { status: 400 }); }
-        const parsed = Body.safeParse(json);
-        if (!parsed.success) return Response.json({ error: "Invalid input" }, { status: 400 });
-
-        const idemKey = (request.headers.get("idempotency-key") ?? "").trim().slice(0, 100);
-        if (!idemKey) return Response.json({ error: "Missing Idempotency-Key header" }, { status: 400 });
-
-        const ip =
-          request.headers.get("cf-connecting-ip") ||
-          request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-          "unknown";
-
-        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        const { pawapay } = await import("@/lib/pawapay.server");
-
-        // Rate limit: count attempts in last RATE_WINDOW_SEC for (ip, slug)
-        const since = new Date(Date.now() - RATE_WINDOW_SEC * 1000).toISOString();
-        const { count } = await supabaseAdmin
-          .from("pay_attempts")
-          .select("id", { count: "exact", head: true })
-          .eq("ip", ip)
-          .eq("slug", params.slug)
-          .gte("created_at", since);
-        if ((count ?? 0) >= RATE_MAX) {
-          return Response.json(
-            { error: "Too many requests. Please retry later." },
-            { status: 429, headers: { "Retry-After": String(RATE_WINDOW_SEC) } },
-          );
-        }
-        await supabaseAdmin.from("pay_attempts").insert({ ip, slug: params.slug });
-
-        const { data: link, error: linkErr } = await supabaseAdmin
-          .from("payment_links")
-          .select("id,profile_id,amount,currency,title,active,success_url,failure_url")
-          .eq("slug", params.slug)
-          .maybeSingle();
-        if (linkErr || !link || !link.active) {
-          return Response.json({ error: "Lien introuvable ou inactif" }, { status: 404 });
-        }
-
-        // Idempotency: if a tx already exists for (profile, idem-key), return it
-        const { data: existing } = await supabaseAdmin
-          .from("transactions")
-          .select("id,status")
-          .eq("profile_id", link.profile_id)
-          .eq("idempotency_key", idemKey)
-          .maybeSingle();
-        if (existing) {
-          return Response.json({
-            transaction_id: existing.id,
-            status: existing.status,
-            success_url: link.success_url,
-            failure_url: link.failure_url,
-            idempotent: true,
-          });
-        }
-
-        const emailInfo = parsed.data.customer_email ? ` (${parsed.data.customer_email})` : "";
-        const { data: tx, error: txErr } = await supabaseAdmin
-          .from("transactions")
-          .insert({
-            profile_id: link.profile_id,
-            amount: link.amount,
-            currency: link.currency,
-            type: "payment_link",
-            status: "pending",
-            idempotency_key: idemKey,
-            description: `[${params.slug}] ${link.title} · ${parsed.data.customer_name}${emailInfo} · ${parsed.data.provider} ${parsed.data.customer_phone}`,
-            // Add required live DB columns
-            net_amount: link.amount,
-            merchant_id: link.profile_id,
-            customer_phone: parsed.data.customer_phone,
-            provider: parsed.data.provider,
-          } as any)
-          .select("id")
-          .single();
-
-        // Handle duplicate-key race (unique partial index on (profile_id, idempotency_key))
-        if (txErr) {
-          const isDup = (txErr as { code?: string }).code === "23505";
-          if (isDup) {
-            const { data: again } = await supabaseAdmin
-              .from("transactions")
-              .select("id,status")
-              .eq("profile_id", link.profile_id)
-              .eq("idempotency_key", idemKey)
-              .maybeSingle();
-            if (again) {
-              return Response.json({
-                transaction_id: again.id,
-                status: again.status,
-                success_url: link.success_url,
-                failure_url: link.failure_url,
-                idempotent: true,
-              });
-            }
-          }
-          return Response.json({ error: "Échec de création" }, { status: 500 });
-        }
-
-        // Déclenchement de la collecte PawaPay (USSD Mobile Money)
         try {
-          const depositRes = await pawapay.initiateDeposit({
-            depositId: tx!.id,
-            amount: Number(link.amount),
-            currency: link.currency || "XOF",
-            phone: parsed.data.customer_phone,
-            provider: parsed.data.provider,
-            description: `${link.title} · ${parsed.data.customer_name}`,
-          });
+          let json: unknown;
+          try { json = await request.json(); } catch { return Response.json({ error: "Invalid JSON" }, { status: 400 }); }
+          const parsed = Body.safeParse(json);
+          if (!parsed.success) return Response.json({ error: "Invalid input" }, { status: 400 });
 
-          if (depositRes.status === "REJECTED") {
-            await supabaseAdmin
-              .from("transactions")
-              .update({ status: "failed" })
-              .eq("id", tx!.id);
+          const idemKey = (request.headers.get("idempotency-key") ?? "").trim().slice(0, 100);
+          if (!idemKey) return Response.json({ error: "Missing Idempotency-Key header" }, { status: 400 });
+
+          const ip =
+            request.headers.get("cf-connecting-ip") ||
+            request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+            "unknown";
+
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const { pawapay } = await import("@/lib/pawapay.server");
+
+          // Rate limit: count attempts in last RATE_WINDOW_SEC for (ip, slug)
+          const since = new Date(Date.now() - RATE_WINDOW_SEC * 1000).toISOString();
+          const { count } = await supabaseAdmin
+            .from("pay_attempts")
+            .select("id", { count: "exact", head: true })
+            .eq("ip", ip)
+            .eq("slug", params.slug)
+            .gte("created_at", since);
+          if ((count ?? 0) >= RATE_MAX) {
             return Response.json(
-              { error: "Paiement refusé par l'opérateur Mobile Money" },
-              { status: 400 }
+              { error: "Too many requests. Please retry later." },
+              { status: 429, headers: { "Retry-After": String(RATE_WINDOW_SEC) } },
             );
           }
-        } catch (err) {
-          console.error("Erreur PawaPay initDeposit:", err);
-          // On laisse pending si c'est une erreur réseau temporaire ou on bascule en failed
-        }
+          await supabaseAdmin.from("pay_attempts").insert({ ip, slug: params.slug });
 
-        return Response.json({
-          transaction_id: tx!.id,
-          status: "pending",
-          success_url: link.success_url,
-          failure_url: link.failure_url,
-        });
+          const { data: link, error: linkErr } = await supabaseAdmin
+            .from("payment_links")
+            .select("id,profile_id,amount,currency,title,active,success_url,failure_url")
+            .eq("slug", params.slug)
+            .maybeSingle();
+          if (linkErr || !link || !link.active) {
+            return Response.json({ error: "Lien introuvable ou inactif" }, { status: 404 });
+          }
+
+          // Idempotency: if a tx already exists for (profile, idem-key), return it
+          const { data: existing } = await supabaseAdmin
+            .from("transactions")
+            .select("id,status")
+            .eq("profile_id", link.profile_id)
+            .eq("idempotency_key", idemKey)
+            .maybeSingle();
+          if (existing) {
+            return Response.json({
+              transaction_id: existing.id,
+              status: existing.status,
+              success_url: link.success_url,
+              failure_url: link.failure_url,
+              idempotent: true,
+            });
+          }
+
+          const emailInfo = parsed.data.customer_email ? ` (${parsed.data.customer_email})` : "";
+          const { data: tx, error: txErr } = await supabaseAdmin
+            .from("transactions")
+            .insert({
+              profile_id: link.profile_id,
+              amount: link.amount,
+              currency: link.currency,
+              type: "payment_link",
+              status: "pending",
+              idempotency_key: idemKey,
+              description: `[${params.slug}] ${link.title} · ${parsed.data.customer_name}${emailInfo} · ${parsed.data.provider} ${parsed.data.customer_phone}`,
+              // Add required live DB columns
+              net_amount: link.amount,
+              merchant_id: link.profile_id,
+              customer_phone: parsed.data.customer_phone,
+              provider: parsed.data.provider,
+            } as any)
+            .select("id")
+            .single();
+
+          // Handle duplicate-key race (unique partial index on (profile_id, idempotency_key))
+          if (txErr) {
+            const isDup = (txErr as { code?: string }).code === "23505";
+            if (isDup) {
+              const { data: again } = await supabaseAdmin
+                .from("transactions")
+                .select("id,status")
+                .eq("profile_id", link.profile_id)
+                .eq("idempotency_key", idemKey)
+                .maybeSingle();
+              if (again) {
+                return Response.json({
+                  transaction_id: again.id,
+                  status: again.status,
+                  success_url: link.success_url,
+                  failure_url: link.failure_url,
+                  idempotent: true,
+                });
+              }
+            }
+            return Response.json({ error: "Échec de création" }, { status: 500 });
+          }
+
+          // Déclenchement de la collecte PawaPay (USSD Mobile Money)
+          try {
+            const depositRes = await pawapay.initiateDeposit({
+              depositId: tx!.id,
+              amount: Number(link.amount),
+              currency: link.currency || "XOF",
+              phone: parsed.data.customer_phone,
+              provider: parsed.data.provider,
+              description: `${link.title} · ${parsed.data.customer_name}`,
+            });
+
+            if (depositRes.status === "REJECTED") {
+              await supabaseAdmin
+                .from("transactions")
+                .update({ status: "failed" })
+                .eq("id", tx!.id);
+              return Response.json(
+                { error: "Paiement refusé par l'opérateur Mobile Money" },
+                { status: 400 }
+              );
+            }
+          } catch (err) {
+            console.error("Erreur PawaPay initDeposit:", err);
+            // On laisse pending si c'est une erreur réseau temporaire ou on bascule en failed
+          }
+
+          return Response.json({
+            transaction_id: tx!.id,
+            status: "pending",
+            success_url: link.success_url,
+            failure_url: link.failure_url,
+          });
+        } catch (e: any) {
+          console.error("CRITICAL BACKEND ERROR in pay.$slug POST:", e);
+          return Response.json(
+            { error: `Err500: ${e.message || String(e)}` },
+            { status: 500 }
+          );
+        }
       },
     },
   },
