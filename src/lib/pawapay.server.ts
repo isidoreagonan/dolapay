@@ -256,7 +256,10 @@ export class PawaPayClient {
         },
       },
       customerTimestamp: new Date().toISOString(),
-      statementDescription: (params.description || "DolaPay Charge").slice(0, 22),
+      statementDescription: (params.description || "DolaPay")
+        .replace(/[^a-zA-Z0-9\s]/g, "")
+        .trim()
+        .slice(0, 22),
     };
 
     return this.request<PawaPayDepositResponse>("/deposits", "POST", payload);

@@ -738,7 +738,9 @@ function translateFailureCode(code?: string, message?: string): string {
   if (combined.includes("TIMEOUT") || combined.includes("EXPIRE") || combined.includes("DELAI")) {
     return "Délai de validation USSD dépassé.";
   }
-  return `Transaction refusée (${code || "Opérateur"}).`;
+  
+  const suffix = message ? `: ${message}` : (code ? ` (${code})` : "");
+  return `Transaction refusée ${suffix}`;
 }
 
 function CenteredCard({ children }: { children: React.ReactNode }) {
