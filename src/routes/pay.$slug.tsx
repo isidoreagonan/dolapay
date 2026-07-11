@@ -378,7 +378,7 @@ function PayPage() {
 
       if (res.status === 429) { toast.error("Trop de tentatives. Patientez un instant."); setStatus(null); setSubmitting(false); return; }
       if (!res.ok || !body.transaction_id) {
-        toast.error(body.error ?? "Échec");
+        toast.error(body.error ?? "Échec de l'initialisation du paiement.");
         setStatus(null);
         setSubmitting(false);
         return;
@@ -386,6 +386,7 @@ function PayPage() {
       setRedirectUrls({ success_url: body.success_url, failure_url: body.failure_url });
       setTxId(body.transaction_id);
       if (body.status) setStatus(body.status);
+      if (body.failure_reason) setFailureReason(body.failure_reason);
     } catch (err: any) {
       console.error("Payment submission failed:", err);
       toast.error(err.message || "Erreur réseau");

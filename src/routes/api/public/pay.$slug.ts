@@ -130,7 +130,9 @@ export const Route = createFileRoute("/api/public/pay/$slug")({
             });
 
             if (depositRes.status === "REJECTED") {
-              const extraDesc = " · [Échec] REJECTED: Paiement refusé par l'opérateur Mobile Money";
+              const rCode = depositRes.rejectionReason?.rejectionCode || "REJECTED";
+              const rMsg = depositRes.rejectionReason?.rejectionMessage || "Paiement refusé par l'opérateur Mobile Money";
+              const extraDesc = ` · [Échec] ${rCode}: ${rMsg}`;
               await supabaseAdmin
                 .from("transactions")
                 .update({ 
@@ -138,14 +140,19 @@ export const Route = createFileRoute("/api/public/pay/$slug")({
                   description: `[${params.slug}] ${link.title} · ${parsed.data.customer_name}${emailInfo} · ${parsed.data.provider} ${parsed.data.customer_phone}${extraDesc}`
                 } as any)
                 .eq("id", tx!.id);
-              return Response.json(
-                { error: "Paiement refusé par l'opérateur Mobile Money" },
-                { status: 400 }
-              );
+              
+              return Response.json({
+                transaction_id: tx!.id,
+                status: "failed",
+                failure_reason: { code: rCode, message: rMsg },
+                success_url: link.success_url,
+                failure_url: link.failure_url,
+              });
             }
           } catch (err: any) {
             console.error("Erreur PawaPay initDeposit:", err);
-            const extraDesc = ` · [Échec] API_ERROR: ${err.message || String(err)}`;
+            const errMsg = err.message || String(err);
+            const extraDesc = ` · [Échec] API_ERROR: ${errMsg}`;
             await supabaseAdmin
               .from("transactions")
               .update({ 
@@ -153,10 +160,14 @@ export const Route = createFileRoute("/api/public/pay/$slug")({
                 description: `[${params.slug}] ${link.title} · ${parsed.data.customer_name}${emailInfo} · ${parsed.data.provider} ${parsed.data.customer_phone}${extraDesc}`
               } as any)
               .eq("id", tx!.id);
-            return Response.json(
-              { error: `Échec d'initiation PawaPay: ${err.message || String(err)}` },
-              { status: 400 }
-            );
+            
+            return Response.json({
+              transaction_id: tx!.id,
+              status: "failed",
+              failure_reason: { code: "API_ERROR", message: `Échec d'initiation PawaPay: ${errMsg}` },
+              success_url: link.success_url,
+              failure_url: link.failure_url,
+            });
           }
 
           return Response.json({
