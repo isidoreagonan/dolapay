@@ -5,6 +5,7 @@ const Body = z.object({
   customer_name: z.string().trim().min(1).max(100),
   customer_phone: z.string().trim().min(6).max(20),
   provider: z.string().trim().min(1).max(40),
+  customer_email: z.string().trim().email().optional().or(z.literal("")),
 });
 
 const RATE_WINDOW_SEC = 60;
@@ -72,6 +73,7 @@ export const Route = createFileRoute("/api/public/pay/$slug")({
           });
         }
 
+        const emailInfo = parsed.data.customer_email ? ` (${parsed.data.customer_email})` : "";
         const { data: tx, error: txErr } = await supabaseAdmin
           .from("transactions")
           .insert({
@@ -81,7 +83,7 @@ export const Route = createFileRoute("/api/public/pay/$slug")({
             type: "payment_link",
             status: "pending",
             idempotency_key: idemKey,
-            description: `[${params.slug}] ${link.title} · ${parsed.data.customer_name} · ${parsed.data.provider} ${parsed.data.customer_phone}`,
+            description: `[${params.slug}] ${link.title} · ${parsed.data.customer_name}${emailInfo} · ${parsed.data.provider} ${parsed.data.customer_phone}`,
           })
           .select("id")
           .single();

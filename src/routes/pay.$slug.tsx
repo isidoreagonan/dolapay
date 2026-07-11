@@ -1,15 +1,28 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CheckCircle2, XCircle, Loader2, Shield, Smartphone } from "lucide-react";
+import {
+  CheckCircle2, XCircle, Loader2, Shield, Smartphone, Globe, User, Mail, CreditCard, Lock, Check, ChevronDown
+} from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import logoFull from "@/assets/dolapay-logo.png.asset.json";
+
+// Import operator assets
+import pmOrange from "@/assets/pm-orange.png.asset.json";
+import pmMtn from "@/assets/pm-mtn.png.asset.json";
+import pmMoov from "@/assets/pm-moov.png.asset.json";
+import pmAirtel from "@/assets/pm-airtel.webp.asset.json";
+import pmCeltiis from "@/assets/pm-celtiis.png.asset.json";
+import pmFreeMoney from "@/assets/pm-freemoney.png.asset.json";
+import pmMpesa from "@/assets/pm-mpesa.png.asset.json";
+import pmVodacom from "@/assets/pm-vodacom.png.asset.json";
+import pmZamtel from "@/assets/pm-zamtel.png.asset.json";
 
 export const Route = createFileRoute("/pay/$slug")({
   component: PayPage,
@@ -29,13 +42,132 @@ type Link = {
 };
 type TxStatus = "pending" | "success" | "failed";
 
-const ALL_PROVIDERS = [
-  { id: "Orange", label: "Orange Money", badge: "ORANGE" },
-  { id: "MTN", label: "MTN MoMo", badge: "MTN" },
-  { id: "MOOV", label: "Moov Money", badge: "MOOV" },
-  { id: "Wave", label: "Wave", badge: "WAVE" },
-  { id: "Telecel", label: "Telecel", badge: "TELECEL" },
-  { id: "Airtel", label: "Airtel Money", badge: "AIRTEL" },
+type Operator = {
+  id: string;
+  name: string;
+  logoUrl: string | null;
+  color: string;
+};
+
+type CountryConfig = {
+  code: string;
+  name: string;
+  flag: string;
+  prefix: string;
+  operators: Operator[];
+};
+
+const COUNTRIES: CountryConfig[] = [
+  {
+    code: "BFA",
+    name: "Burkina Faso",
+    flag: "🇧🇫",
+    prefix: "226",
+    operators: [
+      { id: "Orange", name: "Orange Money", logoUrl: pmOrange.url, color: "bg-[#FF6600]" },
+      { id: "MOOV", name: "Moov Money", logoUrl: pmMoov.url, color: "bg-[#005B94]" },
+      { id: "Telecel", name: "Telecel", logoUrl: pmZamtel.url, color: "bg-[#E60000]" },
+    ]
+  },
+  {
+    code: "CIV",
+    name: "Côte d'Ivoire",
+    flag: "🇨🇮",
+    prefix: "225",
+    operators: [
+      { id: "Orange", name: "Orange Money", logoUrl: pmOrange.url, color: "bg-[#FF6600]" },
+      { id: "MTN", name: "MTN MoMo", logoUrl: pmMtn.url, color: "bg-[#FFCC00]" },
+      { id: "MOOV", name: "Moov Money", logoUrl: pmMoov.url, color: "bg-[#005B94]" },
+      { id: "Wave", name: "Wave", logoUrl: null, color: "bg-[#4AAFF7]" },
+    ]
+  },
+  {
+    code: "BEN",
+    name: "Bénin",
+    flag: "🇧🇯",
+    prefix: "229",
+    operators: [
+      { id: "MTN", name: "MTN MoMo", logoUrl: pmMtn.url, color: "bg-[#FFCC00]" },
+      { id: "MOOV", name: "Moov Money", logoUrl: pmMoov.url, color: "bg-[#005B94]" },
+      { id: "Celtiis", name: "Celtiis Cash", logoUrl: pmCeltiis.url, color: "bg-[#E6007E]" },
+    ]
+  },
+  {
+    code: "SEN",
+    name: "Sénégal",
+    flag: "🇸🇳",
+    prefix: "221",
+    operators: [
+      { id: "Orange", name: "Orange Money", logoUrl: pmOrange.url, color: "bg-[#FF6600]" },
+      { id: "Wave", name: "Wave", logoUrl: null, color: "bg-[#4AAFF7]" },
+      { id: "Free", name: "Free Money", logoUrl: pmFreeMoney.url, color: "bg-[#E30613]" },
+    ]
+  },
+  {
+    code: "CMR",
+    name: "Cameroun",
+    flag: "🇨🇲",
+    prefix: "237",
+    operators: [
+      { id: "MTN", name: "MTN MoMo", logoUrl: pmMtn.url, color: "bg-[#FFCC00]" },
+      { id: "Orange", name: "Orange Money", logoUrl: pmOrange.url, color: "bg-[#FF6600]" },
+    ]
+  },
+  {
+    code: "TGO",
+    name: "Togo",
+    flag: "🇹🇬",
+    prefix: "228",
+    operators: [
+      { id: "MOOV", name: "Moov Money", logoUrl: pmMoov.url, color: "bg-[#005B94]" },
+    ]
+  },
+  {
+    code: "GHA",
+    name: "Ghana",
+    flag: "🇬🇭",
+    prefix: "233",
+    operators: [
+      { id: "MTN", name: "MTN MoMo", logoUrl: pmMtn.url, color: "bg-[#FFCC00]" },
+    ]
+  },
+  {
+    code: "COD",
+    name: "RDC (Congo)",
+    flag: "🇨🇩",
+    prefix: "243",
+    operators: [
+      { id: "Airtel", name: "Airtel Money", logoUrl: pmAirtel.url, color: "bg-[#FF0000]" },
+    ]
+  },
+  {
+    code: "ZMB",
+    name: "Zambie",
+    flag: "🇿🇲",
+    prefix: "260",
+    operators: [
+      { id: "Airtel", name: "Airtel Money", logoUrl: pmAirtel.url, color: "bg-[#FF0000]" },
+      { id: "Zamtel", name: "Zamtel", logoUrl: pmZamtel.url, color: "bg-[#009639]" },
+    ]
+  },
+  {
+    code: "TZA",
+    name: "Tanzanie",
+    flag: "🇹🇿",
+    prefix: "255",
+    operators: [
+      { id: "M-Pesa", name: "M-Pesa (Vodacom)", logoUrl: pmVodacom.url, color: "bg-[#E60000]" },
+    ]
+  },
+  {
+    code: "KEN",
+    name: "Kenya",
+    flag: "🇰🇪",
+    prefix: "254",
+    operators: [
+      { id: "M-Pesa", name: "M-Pesa (Safaricom)", logoUrl: pmMpesa.url, color: "bg-[#4B9443]" },
+    ]
+  }
 ];
 
 function PayPage() {
@@ -57,40 +189,79 @@ function PayPage() {
   });
 
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [selectedCountryCode, setSelectedCountryCode] = useState("BFA");
   const [provider, setProvider] = useState("Orange");
   const [userSelectedProvider, setUserSelectedProvider] = useState(false);
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [txId, setTxId] = useState<string | null>(null);
-
-  // Auto-detect operator when phone changes if user hasn't manually clicked an operator button
-  useEffect(() => {
-    if (userSelectedProvider || !phone) return;
-    const clean = phone.replace(/\D/g, "");
-    if (clean.startsWith("226") || (clean.length === 8 && !clean.startsWith("2"))) {
-      if (/^2267[0145678]/.test(clean) || /^7[0145678]/.test(clean)) setProvider("Orange");
-      else if (/^2266[0123]/.test(clean) || /^6[0123]/.test(clean)) setProvider("MOOV");
-      else if (/^2265[89]/.test(clean) || /^5[89]/.test(clean)) setProvider("Telecel");
-    } else if (clean.startsWith("225") || (clean.length === 10 && /^[0157]/.test(clean))) {
-      if (/^22507/.test(clean) || /^07/.test(clean)) setProvider("Orange");
-      else if (/^22505/.test(clean) || /^05/.test(clean)) setProvider("MTN");
-      else if (/^22501/.test(clean) || /^01/.test(clean)) setProvider("MOOV");
-      else if (/^22506/.test(clean) || /^06/.test(clean)) setProvider("Wave");
-    } else if (clean.startsWith("221") || (clean.length === 9 && /^7[05678]/.test(clean))) {
-      if (/^2217[78]/.test(clean) || /^7[78]/.test(clean)) setProvider("Orange");
-      else if (/^22176/.test(clean) || /^76/.test(clean)) setProvider("Wave");
-    } else if (clean.startsWith("229")) {
-      if (/^229(61|62|66|67|69|90|91|96|97)/.test(clean)) setProvider("MTN");
-      else setProvider("MOOV");
-    }
-  }, [phone, userSelectedProvider]);
   const [status, setStatus] = useState<TxStatus | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [idemKey] = useState(() => crypto.randomUUID());
   const [redirectUrls, setRedirectUrls] = useState<{ success_url?: string | null; failure_url?: string | null }>({});
   const [redirectCountdown, setRedirectCountdown] = useState<number | null>(null);
 
+  const activeCountry = useMemo(() => {
+    return COUNTRIES.find((c) => c.code === selectedCountryCode) || COUNTRIES[0];
+  }, [selectedCountryCode]);
 
-  // Status polling via public server endpoint (no anon DB exposure)
+  // Adjust phone input and default provider when country changes
+  const handleCountryChange = (countryCode: string) => {
+    setSelectedCountryCode(countryCode);
+    const country = COUNTRIES.find((c) => c.code === countryCode) || COUNTRIES[0];
+    setPhone(`+${country.prefix} `);
+    if (country.operators.length > 0) {
+      setProvider(country.operators[0].id);
+    }
+    setUserSelectedProvider(false);
+    setShowCountryDropdown(false);
+  };
+
+  // Prefill phone prefix on load once link is loaded
+  useEffect(() => {
+    if (link && !phone) {
+      setPhone(`+${activeCountry.prefix} `);
+    }
+  }, [link]);
+
+  // Auto-detect country & operator from typed phone number (if user hasn't explicitly clicked a provider)
+  useEffect(() => {
+    if (userSelectedProvider || !phone) return;
+    const clean = phone.replace(/\D/g, "");
+
+    // Find if typed prefix matches any country
+    const matchedCountry = COUNTRIES.find(c => clean.startsWith(c.prefix));
+    if (matchedCountry && matchedCountry.code !== selectedCountryCode) {
+      setSelectedCountryCode(matchedCountry.code);
+      if (matchedCountry.operators.length > 0) {
+        setProvider(matchedCountry.operators[0].id);
+      }
+      return;
+    }
+
+    // Operator specific auto-detection patterns inside the selected country
+    if (selectedCountryCode === "BFA") {
+      if (/^2267[0145678]/.test(clean) || /^7[0145678]/.test(clean)) setProvider("Orange");
+      else if (/^2266[0123]/.test(clean) || /^6[0123]/.test(clean)) setProvider("MOOV");
+      else if (/^2265[89]/.test(clean) || /^5[89]/.test(clean)) setProvider("Telecel");
+    } else if (selectedCountryCode === "CIV") {
+      if (/^22507/.test(clean) || /^07/.test(clean)) setProvider("Orange");
+      else if (/^22505/.test(clean) || /^05/.test(clean)) setProvider("MTN");
+      else if (/^22501/.test(clean) || /^01/.test(clean)) setProvider("MOOV");
+      else if (/^22506/.test(clean) || /^06/.test(clean)) setProvider("Wave");
+    } else if (selectedCountryCode === "SEN") {
+      if (/^2217[78]/.test(clean) || /^7[78]/.test(clean)) setProvider("Orange");
+      else if (/^22176/.test(clean) || /^76/.test(clean)) setProvider("Wave");
+      else if (/^22170/.test(clean) || /^70/.test(clean)) setProvider("Free");
+    } else if (selectedCountryCode === "BEN") {
+      if (/^229(61|62|66|67|69|90|91|96|97)/.test(clean)) setProvider("MTN");
+      else if (/^229(60|63|94|95)/.test(clean)) setProvider("MOOV");
+      else if (/^22950/.test(clean)) setProvider("Celtiis");
+    }
+  }, [phone, selectedCountryCode, userSelectedProvider]);
+
+  // Status polling via public status endpoint
   useEffect(() => {
     if (!txId) return;
     let cancelled = false;
@@ -111,12 +282,11 @@ function PayPage() {
     };
   }, [txId]);
 
-
   useEffect(() => {
     if (status === "success" || status === "failed") setSubmitting(false);
   }, [status]);
 
-  // Auto-redirect after success/failed if URL configured (5s countdown, status remains visible)
+  // Auto-redirect after success/failed if URL configured
   useEffect(() => {
     if (status !== "success" && status !== "failed") return;
     const url = status === "success" ? redirectUrls.success_url : redirectUrls.failure_url;
@@ -144,7 +314,12 @@ function PayPage() {
       const res = await fetch(`/api/public/pay/${slug}`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Idempotency-Key": idemKey },
-        body: JSON.stringify({ customer_name: name, customer_phone: phone, provider }),
+        body: JSON.stringify({
+          customer_name: name,
+          customer_phone: phone,
+          provider,
+          customer_email: email
+        }),
       });
       const body = (await res.json()) as { transaction_id?: string; status?: TxStatus; success_url?: string | null; failure_url?: string | null; error?: string };
       if (res.status === 429) { toast.error("Trop de tentatives. Patientez un instant."); setStatus(null); setSubmitting(false); return; }
@@ -164,14 +339,13 @@ function PayPage() {
     }
   }
 
-
   if (isLoading) {
-    return <CenteredCard><Loader2 className="h-6 w-6 animate-spin text-primary" /></CenteredCard>;
+    return <CenteredCard><Loader2 className="h-8 w-8 animate-spin text-primary" /></CenteredCard>;
   }
   if (error || !link) {
     return (
       <CenteredCard>
-        <XCircle className="h-12 w-12 text-rose-500" />
+        <XCircle className="h-14 w-14 text-rose-500" />
         <h1 className="mt-4 text-xl font-bold">Lien introuvable</h1>
         <p className="mt-1 text-sm text-muted-foreground">Ce lien de paiement n'existe pas ou n'est plus actif.</p>
       </CenteredCard>
@@ -179,90 +353,265 @@ function PayPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 px-4 py-10">
-      <div className="mx-auto max-w-md">
-        <div className="mb-6 flex items-center justify-center">
-          <img src={logoFull.url} alt="DolaPay" className="h-8" />
-        </div>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col md:flex-row">
+      {/* LEFT COLUMN: Product & Details Panel */}
+      <div className="w-full md:w-1/2 bg-slate-100 dark:bg-slate-900 border-r border-slate-200/80 dark:border-slate-800/80 p-6 md:p-12 flex flex-col justify-between">
+        <div className="space-y-8">
+          {/* Brand Logo */}
+          <div className="flex items-center gap-2">
+            <img src={logoFull.url} alt="DolaPay" className="h-7" />
+          </div>
 
-        <Card className="overflow-hidden border-white/10 backdrop-blur-2xl">
-          {link.image_url && (
-            <div className="relative h-40 w-full overflow-hidden">
-              <img src={link.image_url} alt="" className="h-full w-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-primary/80 via-primary/30 to-transparent" />
-            </div>
-          )}
-          <div className="bg-primary p-6 text-primary-foreground">
-            <div className="flex items-center justify-between text-xs uppercase tracking-wider opacity-80">
-              <span>Vous payez</span>
-              {link.invoice_number && <span className="font-mono">#{link.invoice_number}</span>}
-            </div>
-            <div className="mt-1 text-lg font-semibold">{link.title}</div>
-            {link.description && <p className="mt-1 text-sm opacity-80">{link.description}</p>}
-            <div className="mt-4 text-4xl font-bold tracking-tight">
-              {fmt(link.amount)} <span className="text-xl opacity-80">{link.currency}</span>
-            </div>
-            {link.fees_paid_by === "customer" && (
-              <div className="mt-2 inline-block rounded-full bg-white/15 px-2.5 py-0.5 text-[10px] font-semibold">
-                Frais de transaction inclus
+          {/* Product Info */}
+          <div className="space-y-6">
+            {link.image_url ? (
+              <div className="relative aspect-video w-full rounded-2xl overflow-hidden shadow-md">
+                <img src={link.image_url} alt="" className="h-full w-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 to-transparent" />
+              </div>
+            ) : (
+              <div className="h-44 w-full rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 dark:from-primary/20 dark:to-transparent flex items-center justify-center border border-primary/10">
+                <CreditCard className="h-16 w-16 text-primary/40" />
               </div>
             )}
+
+            <div>
+              {link.invoice_number && (
+                <span className="inline-flex items-center rounded-full bg-slate-200 dark:bg-slate-800 px-2.5 py-0.5 text-xs font-medium text-slate-800 dark:text-slate-200 mb-2">
+                  #{link.invoice_number}
+                </span>
+              )}
+              <h1 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+                {link.title}
+              </h1>
+              {link.description && (
+                <p className="mt-3 text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                  {link.description}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Pricing Summary */}
+        <div className="mt-10 pt-8 border-t border-slate-200 dark:border-slate-800 space-y-4">
+          <div className="flex justify-between items-baseline">
+            <span className="text-sm text-slate-500 dark:text-slate-400 font-medium">Montant à régler</span>
+            <div className="text-right">
+              <span className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+                {fmt(link.amount)}
+              </span>
+              <span className="ml-1.5 text-sm font-bold text-slate-500 dark:text-slate-400 uppercase">
+                {link.currency}
+              </span>
+            </div>
           </div>
 
-          <div className="p-6">
-            {!txId && (
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <Label htmlFor="name">Nom complet</Label>
-                  <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required maxLength={100} />
+          <div className="flex justify-between items-center text-xs text-slate-500 dark:text-slate-400">
+            <span>Frais DolaPay</span>
+            <span className="font-semibold text-slate-700 dark:text-slate-300">
+              {link.fees_paid_by === "customer" ? "Inclus" : "0 F (Pris en charge)"}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 rounded-xl bg-slate-200/50 dark:bg-slate-800/50 px-3 py-2 text-[11px] text-slate-500 dark:text-slate-400">
+            <Shield className="h-3.5 w-3.5 text-primary shrink-0" />
+            <span>Paiement traité de manière sécurisée en direct via le réseau d'opérateurs agrégé.</span>
+          </div>
+        </div>
+      </div>
+
+      {/* RIGHT COLUMN: Form Panel */}
+      <div className="w-full md:w-1/2 bg-white dark:bg-slate-950 p-6 md:p-12 flex flex-col justify-between">
+        <div className="max-w-md mx-auto w-full my-auto space-y-8">
+          <div>
+            <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
+              Détails du paiement
+            </h2>
+            <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
+              Complétez vos coordonnées pour valider le paiement Mobile Money par USSD.
+            </p>
+          </div>
+
+          {!txId ? (
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Email Address */}
+              <div className="space-y-1.5">
+                <Label htmlFor="email" className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Adresse email <span className="text-slate-400">(Facultatif)</span>
+                </Label>
+                <div className="relative">
+                  <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="nom@exemple.com"
+                    className="pl-9 h-11 border-slate-200 dark:border-slate-800 focus-visible:ring-primary rounded-xl"
+                  />
                 </div>
-                <div>
-                  <Label htmlFor="phone">Numéro Mobile Money</Label>
-                  <Input id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} required maxLength={20} placeholder="+229 ..." />
+              </div>
+
+              {/* Customer Name */}
+              <div className="space-y-1.5">
+                <Label htmlFor="name" className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Nom complet
+                </Label>
+                <div className="relative">
+                  <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <Input
+                    id="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                    maxLength={100}
+                    placeholder="Votre nom complet"
+                    className="pl-9 h-11 border-slate-200 dark:border-slate-800 focus-visible:ring-primary rounded-xl"
+                  />
                 </div>
-                <div>
-                  <div className="flex items-center justify-between">
-                    <Label>Opérateur Mobile Money</Label>
-                    <span className="text-[10px] font-semibold text-primary/80 uppercase">
-                      Détection automatique
-                    </span>
+              </div>
+
+              {/* Country Selection Dropdown */}
+              <div className="space-y-1.5 relative">
+                <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Pays de facturation
+                </Label>
+                <button
+                  type="button"
+                  onClick={() => setShowCountryDropdown(!showCountryDropdown)}
+                  className="w-full flex items-center justify-between px-3.5 h-11 border border-slate-200 dark:border-slate-800 bg-background hover:bg-slate-50 dark:hover:bg-slate-900 rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-lg leading-none">{activeCountry.flag}</span>
+                    <span className="font-medium text-slate-900 dark:text-white">{activeCountry.name}</span>
                   </div>
-                  <div className="mt-1.5 grid grid-cols-3 gap-2">
-                    {ALL_PROVIDERS.map((p) => {
-                      const active = provider === p.id;
-                      return (
-                        <button
-                          key={p.id}
-                          type="button"
-                          onClick={() => { setProvider(p.id); setUserSelectedProvider(true); }}
-                          className={cn(
-                            "rounded-xl border px-3 py-2.5 text-xs font-semibold transition-all flex flex-col items-center justify-center gap-1",
-                            active
-                              ? "border-primary bg-primary/10 text-primary ring-2 ring-primary/30 shadow-sm"
-                              : "border-border/80 bg-background/50 hover:border-primary/50 hover:bg-accent/40 text-muted-foreground hover:text-foreground",
-                          )}
-                        >
-                          <Smartphone className={cn("h-4 w-4", active ? "text-primary" : "text-muted-foreground")} />
-                          <span>{p.label}</span>
-                        </button>
-                      );
-                    })}
+                  <div className="flex items-center gap-1.5 text-slate-400 text-xs">
+                    <span>+{activeCountry.prefix}</span>
+                    <ChevronDown className="h-4 w-4 shrink-0" />
                   </div>
+                </button>
+
+                {showCountryDropdown && (
+                  <div className="absolute z-50 left-0 right-0 mt-1 max-h-60 overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl py-1.5">
+                    {COUNTRIES.map((c) => (
+                      <button
+                        key={c.code}
+                        type="button"
+                        onClick={() => handleCountryChange(c.code)}
+                        className={cn(
+                          "w-full flex items-center justify-between px-4 py-2 text-sm text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors",
+                          selectedCountryCode === c.code ? "bg-primary/5 text-primary font-semibold" : "text-slate-700 dark:text-slate-300"
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-lg leading-none">{c.flag}</span>
+                          <span>{c.name}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-slate-400">+{c.prefix}</span>
+                          {selectedCountryCode === c.code && <Check className="h-3.5 w-3.5 text-primary shrink-0" />}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Operator Selection with logos */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Moyen de paiement ({activeCountry.name})
+                </Label>
+                <div className="grid grid-cols-2 gap-2.5">
+                  {activeCountry.operators.map((op) => {
+                    const active = provider === op.id;
+                    return (
+                      <button
+                        key={op.id}
+                        type="button"
+                        onClick={() => { setProvider(op.id); setUserSelectedProvider(true); }}
+                        className={cn(
+                          "relative p-3.5 border rounded-xl flex items-center justify-center gap-2.5 min-h-[58px] transition-all bg-slate-50/50 dark:bg-slate-900/40 hover:bg-slate-50 dark:hover:bg-slate-900",
+                          active
+                            ? "border-primary bg-primary/5 dark:bg-primary/10 text-primary ring-2 ring-primary/25 shadow-sm"
+                            : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400"
+                        )}
+                      >
+                        {op.logoUrl ? (
+                          <img src={op.logoUrl} alt={op.name} className="h-7 max-w-[80%] object-contain" />
+                        ) : (
+                          <div className={cn(
+                            "px-2.5 py-1 rounded font-black text-[11px] tracking-widest",
+                            op.color
+                          )}>
+                            {op.name.toUpperCase()}
+                          </div>
+                        )}
+                        {active && (
+                          <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[8px] font-bold text-white shadow-sm ring-2 ring-white">
+                            ✓
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
-                <Button type="submit" className="w-full" size="lg" disabled={submitting}>
-                  {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                  Payer {fmt(link.amount)} {link.currency}
-                </Button>
-              </form>
-            )}
+              </div>
 
-            {txId && <StatusView status={status ?? "pending"} amount={link.amount} currency={link.currency} countdown={redirectCountdown} thankYou={link.thank_you_message} />}
-          </div>
+              {/* Phone Input with prefilled prefix */}
+              <div className="space-y-1.5">
+                <Label htmlFor="phone" className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Numéro de téléphone Mobile Money
+                </Label>
+                <div className="relative">
+                  <Smartphone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <Input
+                    id="phone"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    required
+                    maxLength={20}
+                    placeholder={`+${activeCountry.prefix} ...`}
+                    className="pl-9 h-11 border-slate-200 dark:border-slate-800 focus-visible:ring-primary rounded-xl font-mono text-sm"
+                  />
+                </div>
+                <p className="text-[10px] text-slate-400 leading-normal">
+                  Saisissez le numéro rattaché à votre compte Mobile Money. Une demande de confirmation USSD va vous être envoyée.
+                </p>
+              </div>
 
-          <div className="flex items-center justify-center gap-2 border-t border-border bg-muted/30 px-6 py-3 text-xs text-muted-foreground">
-            <Shield className="h-3 w-3" /> Paiement sécurisé par DolaPay
+              {/* Pay Button */}
+              <Button
+                type="submit"
+                className="w-full h-11 rounded-xl font-bold shadow-lg shadow-primary/20 text-sm flex items-center justify-center gap-2"
+                disabled={submitting}
+              >
+                {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Lock className="h-3.5 w-3.5" />}
+                Payer {fmt(link.amount)} {link.currency}
+              </Button>
+            </form>
+          ) : (
+            <StatusView
+              status={status ?? "pending"}
+              amount={link.amount}
+              currency={link.currency}
+              countdown={redirectCountdown}
+              thankYou={link.thank_you_message}
+            />
+          )}
+        </div>
+
+        {/* Footer Secure Badge */}
+        <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-900 text-center space-y-2">
+          <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400">
+            <Lock className="h-3.5 w-3.5 text-primary shrink-0" />
+            <span>Paiement sécurisé par DolaPay</span>
           </div>
-        </Card>
+          <p className="text-[9px] text-slate-400 leading-none">
+            Propulsé par DolaPay · Conditions · Confidentialité
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -271,47 +620,55 @@ function PayPage() {
 function StatusView({ status, amount, currency, countdown, thankYou }: { status: TxStatus; amount: number; currency: string; countdown: number | null; thankYou: string | null }) {
   if (status === "pending") {
     return (
-      <div className="py-8 text-center">
+      <div className="py-8 text-center space-y-4">
         <Loader2 className="mx-auto h-12 w-12 animate-spin text-primary" />
-        <h2 className="mt-4 text-lg font-bold">Paiement en cours…</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Confirmez la demande sur votre téléphone pour finaliser le paiement.
-        </p>
+        <div>
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white">Paiement en cours…</h2>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
+            Confirmez la demande USSD sur votre téléphone avec votre code secret Mobile Money.
+          </p>
+        </div>
       </div>
     );
   }
   if (status === "success") {
     return (
-      <div className="py-8 text-center">
+      <div className="py-8 text-center space-y-4">
         <CheckCircle2 className="mx-auto h-14 w-14 text-emerald-500" />
-        <h2 className="mt-4 text-lg font-bold">Paiement réussi</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Votre paiement de <span className="font-semibold">{fmt(amount)} {currency}</span> a été reçu.
-        </p>
+        <div>
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white">Paiement réussi !</h2>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            Votre paiement de <span className="font-semibold text-slate-900 dark:text-white">{fmt(amount)} {currency}</span> a été validé.
+          </p>
+        </div>
         {thankYou && (
-          <div className="mx-auto mt-4 max-w-xs rounded-2xl border border-emerald-200/40 bg-emerald-50/60 p-3 text-sm text-emerald-900 dark:bg-emerald-500/5 dark:text-emerald-200">
+          <div className="mx-auto max-w-xs rounded-2xl border border-emerald-100 dark:border-emerald-950/40 bg-emerald-50/50 dark:bg-emerald-950/10 p-4 text-xs text-emerald-800 dark:text-emerald-300">
             {thankYou}
           </div>
         )}
-        {countdown !== null && <p className="mt-3 text-xs text-muted-foreground">Redirection dans {countdown}s…</p>}
+        {countdown !== null && <p className="mt-3 text-xs text-slate-400 italic">Redirection dans {countdown}s…</p>}
       </div>
     );
   }
   return (
-    <div className="py-8 text-center">
+    <div className="py-8 text-center space-y-4">
       <XCircle className="mx-auto h-14 w-14 text-rose-500" />
-      <h2 className="mt-4 text-lg font-bold">Paiement échoué</h2>
-      <p className="mt-1 text-sm text-muted-foreground">Réessayez ou contactez le commerçant.</p>
-      {countdown !== null && <p className="mt-3 text-xs text-muted-foreground">Redirection dans {countdown}s…</p>}
-      <Button className="mt-4" variant="outline" onClick={() => window.location.reload()}>Réessayer</Button>
+      <div>
+        <h2 className="text-lg font-bold text-slate-900 dark:text-white">Paiement échoué</h2>
+        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+          La transaction a été rejetée ou a expiré. Veuillez réessayer.
+        </p>
+      </div>
+      {countdown !== null && <p className="mt-3 text-xs text-slate-400 italic">Redirection dans {countdown}s…</p>}
+      <Button className="mt-4 rounded-xl px-5" variant="outline" onClick={() => window.location.reload()}>Réessayer</Button>
     </div>
   );
 }
 
 function CenteredCard({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen grid place-items-center bg-background px-4">
-      <Card className="flex w-full max-w-md flex-col items-center p-10 text-center">{children}</Card>
+    <div className="min-h-screen grid place-items-center bg-slate-50 dark:bg-slate-950 px-4">
+      <Card className="flex w-full max-w-md flex-col items-center p-10 text-center rounded-2xl shadow-xl border-slate-200/60 dark:border-slate-800/60">{children}</Card>
     </div>
   );
 }
@@ -319,4 +676,3 @@ function CenteredCard({ children }: { children: React.ReactNode }) {
 function fmt(n: number) {
   return new Intl.NumberFormat("fr-FR").format(Math.round(n));
 }
-
