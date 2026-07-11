@@ -63,13 +63,14 @@ export const Route = createFileRoute("/api/v1/charges")({
             description: `[API_CHARGE${auth.is_test ? '_TEST' : ''}] ${correspondent} · ${customer_phone} · ${description || 'Encaissement API'}`,
             net_amount: amount,
             customer_phone,
-            provider: auth.is_test ? "sandbox" : "pawapay",
+            provider: "pawapay",
             payment_method: provider,
           } as any)
           .select("id, created_at")
           .single();
 
         if (txErr || !tx) {
+          console.error("DB Insert Error details:", txErr);
           return Response.json({ error: { code: "db_error", message: "Impossible de créer la transaction." } }, { status: 500 });
         }
 
