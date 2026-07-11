@@ -54,6 +54,7 @@ import { Route as AuthenticatedAdminFinanceRouteImport } from './routes/_authent
 import { Route as AuthenticatedAdminComplianceRouteImport } from './routes/_authenticated/admin/compliance'
 import { Route as AuthenticatedAdminAuditRouteImport } from './routes/_authenticated/admin/audit'
 import { Route as ApiV1ChargesIdRouteImport } from './routes/api/v1/charges.$id'
+import { Route as ApiPublicTxTimeoutIdRouteImport } from './routes/api/public/tx-timeout.$id'
 import { Route as ApiPublicTxStatusIdRouteImport } from './routes/api/public/tx-status.$id'
 import { Route as ApiPublicPaySlugRouteImport } from './routes/api/public/pay.$slug'
 import { Route as AuthenticatedAdminMerchantsIdRouteImport } from './routes/_authenticated/admin/merchants.$id'
@@ -297,6 +298,11 @@ const ApiV1ChargesIdRoute = ApiV1ChargesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiV1ChargesRoute,
 } as any)
+const ApiPublicTxTimeoutIdRoute = ApiPublicTxTimeoutIdRouteImport.update({
+  id: '/api/public/tx-timeout/$id',
+  path: '/api/public/tx-timeout/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicTxStatusIdRoute = ApiPublicTxStatusIdRouteImport.update({
   id: '/api/public/tx-status/$id',
   path: '/api/public/tx-status/$id',
@@ -361,6 +367,7 @@ export interface FileRoutesByFullPath {
   '/admin/merchants/$id': typeof AuthenticatedAdminMerchantsIdRoute
   '/api/public/pay/$slug': typeof ApiPublicPaySlugRoute
   '/api/public/tx-status/$id': typeof ApiPublicTxStatusIdRoute
+  '/api/public/tx-timeout/$id': typeof ApiPublicTxTimeoutIdRoute
   '/api/v1/charges/$id': typeof ApiV1ChargesIdRoute
 }
 export interface FileRoutesByTo {
@@ -408,6 +415,7 @@ export interface FileRoutesByTo {
   '/admin/merchants/$id': typeof AuthenticatedAdminMerchantsIdRoute
   '/api/public/pay/$slug': typeof ApiPublicPaySlugRoute
   '/api/public/tx-status/$id': typeof ApiPublicTxStatusIdRoute
+  '/api/public/tx-timeout/$id': typeof ApiPublicTxTimeoutIdRoute
   '/api/v1/charges/$id': typeof ApiV1ChargesIdRoute
 }
 export interface FileRoutesById {
@@ -459,6 +467,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/merchants/$id': typeof AuthenticatedAdminMerchantsIdRoute
   '/api/public/pay/$slug': typeof ApiPublicPaySlugRoute
   '/api/public/tx-status/$id': typeof ApiPublicTxStatusIdRoute
+  '/api/public/tx-timeout/$id': typeof ApiPublicTxTimeoutIdRoute
   '/api/v1/charges/$id': typeof ApiV1ChargesIdRoute
 }
 export interface FileRouteTypes {
@@ -510,6 +519,7 @@ export interface FileRouteTypes {
     | '/admin/merchants/$id'
     | '/api/public/pay/$slug'
     | '/api/public/tx-status/$id'
+    | '/api/public/tx-timeout/$id'
     | '/api/v1/charges/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -557,6 +567,7 @@ export interface FileRouteTypes {
     | '/admin/merchants/$id'
     | '/api/public/pay/$slug'
     | '/api/public/tx-status/$id'
+    | '/api/public/tx-timeout/$id'
     | '/api/v1/charges/$id'
   id:
     | '__root__'
@@ -607,6 +618,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/merchants/$id'
     | '/api/public/pay/$slug'
     | '/api/public/tx-status/$id'
+    | '/api/public/tx-timeout/$id'
     | '/api/v1/charges/$id'
   fileRoutesById: FileRoutesById
 }
@@ -637,6 +649,7 @@ export interface RootRouteChildren {
   ApiWebhooksDiditRoute: typeof ApiWebhooksDiditRoute
   ApiPublicPaySlugRoute: typeof ApiPublicPaySlugRoute
   ApiPublicTxStatusIdRoute: typeof ApiPublicTxStatusIdRoute
+  ApiPublicTxTimeoutIdRoute: typeof ApiPublicTxTimeoutIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -956,6 +969,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiV1ChargesIdRouteImport
       parentRoute: typeof ApiV1ChargesRoute
     }
+    '/api/public/tx-timeout/$id': {
+      id: '/api/public/tx-timeout/$id'
+      path: '/api/public/tx-timeout/$id'
+      fullPath: '/api/public/tx-timeout/$id'
+      preLoaderRoute: typeof ApiPublicTxTimeoutIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/tx-status/$id': {
       id: '/api/public/tx-status/$id'
       path: '/api/public/tx-status/$id'
@@ -1110,6 +1130,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiWebhooksDiditRoute: ApiWebhooksDiditRoute,
   ApiPublicPaySlugRoute: ApiPublicPaySlugRoute,
   ApiPublicTxStatusIdRoute: ApiPublicTxStatusIdRoute,
+  ApiPublicTxTimeoutIdRoute: ApiPublicTxTimeoutIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

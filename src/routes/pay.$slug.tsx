@@ -261,26 +261,66 @@ function PayPage() {
     }
   }, [phone, selectedCountryCode, userSelectedProvider]);
 
-  // Status polling via public status endpoint
+  // Status polling via public status endpoint with 120-second timeout
   useEffect(() => {
     if (!txId) return;
     let cancelled = false;
+    let elapsedSeconds = 0;
+    const TIMEOUT_LIMIT = 120; // 2 minutes
+
     const poll = setInterval(async () => {
       if (cancelled) return;
+
+      elapsedSeconds += 2;
+      if (elapsedSeconds >= TIMEOUT_LIMIT) {
+        clearInterval(poll);
+        setStatus("failed");
+        toast.error("Délai d'attente dépassé. La transaction a expiré.");
+        
+        // Notify backend about timeout
+        try {
+          fetch(`/api/public/tx-timeout/${txId}`, { method: "POST", keepalive: true });
+        } catch (e) {
+          console.error("Failed to notify timeout:", e);
+        }
+        return;
+      }
+
       try {
         const res = await fetch(`/api/public/tx-status/${txId}`, { cache: "no-store" });
         if (!res.ok) return;
         const json = (await res.json()) as { status?: TxStatus };
-        if (json?.status) setStatus(json.status);
+        if (json?.status) {
+          setStatus(json.status);
+          if (json.status === "success" || json.status === "failed") {
+            clearInterval(poll);
+          }
+        }
       } catch {
         /* ignore transient errors */
       }
     }, 2000);
+
     return () => {
       cancelled = true;
       clearInterval(poll);
     };
   }, [txId]);
+
+  // Handle page abandonment/closing while payment is pending
+  useEffect(() => {
+    if (!txId || status !== "pending") return;
+
+    const handleUnload = () => {
+      // Send a beacon to mark it failed if they close or leave the page
+      navigator.sendBeacon(`/api/public/tx-timeout/${txId}`);
+    };
+
+    window.addEventListener("beforeunload", handleUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleUnload);
+    };
+  }, [txId, status]);
 
   useEffect(() => {
     if (status === "success" || status === "failed") setSubmitting(false);
