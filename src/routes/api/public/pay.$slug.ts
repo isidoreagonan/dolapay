@@ -151,8 +151,8 @@ export const Route = createFileRoute("/api/public/pay/$slug")({
                 callbackUrl,
               });
 
-              if (payinRes.response_code === "00" && payinRes.response_content?.payment_url) {
-                const token = payinRes.token || payinRes.response_content.token || null;
+              if (payinRes.response_code === "00" && payinRes.response_text) {
+                const token = payinRes.token || null;
                 await supabaseAdmin
                   .from("transactions")
                   .update({
@@ -163,12 +163,12 @@ export const Route = createFileRoute("/api/public/pay/$slug")({
                 return Response.json({
                   transaction_id: tx!.id,
                   status: "redirect",
-                  redirect_url: payinRes.response_content.payment_url,
+                  redirect_url: payinRes.response_text,
                   success_url: link.success_url,
                   failure_url: link.failure_url,
                 });
               } else {
-                throw new Error(payinRes.response_text || "LigdiCash initiation failed");
+                throw new Error("LigdiCash initiation failed (No redirect URL or error)");
               }
             } catch (err: any) {
               console.error("Erreur LigdiCash Payin initiation:", err);
