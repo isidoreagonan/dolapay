@@ -24,7 +24,14 @@ import pmMpesa from "@/assets/pm-mpesa.png.asset.json";
 import pmVodacom from "@/assets/pm-vodacom.png.asset.json";
 import pmZamtel from "@/assets/pm-zamtel.png.asset.json";
 
+import { z } from "zod";
+
+const paySearchSchema = z.object({
+  tx_id: z.string().uuid().optional(),
+});
+
 export const Route = createFileRoute("/pay/$slug")({
+  validateSearch: (search) => paySearchSchema.parse(search),
   component: PayPage,
   head: ({ params }) => ({
     meta: [
