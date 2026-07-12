@@ -126,18 +126,30 @@ export async function createLigdiCashPayin(
   const payload = {
     commande: {
       invoice: {
+        items: [
+          {
+            name: req.description,
+            description: req.description,
+            quantity: 1,
+            unit_price: req.amount,
+            total_price: req.amount,
+          }
+        ],
         total_amount: req.amount,
         currency: req.currency || "xof",
         description: req.description,
-        customer: req.customer,
-        custom_data: req.customData || {},
-        return_url: req.returnUrl || "https://dola-pay.com/dashboard",
-        callback_url: req.callbackUrl || "https://dola-pay.com/api/public/ligdicash-webhook",
+        customer: req.customer.phone, // LigdiCash attend souvent une chaîne simple ici
       },
       store: {
         name: "DolaPay",
         website_url: "https://dola-pay.com",
       },
+      actions: {
+        cancel_url: "https://dola-pay.com/cancel",
+        return_url: req.returnUrl || "https://dola-pay.com/success",
+        callback_url: req.callbackUrl || "https://dola-pay.com/api/public/ligdicash-webhook",
+      },
+      custom_data: req.customData,
     },
   };
 
