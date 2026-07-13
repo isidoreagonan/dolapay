@@ -306,7 +306,7 @@ export const Route = createFileRoute("/api/public/withdraw")({
               user_metadata: { ...(user.user_metadata || {}), wallet_balance: newBalance },
             });
 
-            if (!wallet.is_virtual && wallet.id) {
+            if (!Boolean(json.testMode) && wallet.id) {
               await supabaseAdmin
                 .from("wallets")
                 .update({
