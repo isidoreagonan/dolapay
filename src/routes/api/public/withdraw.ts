@@ -71,26 +71,54 @@ export const Route = createFileRoute("/api/public/withdraw")({
 
             let opError: any = null;
             if (existingWallet) {
-              const { error } = await supabaseAdmin
+              let error: any = (await supabaseAdmin
                 .from("wallets")
                 .update({
                   hashed_pin: hashedPin,
                   updated_at: new Date().toISOString(),
                 } as any)
-                .eq("id", existingWallet.id);
+                .eq("id", existingWallet.id)).error;
+
+              if (error && (error.message?.includes("hashed_pin") || error.code === "PGRST204")) {
+                const resPin = await supabaseAdmin
+                  .from("wallets")
+                  .update({
+                    pin: hashedPin,
+                    updated_at: new Date().toISOString(),
+                  } as any)
+                  .eq("id", existingWallet.id);
+                error = resPin.error;
+              }
+
+              if (error && (error.message?.includes("pin") || error.code === "PGRST204")) {
+                const { error: metaErr } = await supabaseAdmin.auth.admin.updateUserById(user.id, {
+                  user_metadata: { ...(user.user_metadata || {}), wallet_pin: hashedPin },
+                });
+                error = metaErr as any;
+              }
               opError = error;
             } else {
               let insErr: any = null;
               for (const col of candidates) {
-                const payload: any = {
+                let payload: any = {
                   [col]: user.id,
                   hashed_pin: hashedPin,
                   balance: 0.00,
                   currency: "XOF",
                   updated_at: new Date().toISOString(),
                 };
-                const ins = await (supabaseAdmin.from("wallets") as any).insert(payload);
-                if (!ins.error || !ins.error.message?.includes(col)) {
+                let ins = await (supabaseAdmin.from("wallets") as any).insert(payload);
+                if (ins.error && (ins.error.message?.includes("hashed_pin") || ins.error.code === "PGRST204")) {
+                  delete payload.hashed_pin;
+                  ins = await (supabaseAdmin.from("wallets") as any).insert(payload);
+                  if (!ins.error || !ins.error.message?.includes(col)) {
+                    await supabaseAdmin.auth.admin.updateUserById(user.id, {
+                      user_metadata: { ...(user.user_metadata || {}), wallet_pin: hashedPin },
+                    });
+                    insErr = ins.error;
+                    break;
+                  }
+                } else if (!ins.error || !ins.error.message?.includes(col)) {
                   insErr = ins.error;
                   break;
                 }
@@ -148,8 +176,14 @@ export const Route = createFileRoute("/api/public/withdraw")({
             }
 
             // Vérifier le code PIN haché
+            let storedPin = wallet.hashed_pin || wallet.pin;
+            if (!storedPin) {
+              const { data: userData } = await supabaseAdmin.auth.admin.getUserById(user.id);
+              storedPin = userData?.user?.user_metadata?.wallet_pin;
+            }
+
             const hashedInputPin = hashPin(pin);
-            if (wallet.hashed_pin !== hashedInputPin) {
+            if (storedPin !== hashedInputPin) {
               return Response.json({ error: "Code PIN secret incorrect." }, { status: 403 });
             }
 

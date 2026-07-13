@@ -77,10 +77,19 @@ function WalletPage() {
         error = res.error;
       }
 
-      if (error && !data) {
-        // Tentative en ignorant l'erreur si elle concerne un schéma absent ou en renvoyant null
-        return null;
+      if (error && !data) return null;
+      if (!data) return null;
+
+      if (!data.hashed_pin && data.pin) {
+        data.hashed_pin = data.pin;
       }
+      if (!data.hashed_pin) {
+        const { data: authData } = await supabase.auth.getUser();
+        if (authData?.user?.user_metadata?.wallet_pin) {
+          data.hashed_pin = authData.user.user_metadata.wallet_pin;
+        }
+      }
+
       return data as Wallet;
     },
   });
