@@ -46,6 +46,7 @@ function WalletPage() {
   const [showPin, setShowPin] = useState(false);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [pinModalOpen, setPinModalOpen] = useState(false);
+  const [testMode, setTestMode] = useState(false);
 
   // Form State for Withdrawal
   const [withdrawAmount, setWithdrawAmount] = useState("");
@@ -55,7 +56,7 @@ function WalletPage() {
   const [showWithdrawPin, setShowWithdrawPin] = useState(false);
 
   const { data: wallet, isLoading: walletLoading } = useQuery({
-    queryKey: ["my-wallet", profile?.id],
+    queryKey: ["my-wallet", profile?.id, testMode],
     enabled: !!profile?.id,
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -80,13 +81,19 @@ function WalletPage() {
       const profBalance = Number((profData as any)?.balance ?? (profData as any)?.wallet_balance ?? (profData as any)?.solde ?? (profData as any)?.amount ?? 0);
 
       let computedBalance = 0;
-      const { data: txs } = await (supabase.from("transactions") as any).select("amount, type, status").eq("profile_id", profile!.id);
+      let matchingTxsCount = 0;
+      const { data: txs } = await (supabase.from("transactions") as any).select("amount, type, status, description").eq("profile_id", profile!.id);
       if (txs && txs.length > 0) {
         let payinSum = 0;
         let payoutSum = 0;
         for (const t of txs) {
+          const desc = String(t.description || "").toLowerCase();
+          const isTest = desc.includes("_test") || desc.includes("sandbox") || desc.includes("test");
+          if (testMode ? !isTest : isTest) continue;
+
           const st = String(t.status || "").toLowerCase();
           if (st === "completed" || st === "successful" || st === "success" || st === "paid") {
+            matchingTxsCount++;
             const amt = Number(t.amount || 0);
             if (String(t.type || "").toLowerCase().includes("payout") || String(t.type || "").toLowerCase().includes("withdraw")) {
               payoutSum += amt;
@@ -102,7 +109,7 @@ function WalletPage() {
       const metaBalance = Number(authData?.user?.user_metadata?.wallet_balance || 0);
       const metaPin = authData?.user?.user_metadata?.wallet_pin;
 
-      const bestBalance = Math.max(Number(data?.balance || 0), profBalance, computedBalance, metaBalance);
+      const bestBalance = matchingTxsCount > 0 ? computedBalance : Math.max(Number(data?.balance || 0), profBalance, metaBalance);
 
       if (!data) {
         if (bestBalance > 0 || authData?.user?.user_metadata?.wallet_created || metaPin) {
@@ -309,7 +316,19 @@ function WalletPage() {
           <h1 className="text-2xl font-bold tracking-tight">Mon Portefeuille</h1>
           <p className="text-sm text-muted-foreground">Gérez votre solde DolaPay, visualisez vos rapports et initiez des retraits.</p>
         </div>
-        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+          <button
+            onClick={() => setTestMode(!testMode)}
+            className={cn(
+              "inline-flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-xs font-bold transition-colors border shadow-sm w-full sm:w-auto justify-center h-11",
+              testMode
+                ? "bg-amber-500/15 text-amber-600 border-amber-500/30 hover:bg-amber-500/25 dark:text-amber-400"
+                : "bg-emerald-500/15 text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/25 dark:text-emerald-400"
+            )}
+          >
+            <div className={cn("h-2 w-2 rounded-full", testMode ? "bg-amber-500" : "bg-emerald-500")} />
+            {testMode ? "Mode Test (Sandbox)" : "Mode Live (Réel)"}
+          </button>
           <Button
             variant="outline"
             onClick={() => setPinModalOpen(true)}
@@ -336,7 +355,12 @@ function WalletPage() {
           
           <div className="relative flex justify-between items-start z-10">
             <div className="space-y-1">
-              <div className="text-xs uppercase tracking-widest text-purple-200/80 font-bold">Solde Disponible</div>
+              <div className="text-xs uppercase tracking-widest text-purple-200/80 font-bold flex items-center gap-2">
+                Solde Disponible
+                <span className={cn("px-2 py-0.5 rounded text-[9px] font-extrabold uppercase", testMode ? "bg-amber-400 text-slate-900" : "bg-emerald-400 text-slate-900")}>
+                  {testMode ? "Sandbox" : "Live"}
+                </span>
+              </div>
               <div className="text-3xl sm:text-4xl font-black tracking-tight">
                 {wallet ? fmt(wallet.balance) : "0"} <span className="text-lg font-bold text-purple-200">{wallet?.currency || "XOF"}</span>
               </div>
