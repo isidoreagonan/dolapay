@@ -321,6 +321,44 @@ export const Route = createFileRoute("/api/public/withdraw")({
               .update({ balance: newBalance, wallet_balance: newBalance } as any)
               .eq("id", user.id);
 
+            // Connexion API PawaPay pour effectuer le décaissement automatique (Payout API)
+            let finalStatus = wallet.is_virtual ? "success" : "processing";
+            const { pawapay, getCorrespondentCode } = await import("@/lib/pawapay.server");
+            const correspondentCode = getCorrespondentCode(method, phone);
+            const payoutId = `pw_${crypto.randomUUID().slice(0, 16)}`;
+
+            if (!wallet.is_virtual) {
+              try {
+                const payoutRes = await pawapay.initiatePayout({
+                  payoutId,
+                  amount: amount,
+                  currency: "XOF",
+                  phone: phone,
+                  provider: correspondentCode,
+                  description: `Retrait DolaPay (${method})`,
+                });
+                if (payoutRes && payoutRes.status) {
+                  if (payoutRes.status === "REJECTED") {
+                    // Rollback du solde si refusé immédiatement par PawaPay / Opérateur
+                    await supabaseAdmin
+                      .from("wallets")
+                      .update({ balance: currentBalance, updated_at: new Date().toISOString() } as any)
+                      .eq("id", wallet.id);
+                    await (supabaseAdmin.from("profiles") as any)
+                      .update({ balance: currentBalance, wallet_balance: currentBalance } as any)
+                      .eq("id", user.id);
+                    return Response.json({
+                      error: `Retrait refusé par l'opérateur Mobile Money (${correspondentCode}) : ${payoutRes.rejectionReason?.rejectionMessage || "Refus PawaPay."}`,
+                    }, { status: 400 });
+                  }
+                  finalStatus = payoutRes.status === "ACCEPTED" ? "processing" : "pending";
+                }
+              } catch (pwErr: any) {
+                console.warn("[PawaPay API] Retrait en attente de traitement manuel ou réseau :", pwErr.message);
+                finalStatus = "pending";
+              }
+            }
+
             // Créer la demande de retrait (withdrawal_request)
             let reqErr = (await supabaseAdmin
               .from("withdrawal_requests")
@@ -331,7 +369,7 @@ export const Route = createFileRoute("/api/public/withdraw")({
                 currency: "XOF",
                 method: method,
                 recipient_phone: phone,
-                status: "pending",
+                status: finalStatus,
               } as any)).error;
 
             if (reqErr && reqErr.message?.includes("profile_id")) {
@@ -343,7 +381,7 @@ export const Route = createFileRoute("/api/public/withdraw")({
                   currency: "XOF",
                   method: method,
                   recipient_phone: phone,
-                  status: "pending",
+                  status: finalStatus,
                 } as any)).error;
             }
 
