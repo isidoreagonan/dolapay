@@ -56,6 +56,8 @@ function WalletPage() {
   const { data: wallet, isLoading: walletLoading } = useQuery({
     queryKey: ["my-wallet", profile?.id],
     enabled: !!profile?.id,
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
     queryFn: async (): Promise<Wallet | null> => {
       const { data, error } = await supabase
         .from("wallets")
@@ -71,6 +73,8 @@ function WalletPage() {
   const { data: withdrawals = [], isLoading: withdrawalsLoading } = useQuery({
     queryKey: ["my-withdrawals", profile?.id],
     enabled: !!profile?.id,
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
     queryFn: async (): Promise<WithdrawalRequest[]> => {
       const { data, error } = await supabase
         .from("withdrawal_requests")

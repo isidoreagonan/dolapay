@@ -42,19 +42,43 @@ export const Route = createFileRoute("/api/public/withdraw")({
             const hashedPin = hashPin(pin);
 
             // Mettre à jour ou créer le portefeuille avec le PIN haché
-            const { error: updateErr } = await supabaseAdmin
+            const { data: existingWallet, error: selectErr } = await supabaseAdmin
               .from("wallets")
-              .upsert({
-                profile_id: user.id,
-                hashed_pin: hashedPin,
-                balance: 0.00,
-                currency: "XOF",
-                updated_at: new Date().toISOString(),
-              } as any, { onConflict: "profile_id" });
+              .select("id")
+              .eq("profile_id", user.id)
+              .maybeSingle();
 
-            if (updateErr) {
-              console.error("Setup PIN failed:", updateErr);
-              return Response.json({ error: "Échec de configuration du code PIN." }, { status: 500 });
+            if (selectErr) {
+              console.error("Select wallet failed:", selectErr);
+              return Response.json({ error: `Erreur SQL SELECT: ${selectErr.message}` }, { status: 500 });
+            }
+
+            let opError: any = null;
+            if (existingWallet) {
+              const { error } = await supabaseAdmin
+                .from("wallets")
+                .update({
+                  hashed_pin: hashedPin,
+                  updated_at: new Date().toISOString(),
+                } as any)
+                .eq("id", existingWallet.id);
+              opError = error;
+            } else {
+              const { error } = await supabaseAdmin
+                .from("wallets")
+                .insert({
+                  profile_id: user.id,
+                  hashed_pin: hashedPin,
+                  balance: 0.00,
+                  currency: "XOF",
+                  updated_at: new Date().toISOString(),
+                } as any);
+              opError = error;
+            }
+
+            if (opError) {
+              console.error("Setup PIN failed:", opError);
+              return Response.json({ error: `Erreur Supabase (${opError.code || 'SQL'}): ${opError.message || opError.details || JSON.stringify(opError)}` }, { status: 500 });
             }
 
             return Response.json({ success: true });
