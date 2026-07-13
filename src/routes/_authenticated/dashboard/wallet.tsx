@@ -304,13 +304,9 @@ function WalletPage() {
         // En Mode Test (Sandbox): le paiement test est de 100 FCFA
         bestBalance = computedTestBalance > 0 ? computedTestBalance : (testPayin > 0 ? testPayin : 100);
       } else {
-        // En Mode Live (Réel): le paiement réel est de 300 FCFA
-        const rawLive = Math.max(computedLiveBalance, storedBalance, profBalance, metaBalance);
-        if (rawLive === 400 || rawLive === 300 || rawLive === 200 || rawLive === 0 || livePayin === 200 || storedBalance === 200) {
-          bestBalance = 300;
-        } else {
-          bestBalance = rawLive;
-        }
+        // En Mode Live (Réel): priorité au solde stocké dans les tables wallets / profiles / user_metadata ou calculé depuis les transactions
+        const dbBal = storedBalance || profBalance || metaBalance;
+        bestBalance = dbBal > 0 ? dbBal : computedLiveBalance;
       }
 
       if (!data) {
@@ -345,46 +341,81 @@ function WalletPage() {
     refetchOnWindowFocus: false,
     queryFn: async (): Promise<WithdrawalRequest[]> => {
       const candidates = ["profile_id", "user_id", "merchant_id", "account_id", "owner_id", "id"];
-      let data: any = null;
+      let results: WithdrawalRequest[] = [];
+      const existingIds = new Set<string>();
 
+      // 1. withdrawal_requests across candidates
       for (const col of candidates) {
         const res = await (supabase.from("withdrawal_requests") as any)
           .select("*")
           .eq(col, profile!.id)
           .order("created_at", { ascending: false });
 
-        if (!res.error || !res.error.message?.includes(col)) {
-          data = res.data;
+        if (!res.error && res.data && res.data.length > 0) {
+          for (const r of res.data) {
+            if (!existingIds.has(r.id)) {
+              existingIds.add(r.id);
+              results.push(r as WithdrawalRequest);
+            }
+          }
           break;
         }
       }
 
-      let results = (data ?? []) as WithdrawalRequest[];
+      // 2. transactions (type: "pay-out") across candidates
+      for (const col of ["profile_id", "user_id", "merchant_id", "account_id"]) {
+        const { data: txPayouts } = await (supabase.from("transactions") as any)
+          .select("*")
+          .eq(col, profile!.id)
+          .eq("type", "pay-out")
+          .order("created_at", { ascending: false });
 
-      // Si la table withdrawal_requests est introuvable ou vide, charger depuis la table transactions (type: "pay-out")
-      const { data: txPayouts } = await (supabase.from("transactions") as any)
-        .select("*")
-        .eq("profile_id", profile!.id)
-        .eq("type", "pay-out")
-        .order("created_at", { ascending: false });
-
-      if (txPayouts && txPayouts.length > 0) {
-        const mappedTx: WithdrawalRequest[] = txPayouts.map((t: any) => ({
-          id: t.id,
-          amount: t.amount,
-          currency: (t.currency || "XOF") as any,
-          method: t.provider || t.description?.replace("Retrait Mobile Money - ", "")?.split(" (")[0] || "Mobile Money",
-          recipient_phone: t.customer_phone || t.description?.split(" (")[1]?.replace(")", "") || "N/A",
-          status: (t.status === "completed" || t.status === "success") ? "success" : (t.status === "failed" ? "failed" : "pending"),
-          created_at: t.created_at,
-        }));
-        const existingIds = new Set(results.map(r => r.id));
-        for (const mt of mappedTx) {
-          if (!existingIds.has(mt.id)) results.push(mt);
+        if (txPayouts && txPayouts.length > 0) {
+          for (const t of txPayouts) {
+            if (!existingIds.has(t.id)) {
+              existingIds.add(t.id);
+              results.push({
+                id: t.id,
+                amount: t.amount,
+                currency: (t.currency || "XOF") as any,
+                method: t.provider || t.description?.replace("Retrait Mobile Money - ", "")?.split(" (")[0] || "Mobile Money",
+                recipient_phone: t.customer_phone || t.description?.split(" (")[1]?.replace(")", "") || "N/A",
+                status: (t.status === "completed" || t.status === "success") ? "success" : (t.status === "failed" ? "failed" : "pending"),
+                created_at: t.created_at,
+              });
+            }
+          }
         }
       }
 
-      return results;
+      // 3. payout_batch_items (via payout_batches)
+      const { data: batches } = await (supabase.from("payout_batches") as any)
+        .select("*, payout_batch_items(*)")
+        .eq("owner_id", profile!.id)
+        .order("created_at", { ascending: false });
+
+      if (batches && batches.length > 0) {
+        for (const b of batches) {
+          if (b.payout_batch_items && Array.isArray(b.payout_batch_items)) {
+            for (const item of b.payout_batch_items) {
+              if (!existingIds.has(item.id)) {
+                existingIds.add(item.id);
+                results.push({
+                  id: item.id,
+                  amount: item.amount || b.total_amount,
+                  currency: (item.currency || b.currency || "XOF") as any,
+                  method: item.provider || b.name?.replace("[Retrait Wallet] ", "")?.split(" (")[0] || "Mobile Money",
+                  recipient_phone: item.recipient_phone || b.name?.split(" (")[1]?.replace(")", "") || "N/A",
+                  status: (item.status === "completed" || item.status === "success") ? "success" : (item.status === "failed" ? "failed" : "pending"),
+                  created_at: item.created_at || b.created_at,
+                });
+              }
+            }
+          }
+        }
+      }
+
+      return results.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     },
   });
 

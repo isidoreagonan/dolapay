@@ -398,9 +398,9 @@ export const Route = createFileRoute("/api/public/withdraw")({
               reqErr = res.error;
             }
 
-            // Si la table withdrawal_requests est introuvable ou échoue (ex: 'Could not find the table...'), enregistrer dans transactions (pay-out) et payout_batches !
-            if (!insertedOk && reqErr) {
-              console.log("[Withdraw] Table withdrawal_requests indisponible, enregistrement dans transactions (pay-out) et payout_batches...");
+            // Toujours enregistrer dans transactions (pay-out) et payout_batches en parallèle pour garantir une visibilité totale dans le ledger des flux !
+            if (true) {
+              console.log("[Withdraw] Enregistrement dans transactions (pay-out) et payout_batches...");
               
               const txStatus = (finalStatus === "success" || finalStatus === "completed" || finalStatus === "processing") ? "success" : "pending";
               const txPayloads = [
