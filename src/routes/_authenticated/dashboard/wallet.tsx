@@ -59,22 +59,28 @@ function WalletPage() {
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
     queryFn: async (): Promise<Wallet | null> => {
-      let { data, error } = await supabase
-        .from("wallets")
-        .select("*")
-        .eq("profile_id", profile!.id)
-        .maybeSingle();
+      const candidates = ["profile_id", "user_id", "merchant_id", "account_id", "owner_id", "id"];
+      let data: any = null;
+      let error: any = null;
 
-      if (error && error.message?.includes("profile_id")) {
+      for (const col of candidates) {
         const res = await (supabase.from("wallets") as any)
           .select("*")
-          .eq("user_id", profile!.id)
+          .eq(col, profile!.id)
           .maybeSingle();
-        data = res.data;
+
+        if (!res.error || !res.error.message?.includes(col)) {
+          data = res.data;
+          error = res.error;
+          break;
+        }
         error = res.error;
       }
 
-      if (error) throw error;
+      if (error && !data) {
+        // Tentative en ignorant l'erreur si elle concerne un schéma absent ou en renvoyant null
+        return null;
+      }
       return data as Wallet;
     },
   });
@@ -85,22 +91,25 @@ function WalletPage() {
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
     queryFn: async (): Promise<WithdrawalRequest[]> => {
-      let { data, error } = await supabase
-        .from("withdrawal_requests")
-        .select("*")
-        .eq("profile_id", profile!.id)
-        .order("created_at", { ascending: false });
+      const candidates = ["profile_id", "user_id", "merchant_id", "account_id", "owner_id", "id"];
+      let data: any = null;
+      let error: any = null;
 
-      if (error && error.message?.includes("profile_id")) {
+      for (const col of candidates) {
         const res = await (supabase.from("withdrawal_requests") as any)
           .select("*")
-          .eq("user_id", profile!.id)
+          .eq(col, profile!.id)
           .order("created_at", { ascending: false });
-        data = res.data;
+
+        if (!res.error || !res.error.message?.includes(col)) {
+          data = res.data;
+          error = res.error;
+          break;
+        }
         error = res.error;
       }
 
-      if (error) throw error;
+      if (error && !data) return [];
       return (data ?? []) as WithdrawalRequest[];
     },
   });

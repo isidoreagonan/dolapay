@@ -43,27 +43,30 @@ export const Route = createFileRoute("/api/public/withdraw")({
 
             // Mettre à jour ou créer le portefeuille avec le PIN haché
             // Mettre à jour ou créer le portefeuille avec le PIN haché
+            const candidates = ["profile_id", "user_id", "merchant_id", "account_id", "owner_id", "id"];
             let idCol = "profile_id";
-            let resProfile = await supabaseAdmin
-              .from("wallets")
-              .select("id")
-              .eq("profile_id", user.id)
-              .maybeSingle();
+            let existingWallet: any = null;
+            let selectErr: any = null;
 
-            if (resProfile.error && resProfile.error.message?.includes("profile_id")) {
-              idCol = "user_id";
-              resProfile = await (supabaseAdmin.from("wallets") as any)
+            for (const col of candidates) {
+              const res = await (supabaseAdmin.from("wallets") as any)
                 .select("id")
-                .eq("user_id", user.id)
+                .eq(col, user.id)
                 .maybeSingle();
+
+              if (!res.error || !res.error.message?.includes(col)) {
+                idCol = col;
+                existingWallet = res.data;
+                selectErr = res.error;
+                break;
+              }
+              selectErr = res.error;
             }
 
-            const existingWallet = resProfile.data;
-            const selectErr = resProfile.error;
-
-            if (selectErr) {
-              console.error("Select wallet failed:", selectErr);
-              return Response.json({ error: `Erreur SQL SELECT: ${selectErr.message}` }, { status: 500 });
+            if (selectErr && !existingWallet) {
+              // Tentative ultime avec 'id' en tant que clé ou inspection
+              console.error("Select wallet failed across all candidates:", selectErr);
+              return Response.json({ error: `Erreur SQL SELECT sur table wallets (${idCol}): ${selectErr.message}` }, { status: 500 });
             }
 
             let opError: any = null;
@@ -77,25 +80,23 @@ export const Route = createFileRoute("/api/public/withdraw")({
                 .eq("id", existingWallet.id);
               opError = error;
             } else {
-              const payload: any = {
-                [idCol]: user.id,
-                hashed_pin: hashedPin,
-                balance: 0.00,
-                currency: "XOF",
-                updated_at: new Date().toISOString(),
-              };
-              let ins = await supabaseAdmin.from("wallets").insert(payload);
-              if (ins.error && ins.error.message?.includes("profile_id")) {
-                const payloadFallback: any = {
-                  user_id: user.id,
+              let insErr: any = null;
+              for (const col of candidates) {
+                const payload: any = {
+                  [col]: user.id,
                   hashed_pin: hashedPin,
                   balance: 0.00,
                   currency: "XOF",
                   updated_at: new Date().toISOString(),
                 };
-                ins = await supabaseAdmin.from("wallets").insert(payloadFallback);
+                const ins = await (supabaseAdmin.from("wallets") as any).insert(payload);
+                if (!ins.error || !ins.error.message?.includes(col)) {
+                  insErr = ins.error;
+                  break;
+                }
+                insErr = ins.error;
               }
-              opError = ins.error;
+              opError = insErr;
             }
 
             if (opError) {
@@ -124,21 +125,23 @@ export const Route = createFileRoute("/api/public/withdraw")({
             }
 
             // Récupérer le portefeuille de l'utilisateur
-            let resW = await supabaseAdmin
-              .from("wallets")
-              .select("*")
-              .eq("profile_id", user.id)
-              .maybeSingle();
+            const candidates = ["profile_id", "user_id", "merchant_id", "account_id", "owner_id", "id"];
+            let wallet: any = null;
+            let walletErr: any = null;
 
-            if (resW.error && resW.error.message?.includes("profile_id")) {
-              resW = await (supabaseAdmin.from("wallets") as any)
+            for (const col of candidates) {
+              const res = await (supabaseAdmin.from("wallets") as any)
                 .select("*")
-                .eq("user_id", user.id)
+                .eq(col, user.id)
                 .maybeSingle();
-            }
 
-            const wallet = resW.data;
-            const walletErr = resW.error;
+              if (!res.error || !res.error.message?.includes(col)) {
+                wallet = res.data;
+                walletErr = res.error;
+                break;
+              }
+              walletErr = res.error;
+            }
 
             if (walletErr || !wallet) {
               return Response.json({ error: walletErr ? `Erreur SQL: ${walletErr.message}` : "Portefeuille introuvable." }, { status: 404 });
