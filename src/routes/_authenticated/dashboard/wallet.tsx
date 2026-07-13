@@ -45,6 +45,7 @@ function WalletPage() {
   const [confirmPin, setConfirmPin] = useState("");
   const [showPin, setShowPin] = useState(false);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
+  const [pinModalOpen, setPinModalOpen] = useState(false);
 
   // Form State for Withdrawal
   const [withdrawAmount, setWithdrawAmount] = useState("");
@@ -61,44 +62,67 @@ function WalletPage() {
     queryFn: async (): Promise<Wallet | null> => {
       const candidates = ["profile_id", "user_id", "merchant_id", "account_id", "owner_id", "id"];
       let data: any = null;
-      let error: any = null;
 
       for (const col of candidates) {
-        const res = await (supabase.from("wallets") as any)
+        const { data: rows, error } = await (supabase.from("wallets") as any)
           .select("*")
-          .eq(col, profile!.id)
-          .maybeSingle();
+          .eq(col, profile!.id);
 
-        if (!res.error || !res.error.message?.includes(col)) {
-          data = res.data;
-          error = res.error;
-          break;
+        if (!error && rows && rows.length > 0) {
+          const sorted = rows.sort((a: any, b: any) => Number(b.balance ?? b.amount ?? b.solde ?? 0) - Number(a.balance ?? a.amount ?? a.solde ?? 0));
+          data = sorted[0];
+          data.balance = Number(data.balance ?? data.amount ?? data.solde ?? data.available_balance ?? 0);
+          if (data.balance > 0) break;
         }
-        error = res.error;
       }
 
+      const { data: profData } = await supabase.from("profiles").select("*").eq("id", profile!.id).maybeSingle();
+      const profBalance = Number((profData as any)?.balance ?? (profData as any)?.wallet_balance ?? (profData as any)?.solde ?? (profData as any)?.amount ?? 0);
+
+      let computedBalance = 0;
+      const { data: txs } = await (supabase.from("transactions") as any).select("amount, type, status").eq("profile_id", profile!.id);
+      if (txs && txs.length > 0) {
+        let payinSum = 0;
+        let payoutSum = 0;
+        for (const t of txs) {
+          const st = String(t.status || "").toLowerCase();
+          if (st === "completed" || st === "successful" || st === "success" || st === "paid") {
+            const amt = Number(t.amount || 0);
+            if (String(t.type || "").toLowerCase().includes("payout") || String(t.type || "").toLowerCase().includes("withdraw")) {
+              payoutSum += amt;
+            } else {
+              payinSum += amt;
+            }
+          }
+        }
+        computedBalance = Math.max(0, payinSum - payoutSum);
+      }
+
+      const { data: authData } = await supabase.auth.getUser();
+      const metaBalance = Number(authData?.user?.user_metadata?.wallet_balance || 0);
+      const metaPin = authData?.user?.user_metadata?.wallet_pin;
+
+      const bestBalance = Math.max(Number(data?.balance || 0), profBalance, computedBalance, metaBalance);
+
       if (!data) {
-        const { data: authData } = await supabase.auth.getUser();
-        if (authData?.user?.user_metadata?.wallet_created || authData?.user?.user_metadata?.wallet_pin) {
+        if (bestBalance > 0 || authData?.user?.user_metadata?.wallet_created || metaPin) {
           return {
-            id: authData.user.id,
-            profile_id: authData.user.id,
-            balance: Number(authData.user.user_metadata.wallet_balance || 0),
+            id: authData?.user?.id || profile!.id,
+            profile_id: authData?.user?.id || profile!.id,
+            balance: bestBalance,
             currency: "XOF",
-            hashed_pin: authData.user.user_metadata.wallet_pin,
+            hashed_pin: metaPin,
           } as any as Wallet;
         }
         return null;
       }
 
+      data.balance = bestBalance;
       if (!data.hashed_pin && data.pin) {
         data.hashed_pin = data.pin;
       }
-      if (!data.hashed_pin) {
-        const { data: authData } = await supabase.auth.getUser();
-        if (authData?.user?.user_metadata?.wallet_pin) {
-          data.hashed_pin = authData.user.user_metadata.wallet_pin;
-        }
+      if (!data.hashed_pin && metaPin) {
+        data.hashed_pin = metaPin;
       }
 
       return data as Wallet;
@@ -153,6 +177,9 @@ function WalletPage() {
     },
     onSuccess: () => {
       toast.success("Code PIN configuré avec succès !");
+      setPinModalOpen(false);
+      setPin("");
+      setConfirmPin("");
       qc.invalidateQueries({ queryKey: ["my-wallet"] });
     },
     onError: (err: any) => {
@@ -282,12 +309,21 @@ function WalletPage() {
           <h1 className="text-2xl font-bold tracking-tight">Mon Portefeuille</h1>
           <p className="text-sm text-muted-foreground">Gérez votre solde DolaPay, visualisez vos rapports et initiez des retraits.</p>
         </div>
-        <Button
-          onClick={() => setWithdrawOpen(true)}
-          className="w-full sm:w-auto h-11 font-bold rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
-        >
-          <ArrowUpRight className="h-4 w-4" /> Faire un retrait
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          <Button
+            variant="outline"
+            onClick={() => setPinModalOpen(true)}
+            className="w-full sm:w-auto h-11 font-semibold rounded-xl flex items-center justify-center gap-2 border-slate-300 dark:border-slate-700"
+          >
+            <KeyRound className="h-4 w-4" /> Gérer mon code PIN
+          </Button>
+          <Button
+            onClick={() => setWithdrawOpen(true)}
+            className="w-full sm:w-auto h-11 font-bold rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
+          >
+            <ArrowUpRight className="h-4 w-4" /> Faire un retrait
+          </Button>
+        </div>
       </div>
 
       {/* Main Grid: Card + Stats */}
@@ -414,6 +450,83 @@ function WalletPage() {
           </Card>
         )}
       </div>
+
+      {/* PIN Setup/Reset Modal */}
+      {pinModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
+          <Card className="w-full max-w-md p-6 space-y-6 relative border-slate-200/60 dark:border-slate-800/60 shadow-2xl">
+            <div>
+              <h2 className="text-xl font-bold tracking-tight">Configurer / Modifier le code PIN</h2>
+              <p className="text-xs text-muted-foreground mt-1">
+                Choisissez un nouveau code PIN secret à 4 chiffres pour sécuriser vos retraits.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold">Nouveau Code PIN (4 chiffres)</Label>
+                <div className="relative">
+                  <Input
+                    type={showPin ? "text" : "password"}
+                    value={pin}
+                    onChange={(e) => setPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                    placeholder="xxxx"
+                    maxLength={4}
+                    className="font-mono tracking-widest text-center text-lg h-11"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPin(!showPin)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-foreground"
+                  >
+                    {showPin ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold">Confirmez le nouveau code PIN</Label>
+                <Input
+                  type={showPin ? "text" : "password"}
+                  value={confirmPin}
+                  onChange={(e) => setConfirmPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                  placeholder="xxxx"
+                  maxLength={4}
+                  className="font-mono tracking-widest text-center text-lg h-11"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 pt-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setPinModalOpen(false);
+                  setPin("");
+                  setConfirmPin("");
+                }}
+                className="flex-1 h-11 font-semibold rounded-xl"
+              >
+                Annuler
+              </Button>
+              <Button
+                onClick={() => {
+                  if (pin !== confirmPin) {
+                    toast.error("Les codes PIN ne correspondent pas.");
+                    return;
+                  }
+                  setupPinMutation.mutate(pin);
+                }}
+                disabled={setupPinMutation.isPending}
+                className="flex-1 h-11 font-bold rounded-xl"
+              >
+                {setupPinMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Enregistrer
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
 
       {/* Withdrawal Modal */}
       {withdrawOpen && (

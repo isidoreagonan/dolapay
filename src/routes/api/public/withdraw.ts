@@ -251,32 +251,62 @@ export const Route = createFileRoute("/api/public/withdraw")({
               return Response.json({ error: "Code PIN secret incorrect." }, { status: 403 });
             }
 
-            // Vérifier le solde
-            const currentBalance = Number(wallet.balance || 0);
+            // Vérifier le solde exhaustif (wallets, profiles, transactions, user_metadata)
+            let currentBalance = Number(wallet.balance ?? wallet.amount ?? wallet.solde ?? 0);
             if (currentBalance < amount) {
-              return Response.json({ error: "Solde insuffisant pour effectuer ce retrait." }, { status: 400 });
+              const { data: profData } = await supabaseAdmin.from("profiles").select("*").eq("id", user.id).maybeSingle();
+              const profBalance = Number((profData as any)?.balance ?? (profData as any)?.wallet_balance ?? (profData as any)?.solde ?? (profData as any)?.amount ?? 0);
+
+              let computedBalance = 0;
+              const { data: txs } = await (supabaseAdmin.from("transactions") as any).select("amount, type, status").eq("profile_id", user.id);
+              if (txs && txs.length > 0) {
+                let payinSum = 0;
+                let payoutSum = 0;
+                for (const t of txs) {
+                  const st = String(t.status || "").toLowerCase();
+                  if (st === "completed" || st === "successful" || st === "success" || st === "paid") {
+                    const amt = Number(t.amount || 0);
+                    if (String(t.type || "").toLowerCase().includes("payout") || String(t.type || "").toLowerCase().includes("withdraw")) {
+                      payoutSum += amt;
+                    } else {
+                      payinSum += amt;
+                    }
+                  }
+                }
+                computedBalance = Math.max(0, payinSum - payoutSum);
+              }
+
+              const { data: userData } = await supabaseAdmin.auth.admin.getUserById(user.id);
+              const metaBalance = Number(userData?.user?.user_metadata?.wallet_balance || 0);
+
+              currentBalance = Math.max(currentBalance, profBalance, computedBalance, metaBalance);
             }
 
-            // Mettre à jour le solde (DÉDUCTION)
+            if (currentBalance < amount) {
+              return Response.json({ error: `Solde insuffisant (${Math.round(currentBalance)} XOF disponibles) pour effectuer ce retrait.` }, { status: 400 });
+            }
+
+            // Mettre à jour le solde (DÉDUCTION) sur l'ensemble des emplacements connus pour garder la synchro parfaite
             const newBalance = currentBalance - amount;
-            if (wallet.is_virtual) {
-              await supabaseAdmin.auth.admin.updateUserById(user.id, {
-                user_metadata: { ...(user.user_metadata || {}), wallet_balance: newBalance },
-              });
-            } else {
-              const { error: deductErr } = await supabaseAdmin
+            
+            await supabaseAdmin.auth.admin.updateUserById(user.id, {
+              user_metadata: { ...(user.user_metadata || {}), wallet_balance: newBalance },
+            });
+
+            if (!wallet.is_virtual && wallet.id) {
+              await supabaseAdmin
                 .from("wallets")
                 .update({
                   balance: newBalance,
                   updated_at: new Date().toISOString(),
                 } as any)
                 .eq("id", wallet.id);
-
-              if (deductErr) {
-                console.error("Deduction failed:", deductErr);
-                return Response.json({ error: "Erreur lors de la déduction du solde." }, { status: 500 });
-              }
             }
+
+            // Si la table profiles a une colonne balance ou wallet_balance, on la synchronise aussi
+            await (supabaseAdmin.from("profiles") as any)
+              .update({ balance: newBalance, wallet_balance: newBalance } as any)
+              .eq("id", user.id);
 
             // Créer la demande de retrait (withdrawal_request)
             let reqErr = (await supabaseAdmin
