@@ -42,11 +42,24 @@ export const Route = createFileRoute("/api/public/withdraw")({
             const hashedPin = hashPin(pin);
 
             // Mettre à jour ou créer le portefeuille avec le PIN haché
-            const { data: existingWallet, error: selectErr } = await supabaseAdmin
+            // Mettre à jour ou créer le portefeuille avec le PIN haché
+            let idCol = "profile_id";
+            let resProfile = await supabaseAdmin
               .from("wallets")
               .select("id")
               .eq("profile_id", user.id)
               .maybeSingle();
+
+            if (resProfile.error && resProfile.error.message?.includes("profile_id")) {
+              idCol = "user_id";
+              resProfile = await (supabaseAdmin.from("wallets") as any)
+                .select("id")
+                .eq("user_id", user.id)
+                .maybeSingle();
+            }
+
+            const existingWallet = resProfile.data;
+            const selectErr = resProfile.error;
 
             if (selectErr) {
               console.error("Select wallet failed:", selectErr);
@@ -64,16 +77,25 @@ export const Route = createFileRoute("/api/public/withdraw")({
                 .eq("id", existingWallet.id);
               opError = error;
             } else {
-              const { error } = await supabaseAdmin
-                .from("wallets")
-                .insert({
-                  profile_id: user.id,
+              const payload: any = {
+                [idCol]: user.id,
+                hashed_pin: hashedPin,
+                balance: 0.00,
+                currency: "XOF",
+                updated_at: new Date().toISOString(),
+              };
+              let ins = await supabaseAdmin.from("wallets").insert(payload);
+              if (ins.error && ins.error.message?.includes("profile_id")) {
+                const payloadFallback: any = {
+                  user_id: user.id,
                   hashed_pin: hashedPin,
                   balance: 0.00,
                   currency: "XOF",
                   updated_at: new Date().toISOString(),
-                } as any);
-              opError = error;
+                };
+                ins = await supabaseAdmin.from("wallets").insert(payloadFallback);
+              }
+              opError = ins.error;
             }
 
             if (opError) {
@@ -102,14 +124,24 @@ export const Route = createFileRoute("/api/public/withdraw")({
             }
 
             // Récupérer le portefeuille de l'utilisateur
-            const { data: wallet, error: walletErr } = await supabaseAdmin
+            let resW = await supabaseAdmin
               .from("wallets")
               .select("*")
               .eq("profile_id", user.id)
               .maybeSingle();
 
+            if (resW.error && resW.error.message?.includes("profile_id")) {
+              resW = await (supabaseAdmin.from("wallets") as any)
+                .select("*")
+                .eq("user_id", user.id)
+                .maybeSingle();
+            }
+
+            const wallet = resW.data;
+            const walletErr = resW.error;
+
             if (walletErr || !wallet) {
-              return Response.json({ error: "Portefeuille introuvable." }, { status: 404 });
+              return Response.json({ error: walletErr ? `Erreur SQL: ${walletErr.message}` : "Portefeuille introuvable." }, { status: 404 });
             }
 
             // Vérifier le code PIN haché
@@ -140,7 +172,7 @@ export const Route = createFileRoute("/api/public/withdraw")({
             }
 
             // Créer la demande de retrait (withdrawal_request)
-            const { error: reqErr } = await supabaseAdmin
+            let reqErr = (await supabaseAdmin
               .from("withdrawal_requests")
               .insert({
                 profile_id: user.id,
@@ -150,7 +182,20 @@ export const Route = createFileRoute("/api/public/withdraw")({
                 method: method,
                 recipient_phone: phone,
                 status: "pending",
-              } as any);
+              } as any)).error;
+
+            if (reqErr && reqErr.message?.includes("profile_id")) {
+              reqErr = (await (supabaseAdmin.from("withdrawal_requests") as any)
+                .insert({
+                  user_id: user.id,
+                  wallet_id: wallet.id,
+                  amount: amount,
+                  currency: "XOF",
+                  method: method,
+                  recipient_phone: phone,
+                  status: "pending",
+                } as any)).error;
+            }
 
             if (reqErr) {
               console.error("Withdrawal request creation failed:", reqErr);

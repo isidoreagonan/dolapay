@@ -59,11 +59,20 @@ function WalletPage() {
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
     queryFn: async (): Promise<Wallet | null> => {
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from("wallets")
         .select("*")
         .eq("profile_id", profile!.id)
         .maybeSingle();
+
+      if (error && error.message?.includes("profile_id")) {
+        const res = await (supabase.from("wallets") as any)
+          .select("*")
+          .eq("user_id", profile!.id)
+          .maybeSingle();
+        data = res.data;
+        error = res.error;
+      }
 
       if (error) throw error;
       return data as Wallet;
@@ -76,11 +85,20 @@ function WalletPage() {
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
     queryFn: async (): Promise<WithdrawalRequest[]> => {
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from("withdrawal_requests")
         .select("*")
         .eq("profile_id", profile!.id)
         .order("created_at", { ascending: false });
+
+      if (error && error.message?.includes("profile_id")) {
+        const res = await (supabase.from("withdrawal_requests") as any)
+          .select("*")
+          .eq("user_id", profile!.id)
+          .order("created_at", { ascending: false });
+        data = res.data;
+        error = res.error;
+      }
 
       if (error) throw error;
       return (data ?? []) as WithdrawalRequest[];
