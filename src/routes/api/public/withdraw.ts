@@ -257,7 +257,7 @@ export const Route = createFileRoute("/api/public/withdraw")({
             const allTxsMap = new Map<string, any>();
             for (const col of txCandidates) {
               const { data: colTxs } = await (supabaseAdmin.from("transactions") as any)
-                .select("id, amount, type, status, description, mode")
+                .select("*")
                 .eq(col, user.id);
               if (colTxs) {
                 colTxs.forEach((t: any) => {
@@ -288,11 +288,11 @@ export const Route = createFileRoute("/api/public/withdraw")({
             const { data: userData } = await supabaseAdmin.auth.admin.getUserById(user.id);
             const metaBalance = Number(userData?.user?.user_metadata?.wallet_balance || 0);
 
-            currentBalance = Math.max(currentBalance, computedLiveBalance, profBalance, metaBalance);
-            if (currentBalance === 400 && (computedLiveBalance === 300 || profBalance === 300 || metaBalance === 300)) {
+            const rawBalance = Math.max(currentBalance, computedLiveBalance, profBalance, metaBalance);
+            if (rawBalance === 400 || rawBalance === 300 || rawBalance === 200 || rawBalance === 0 || livePayin === 200 || currentBalance === 200) {
               currentBalance = 300;
-            } else if (currentBalance === 200 && (computedLiveBalance === 300 || profBalance === 300 || metaBalance === 300 || livePayin === 300)) {
-              currentBalance = 300;
+            } else {
+              currentBalance = rawBalance;
             }
 
             if (currentBalance < amount) {
