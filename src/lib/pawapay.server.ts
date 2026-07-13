@@ -288,6 +288,14 @@ export class PawaPayClient {
     return response.json() as Promise<T>;
   }
 
+  private cleanStatementDescription(text?: string, fallback = "DolaPay"): string {
+    if (!text) return fallback;
+    const unaccented = text.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const alphanumeric = unaccented.replace(/[^a-zA-Z0-9\s]/g, " ");
+    const cleaned = alphanumeric.replace(/\s+/g, " ").trim().slice(0, 22).trim();
+    return cleaned.length > 0 ? cleaned : fallback;
+  }
+
   async initiateDeposit(params: {
     depositId: string;
     amount: number;
@@ -311,10 +319,7 @@ export class PawaPayClient {
         },
       },
       customerTimestamp: new Date().toISOString(),
-      statementDescription: (params.description || "DolaPay")
-        .replace(/[^a-zA-Z0-9\s]/g, "")
-        .trim()
-        .slice(0, 22),
+      statementDescription: this.cleanStatementDescription(params.description, "DolaPay Deposit"),
     };
 
     return this.request<PawaPayDepositResponse>("/deposits", "POST", payload);
@@ -343,7 +348,7 @@ export class PawaPayClient {
         },
       },
       customerTimestamp: new Date().toISOString(),
-      statementDescription: (params.description || "DolaPay Payout").slice(0, 22),
+      statementDescription: this.cleanStatementDescription(params.description, "DolaPay Payout"),
     };
 
     return this.request<PawaPayPayoutResponse>("/payouts", "POST", payload);
