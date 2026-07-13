@@ -9,11 +9,20 @@ import { Label } from "@/components/ui/label";
 import {
   Wallet as WalletIcon, ArrowUpRight, ArrowDownLeft, ShieldCheck, Lock,
   Loader2, KeyRound, Eye, EyeOff, AlertCircle, Send, Landmark, Smartphone,
-  CheckCircle2, XCircle, Clock
+  CheckCircle2, XCircle, Clock, Check, ChevronDown
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile, type Profile } from "./route";
 import { cn } from "@/lib/utils";
+import { FlagIcon } from "@/components/ui/flag-icon";
+import pmOrange from "@/assets/pm-orange.png.asset.json";
+import pmMoov from "@/assets/pm-moov.png.asset.json";
+import pmMtn from "@/assets/pm-mtn.png.asset.json";
+import pmCeltiis from "@/assets/pm-celtiis.png.asset.json";
+import pmFreeMoney from "@/assets/pm-freemoney.png.asset.json";
+import pmAirtel from "@/assets/pm-airtel.webp.asset.json";
+import pmZamtel from "@/assets/pm-zamtel.png.asset.json";
+import pmMpesa from "@/assets/pm-mpesa.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated/dashboard/wallet")({
   component: WalletPage,
@@ -38,6 +47,96 @@ type WithdrawalRequest = {
   created_at: string;
 };
 
+const WITHDRAW_COUNTRIES = [
+  {
+    code: "BF",
+    name: "Burkina Faso",
+    flag: "🇧🇫",
+    prefix: "226",
+    methods: [
+      { id: "Orange Money", name: "Orange Money", logoUrl: pmOrange.url, color: "border-orange-500/80 text-orange-600 bg-orange-500/10 dark:bg-orange-500/20" },
+      { id: "Moov Money", name: "Moov Money", logoUrl: pmMoov.url, color: "border-blue-500/80 text-blue-600 bg-blue-500/10 dark:bg-blue-500/20" },
+      { id: "Telecel", name: "Telecel", logoUrl: pmZamtel.url, color: "border-red-500/80 text-red-600 bg-red-500/10 dark:bg-red-500/20" },
+      { id: "Coris Money", name: "Coris Money", logoUrl: null, color: "border-amber-500/80 text-amber-600 bg-amber-500/10 dark:bg-amber-500/20" },
+    ]
+  },
+  {
+    code: "CI",
+    name: "Côte d'Ivoire",
+    flag: "🇨🇮",
+    prefix: "225",
+    methods: [
+      { id: "Orange Money", name: "Orange Money", logoUrl: pmOrange.url, color: "border-orange-500/80 text-orange-600 bg-orange-500/10 dark:bg-orange-500/20" },
+      { id: "MTN MoMo", name: "MTN MoMo", logoUrl: pmMtn.url, color: "border-yellow-500/80 text-yellow-600 bg-yellow-500/10 dark:bg-yellow-500/20" },
+      { id: "Moov Money", name: "Moov Money", logoUrl: pmMoov.url, color: "border-blue-500/80 text-blue-600 bg-blue-500/10 dark:bg-blue-500/20" },
+      { id: "Wave Money", name: "Wave Money", logoUrl: null, color: "border-sky-500/80 text-sky-600 bg-sky-500/10 dark:bg-sky-500/20" },
+    ]
+  },
+  {
+    code: "SN",
+    name: "Sénégal",
+    flag: "🇸🇳",
+    prefix: "221",
+    methods: [
+      { id: "Orange Money", name: "Orange Money", logoUrl: pmOrange.url, color: "border-orange-500/80 text-orange-600 bg-orange-500/10 dark:bg-orange-500/20" },
+      { id: "Wave Money", name: "Wave Money", logoUrl: null, color: "border-sky-500/80 text-sky-600 bg-sky-500/10 dark:bg-sky-500/20" },
+      { id: "Free Money", name: "Free Money", logoUrl: pmFreeMoney.url, color: "border-red-500/80 text-red-600 bg-red-500/10 dark:bg-red-500/20" },
+    ]
+  },
+  {
+    code: "BJ",
+    name: "Bénin",
+    flag: "🇧🇯",
+    prefix: "229",
+    methods: [
+      { id: "MTN MoMo", name: "MTN MoMo", logoUrl: pmMtn.url, color: "border-yellow-500/80 text-yellow-600 bg-yellow-500/10 dark:bg-yellow-500/20" },
+      { id: "Moov Money", name: "Moov Money", logoUrl: pmMoov.url, color: "border-blue-500/80 text-blue-600 bg-blue-500/10 dark:bg-blue-500/20" },
+      { id: "Celtiis Cash", name: "Celtiis Cash", logoUrl: pmCeltiis.url, color: "border-pink-500/80 text-pink-600 bg-pink-500/10 dark:bg-pink-500/20" },
+    ]
+  },
+  {
+    code: "TG",
+    name: "Togo",
+    flag: "🇹🇬",
+    prefix: "228",
+    methods: [
+      { id: "T-Money", name: "T-Money", logoUrl: null, color: "border-amber-500/80 text-amber-600 bg-amber-500/10 dark:bg-amber-500/20" },
+      { id: "Moov Money", name: "Moov Money", logoUrl: pmMoov.url, color: "border-blue-500/80 text-blue-600 bg-blue-500/10 dark:bg-blue-500/20" },
+    ]
+  },
+  {
+    code: "ML",
+    name: "Mali",
+    flag: "🇲🇱",
+    prefix: "223",
+    methods: [
+      { id: "Orange Money", name: "Orange Money", logoUrl: pmOrange.url, color: "border-orange-500/80 text-orange-600 bg-orange-500/10 dark:bg-orange-500/20" },
+      { id: "Moov Money", name: "Moov Money", logoUrl: pmMoov.url, color: "border-blue-500/80 text-blue-600 bg-blue-500/10 dark:bg-blue-500/20" },
+      { id: "Sama Money", name: "Sama Money", logoUrl: null, color: "border-purple-500/80 text-purple-600 bg-purple-500/10 dark:bg-purple-500/20" },
+    ]
+  },
+  {
+    code: "CM",
+    name: "Cameroun",
+    flag: "🇨🇲",
+    prefix: "237",
+    methods: [
+      { id: "Orange Money", name: "Orange Money", logoUrl: pmOrange.url, color: "border-orange-500/80 text-orange-600 bg-orange-500/10 dark:bg-orange-500/20" },
+      { id: "MTN MoMo", name: "MTN MoMo", logoUrl: pmMtn.url, color: "border-yellow-500/80 text-yellow-600 bg-yellow-500/10 dark:bg-yellow-500/20" },
+    ]
+  },
+  {
+    code: "CD",
+    name: "RDC",
+    flag: "🇨🇩",
+    prefix: "243",
+    methods: [
+      { id: "Airtel Money", name: "Airtel Money", logoUrl: pmAirtel.url, color: "border-red-500/80 text-red-600 bg-red-500/10 dark:bg-red-500/20" },
+      { id: "M-Pesa", name: "M-Pesa", logoUrl: pmMpesa.url, color: "border-emerald-500/80 text-emerald-600 bg-emerald-500/10 dark:bg-emerald-500/20" },
+    ]
+  }
+];
+
 function WalletPage() {
   const qc = useQueryClient();
   const { data: profile } = useProfile();
@@ -49,11 +148,14 @@ function WalletPage() {
   const [testMode, setTestMode] = useState(false);
 
   // Form State for Withdrawal
+  const [withdrawCountry, setWithdrawCountry] = useState("BF");
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState("");
-  const [withdrawMethod, setWithdrawMethod] = useState("ORANGE");
+  const [withdrawMethod, setWithdrawMethod] = useState("Orange Money");
   const [withdrawPhone, setWithdrawPhone] = useState("");
   const [withdrawPin, setWithdrawPin] = useState("");
   const [showWithdrawPin, setShowWithdrawPin] = useState(false);
+  const activeCountry = WITHDRAW_COUNTRIES.find((c) => c.code === withdrawCountry) || WITHDRAW_COUNTRIES[0];
 
   const { data: wallet, isLoading: walletLoading } = useQuery({
     queryKey: ["my-wallet", profile?.id, testMode],
@@ -236,8 +338,8 @@ function WalletPage() {
         body: JSON.stringify({
           action: "withdraw",
           amount: Number(withdrawAmount),
-          method: withdrawMethod,
-          phone: withdrawPhone,
+          method: `${withdrawMethod} (${activeCountry.name})`,
+          phone: `+${activeCountry.prefix}${withdrawPhone}`,
           pin: withdrawPin,
         }),
       });
@@ -584,41 +686,86 @@ function WalletPage() {
 
       {/* Withdrawal Modal */}
       {withdrawOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
-          <Card className="w-full max-w-md p-6 space-y-6 relative border-slate-200/60 dark:border-slate-800/60 shadow-2xl">
-            <div>
-              <h2 className="text-xl font-bold tracking-tight">Initier un retrait</h2>
-              <p className="text-xs text-muted-foreground mt-1">L'argent sera immédiatement transféré vers le compte Mobile Money configuré.</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
+          <Card className="w-full max-w-lg p-6 space-y-5 relative border-slate-200/80 dark:border-slate-800/80 shadow-2xl bg-white dark:bg-slate-950 max-h-[92vh] overflow-y-auto rounded-2xl">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800/80 pb-4">
+              <div>
+                <h2 className="text-xl font-extrabold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+                  <Send className="w-5 h-5 text-primary" />
+                  Initier un retrait
+                </h2>
+                <p className="text-xs text-muted-foreground mt-1">
+                  L'argent sera transféré immédiatement et en toute sécurité vers votre compte Mobile Money.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setWithdrawOpen(false)}
+                className="h-8 w-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500 hover:text-slate-800 dark:hover:text-white transition-colors shrink-0"
+              >
+                <XCircle className="w-5 h-5" />
+              </button>
             </div>
 
-            <form onSubmit={(e) => { e.preventDefault(); withdrawMutation.mutate(); }} className="space-y-4">
-              <div className="space-y-1.5">
-                <Label htmlFor="amount" className="text-xs font-semibold">Montant à retirer (XOF)</Label>
-                <Input
-                  id="amount"
-                  type="number"
-                  value={withdrawAmount}
-                  onChange={(e) => setWithdrawAmount(e.target.value)}
-                  placeholder="Min: 100 XOF"
-                  required
-                  min={100}
-                  className="h-11 rounded-xl"
-                />
-                {wallet && (
-                  <p className="text-[10px] text-muted-foreground text-right">
-                    Solde disponible : <span className="font-semibold">{fmt(wallet.balance)} XOF</span>
-                  </p>
+            <form onSubmit={(e) => { e.preventDefault(); withdrawMutation.mutate(); }} className="space-y-5">
+              {/* 1. Sélection du Pays de Retrait */}
+              <div className="space-y-1.5 relative">
+                <Label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+                  Pays de retrait
+                </Label>
+                <button
+                  type="button"
+                  onClick={() => setShowCountryDropdown(!showCountryDropdown)}
+                  className="w-full flex items-center justify-between px-3.5 h-12 border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 hover:bg-slate-100/70 dark:hover:bg-slate-900 rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary font-medium"
+                >
+                  <div className="flex items-center gap-3">
+                    <FlagIcon code={activeCountry.code} flag={activeCountry.flag} name={activeCountry.name} className="w-6 h-4 shadow-xs" />
+                    <span className="font-bold text-slate-900 dark:text-white text-base">{activeCountry.name}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-500 text-xs font-semibold bg-white dark:bg-slate-800 px-2 py-1 rounded-md border border-slate-200 dark:border-slate-700">
+                    <span>+{activeCountry.prefix}</span>
+                    <ChevronDown className="h-4 w-4 shrink-0" />
+                  </div>
+                </button>
+
+                {showCountryDropdown && (
+                  <div className="absolute z-50 left-0 right-0 mt-1 max-h-56 overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-2xl p-1.5 space-y-1 animate-in zoom-in-95 duration-150">
+                    {WITHDRAW_COUNTRIES.map((c) => (
+                      <button
+                        key={c.code}
+                        type="button"
+                        onClick={() => {
+                          setWithdrawCountry(c.code);
+                          setWithdrawMethod(c.methods[0].id);
+                          setShowCountryDropdown(false);
+                        }}
+                        className={cn(
+                          "w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-sm text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors",
+                          withdrawCountry === c.code ? "bg-primary/10 text-primary font-bold" : "text-slate-700 dark:text-slate-300 font-medium"
+                        )}
+                      >
+                        <div className="flex items-center gap-3">
+                          <FlagIcon code={c.code} flag={c.flag} name={c.name} className="w-6 h-4 shadow-xs" />
+                          <span>{c.name}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-slate-400 font-mono">+{c.prefix}</span>
+                          {withdrawCountry === c.code && <Check className="h-4 w-4 text-primary shrink-0" />}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
                 )}
               </div>
 
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold">Moyen de retrait</Label>
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { id: "ORANGE", name: "Orange", color: "border-orange-500 text-orange-600 bg-orange-500/5" },
-                    { id: "MOOV", name: "Moov", color: "border-blue-500 text-blue-600 bg-blue-500/5" },
-                    { id: "TELECEL", name: "Telecel", color: "border-red-500 text-red-600 bg-red-500/5" }
-                  ].map((m) => {
+              {/* 2. Choix du Moyen de Retrait (avec Logo) */}
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 flex items-center justify-between">
+                  <span>Moyen de paiement disponible</span>
+                  <span className="text-[11px] text-primary font-normal lowercase">({activeCountry.methods.length} options en {activeCountry.name})</span>
+                </Label>
+                <div className="grid grid-cols-2 gap-2.5">
+                  {activeCountry.methods.map((m) => {
                     const active = withdrawMethod === m.id;
                     return (
                       <button
@@ -626,72 +773,159 @@ function WalletPage() {
                         type="button"
                         onClick={() => setWithdrawMethod(m.id)}
                         className={cn(
-                          "py-2 border rounded-xl font-bold text-xs text-center transition-all",
-                          active ? m.color + " border-2 shadow-sm" : "border-slate-200 dark:border-slate-800 text-muted-foreground hover:bg-slate-50"
+                          "relative flex items-center gap-3 p-3 rounded-xl border transition-all text-left group",
+                          active
+                            ? m.color + " border-2 border-current shadow-md scale-[1.01]"
+                            : "border-slate-200 dark:border-slate-800 bg-slate-50/40 dark:bg-slate-900/40 hover:bg-slate-100 dark:hover:bg-slate-900 text-slate-700 dark:text-slate-300"
                         )}
                       >
-                        {m.name}
+                        {m.logoUrl ? (
+                          <img
+                            src={m.logoUrl}
+                            alt={m.name}
+                            className="w-8 h-8 rounded-lg object-contain bg-white dark:bg-slate-900 p-0.5 shadow-xs border border-slate-200/60 dark:border-slate-800 shrink-0"
+                          />
+                        ) : (
+                          <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary font-extrabold flex items-center justify-center text-xs shrink-0 shadow-xs border border-primary/20">
+                            {m.name.substring(0, 2).toUpperCase()}
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="font-bold text-xs truncate">{m.name}</div>
+                          <div className="text-[10px] opacity-75 font-medium truncate">Retrait instantané</div>
+                        </div>
+                        {active && (
+                          <div className="w-4 h-4 rounded-full bg-current text-white flex items-center justify-center shrink-0">
+                            <Check className="w-2.5 h-2.5 stroke-[3] text-white dark:text-slate-950" />
+                          </div>
+                        )}
                       </button>
                     );
                   })}
                 </div>
               </div>
 
+              {/* 3. Numéro récepteur */}
               <div className="space-y-1.5">
-                <Label htmlFor="recipientPhone" className="text-xs font-semibold">Numéro de téléphone récepteur</Label>
-                <div className="relative">
-                  <Smartphone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Label htmlFor="recipientPhone" className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+                  Numéro Mobile Money récepteur
+                </Label>
+                <div className="flex items-stretch rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 overflow-hidden transition-all h-12">
+                  <div className="flex shrink-0 items-center gap-2 border-r border-slate-200 dark:border-slate-800 px-3.5 bg-slate-100/80 dark:bg-slate-800/50 text-sm font-bold text-slate-700 dark:text-slate-200">
+                    <FlagIcon code={activeCountry.code} flag={activeCountry.flag} name={activeCountry.name} className="w-5 h-3.5 shadow-xs" />
+                    <span className="font-mono">+{activeCountry.prefix}</span>
+                  </div>
                   <Input
                     id="recipientPhone"
                     value={withdrawPhone}
                     onChange={(e) => setWithdrawPhone(e.target.value.replace(/\D/g, ""))}
-                    placeholder="226xxxxxxxx"
+                    placeholder={activeCountry.prefix === "226" ? "70xxxxxxxx ou 07xxxxxxxx" : activeCountry.prefix === "225" ? "07xxxxxxxx" : "Numéro mobile"}
                     required
-                    className="pl-9 h-11 rounded-xl font-mono text-sm"
+                    className="flex-1 h-full border-0 bg-transparent pl-3.5 font-mono text-sm font-medium focus-visible:ring-0"
                   />
                 </div>
               </div>
 
+              {/* 4. Montant à retirer & Solde dispo */}
               <div className="space-y-1.5">
-                <Label htmlFor="withdrawPin" className="text-xs font-semibold">Code PIN secret (4 chiffres)</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="amount" className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+                    Montant à retirer (XOF)
+                  </Label>
+                  {wallet && (
+                    <span className="text-xs font-bold text-primary flex items-center gap-1 bg-primary/10 px-2 py-0.5 rounded-full">
+                      Dispo : {fmt(wallet.balance)} XOF
+                    </span>
+                  )}
+                </div>
                 <div className="relative">
-                  <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <Input
+                    id="amount"
+                    type="number"
+                    value={withdrawAmount}
+                    onChange={(e) => setWithdrawAmount(e.target.value)}
+                    placeholder="Min: 100 XOF"
+                    required
+                    min={100}
+                    className="h-12 rounded-xl font-bold text-base bg-slate-50/50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 pl-4 pr-16"
+                  />
+                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-extrabold text-slate-400">
+                    FCFA
+                  </span>
+                </div>
+              </div>
+
+              {/* 5. Code PIN secret */}
+              <div className="space-y-1.5">
+                <Label htmlFor="withdrawPin" className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+                  Code PIN secret de validation (4 chiffres)
+                </Label>
+                <div className="relative">
+                  <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                   <Input
                     id="withdrawPin"
                     type={showWithdrawPin ? "text" : "password"}
                     value={withdrawPin}
                     onChange={(e) => setWithdrawPin(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                    placeholder="xxxx"
+                    placeholder="••••"
                     maxLength={4}
                     required
-                    className="pl-9 font-mono tracking-widest text-center text-lg h-11 rounded-xl"
+                    className="pl-10 pr-11 h-12 rounded-xl font-mono text-lg font-black tracking-widest bg-slate-50/50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800"
                   />
                   <button
                     type="button"
                     onClick={() => setShowWithdrawPin(!showWithdrawPin)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-foreground"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1"
                   >
                     {showWithdrawPin ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
               </div>
 
-              <div className="flex gap-3 pt-4">
+              {/* Résumé clair des frais */}
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200/70 dark:border-slate-800 space-y-1.5 text-xs">
+                <div className="flex justify-between text-slate-600 dark:text-slate-400">
+                  <span>Opérateur sélectionné</span>
+                  <span className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                    {activeCountry.methods.find(m => m.id === withdrawMethod)?.name || withdrawMethod}
+                    <span className="text-[10px] text-primary">({activeCountry.name})</span>
+                  </span>
+                </div>
+                <div className="flex justify-between text-slate-600 dark:text-slate-400">
+                  <span>Frais de transfert DolaPay</span>
+                  <span className="font-bold text-emerald-600 dark:text-emerald-400">0 XOF (Gratuit)</span>
+                </div>
+                <div className="border-t border-slate-200 dark:border-slate-800 pt-1.5 flex justify-between font-bold text-slate-900 dark:text-white">
+                  <span>Total à transférer</span>
+                  <span className="text-sm text-primary">{withdrawAmount ? `${fmt(Number(withdrawAmount))} XOF` : "0 XOF"}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 pt-2">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => setWithdrawOpen(false)}
-                  className="w-1/2 h-11 rounded-xl"
+                  className="flex-1 h-12 rounded-xl font-semibold border-slate-200 dark:border-slate-800 hover:bg-slate-100"
                 >
                   Annuler
                 </Button>
                 <Button
                   type="submit"
-                  disabled={withdrawMutation.isPending}
-                  className="w-1/2 h-11 rounded-xl font-bold shadow-lg shadow-primary/20"
+                  disabled={withdrawMutation.isPending || !withdrawAmount || !withdrawPhone || withdrawPin.length !== 4}
+                  className="flex-[2] h-12 rounded-xl font-bold bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/25 flex items-center justify-center gap-2"
                 >
-                  {withdrawMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-3.5 w-3.5 mr-2" />}
-                  Confirmer
+                  {withdrawMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Traitement en cours...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-4 h-4" />
+                      Confirmer et recevoir l'argent
+                    </>
+                  )}
                 </Button>
               </div>
             </form>

@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Check, ChevronDown } from "lucide-react";
 import { SUPPORTED_COUNTRIES, findCountryByCode } from "@/lib/supported-countries";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { FlagIcon } from "@/components/ui/flag-icon";
 import { cn } from "@/lib/utils";
 
 export function CountrySelect({
@@ -30,7 +31,7 @@ export function CountrySelect({
           >
             {selected ? (
               <span className="flex items-center gap-2">
-                <span className="text-lg leading-none">{selected.flag}</span>
+                <FlagIcon code={selected.code} flag={selected.flag} name={selected.name} className="w-5 h-3.5" />
                 <span className="font-medium">{selected.name}</span>
                 <span className="text-xs text-muted-foreground">{selected.dialCode}</span>
               </span>
@@ -59,7 +60,7 @@ export function CountrySelect({
                   active && "bg-accent",
                 )}
               >
-                <span className="text-xl leading-none">{c.flag}</span>
+                <FlagIcon code={c.code} flag={c.flag} name={c.name} className="w-5 h-3.5" />
                 <span className="flex-1 font-medium text-foreground">{c.name}</span>
                 <span className="text-xs text-muted-foreground">{c.dialCode}</span>
                 {active && <Check className="h-4 w-4 text-primary" />}
@@ -92,7 +93,7 @@ export function PhoneField({
       <span className="mb-1.5 block text-xs font-semibold text-foreground/80">{label}</span>
       <div className="flex items-stretch gap-2 rounded-xl border border-border bg-background px-3 py-2.5 focus-within:border-primary">
         <div className="flex shrink-0 items-center gap-1.5 border-r border-border pr-3 text-sm font-semibold text-foreground/80">
-          <span className="text-base">{country?.flag ?? "🌍"}</span>
+          <FlagIcon code={country?.code} flag={country?.flag} name={country?.name} className="w-5 h-3.5" />
           <span>{country?.dialCode ?? "+ —"}</span>
         </div>
         <input

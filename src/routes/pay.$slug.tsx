@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { FlagIcon } from "@/components/ui/flag-icon";
 import {
   CheckCircle2, XCircle, Loader2, Shield, Smartphone, Globe, User, Mail, CreditCard, Lock, Check, ChevronDown
 } from "lucide-react";
@@ -575,7 +576,7 @@ function PayPage() {
                   className="w-full flex items-center justify-between px-3.5 h-11 border border-slate-200 dark:border-slate-800 bg-background hover:bg-slate-50 dark:hover:bg-slate-900 rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary"
                 >
                   <div className="flex items-center gap-2.5">
-                    <span className="text-lg leading-none">{activeCountry.flag}</span>
+                    <FlagIcon code={activeCountry.code} flag={activeCountry.flag} name={activeCountry.name} className="w-5 h-3.5" />
                     <span className="font-medium text-slate-900 dark:text-white">{activeCountry.name}</span>
                   </div>
                   <div className="flex items-center gap-1.5 text-slate-400 text-xs">
@@ -597,7 +598,7 @@ function PayPage() {
                         )}
                       >
                         <div className="flex items-center gap-3">
-                          <span className="text-lg leading-none">{c.flag}</span>
+                          <FlagIcon code={c.code} flag={c.flag} name={c.name} className="w-5 h-3.5" />
                           <span>{c.name}</span>
                         </div>
                         <div className="flex items-center gap-2">
