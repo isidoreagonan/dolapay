@@ -77,8 +77,19 @@ function WalletPage() {
         error = res.error;
       }
 
-      if (error && !data) return null;
-      if (!data) return null;
+      if (!data) {
+        const { data: authData } = await supabase.auth.getUser();
+        if (authData?.user?.user_metadata?.wallet_created || authData?.user?.user_metadata?.wallet_pin) {
+          return {
+            id: authData.user.id,
+            profile_id: authData.user.id,
+            balance: Number(authData.user.user_metadata.wallet_balance || 0),
+            currency: "XOF",
+            hashed_pin: authData.user.user_metadata.wallet_pin,
+          } as any as Wallet;
+        }
+        return null;
+      }
 
       if (!data.hashed_pin && data.pin) {
         data.hashed_pin = data.pin;
