@@ -193,8 +193,8 @@ export const Route = createFileRoute("/api/public/withdraw")({
             if (!amount || amount < 100) {
               return Response.json({ error: "Le montant minimum est de 100 XOF." }, { status: 400 });
             }
-            if (!method || !["ORANGE", "MOOV", "TELECEL"].includes(method)) {
-              return Response.json({ error: "Méthode de retrait non prise en charge." }, { status: 400 });
+            if (!method || typeof method !== "string" || method.trim().length === 0) {
+              return Response.json({ error: "Méthode de retrait non spécifiée." }, { status: 400 });
             }
             if (!phone || phone.length < 8) {
               return Response.json({ error: "Numéro de téléphone invalide." }, { status: 400 });
