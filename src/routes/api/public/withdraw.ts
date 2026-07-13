@@ -326,7 +326,7 @@ export const Route = createFileRoute("/api/public/withdraw")({
             let finalStatus = isVirtualWithdraw ? "success" : "processing";
             const { pawapay, getCorrespondentCode } = await import("@/lib/pawapay.server");
             const correspondentCode = getCorrespondentCode(method, phone);
-            const payoutId = `pw_${crypto.randomUUID().slice(0, 16)}`;
+            const payoutId = crypto.randomUUID(); // Exigence stricte PawaPay : exactement 36 caractères (UUID v4)
 
             if (!isVirtualWithdraw) {
               try {

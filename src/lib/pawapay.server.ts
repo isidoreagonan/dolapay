@@ -300,7 +300,7 @@ export class PawaPayClient {
     const correspondent = getCorrespondentCode(params.provider, params.phone);
 
     const payload: PawaPayDepositRequest = {
-      depositId: params.depositId,
+      depositId: params.depositId && params.depositId.length === 36 ? params.depositId : crypto.randomUUID(),
       amount: Math.round(params.amount).toString(),
       currency: params.currency || "XOF",
       correspondent,
@@ -332,7 +332,7 @@ export class PawaPayClient {
     const correspondent = getCorrespondentCode(params.provider, params.phone);
 
     const payload: PawaPayPayoutRequest = {
-      payoutId: params.payoutId,
+      payoutId: params.payoutId && params.payoutId.length === 36 ? params.payoutId : crypto.randomUUID(),
       amount: Math.round(params.amount).toString(),
       currency: params.currency || "XOF",
       correspondent,
