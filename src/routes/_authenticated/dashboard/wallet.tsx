@@ -346,7 +346,6 @@ function WalletPage() {
     queryFn: async (): Promise<WithdrawalRequest[]> => {
       const candidates = ["profile_id", "user_id", "merchant_id", "account_id", "owner_id", "id"];
       let data: any = null;
-      let error: any = null;
 
       for (const col of candidates) {
         const res = await (supabase.from("withdrawal_requests") as any)
@@ -356,14 +355,36 @@ function WalletPage() {
 
         if (!res.error || !res.error.message?.includes(col)) {
           data = res.data;
-          error = res.error;
           break;
         }
-        error = res.error;
       }
 
-      if (error && !data) return [];
-      return (data ?? []) as WithdrawalRequest[];
+      let results = (data ?? []) as WithdrawalRequest[];
+
+      // Si la table withdrawal_requests est introuvable ou vide, charger depuis la table transactions (type: "pay-out")
+      const { data: txPayouts } = await (supabase.from("transactions") as any)
+        .select("*")
+        .eq("profile_id", profile!.id)
+        .eq("type", "pay-out")
+        .order("created_at", { ascending: false });
+
+      if (txPayouts && txPayouts.length > 0) {
+        const mappedTx: WithdrawalRequest[] = txPayouts.map((t: any) => ({
+          id: t.id,
+          amount: t.amount,
+          currency: (t.currency || "XOF") as any,
+          method: t.provider || t.description?.replace("Retrait Mobile Money - ", "")?.split(" (")[0] || "Mobile Money",
+          recipient_phone: t.customer_phone || t.description?.split(" (")[1]?.replace(")", "") || "N/A",
+          status: (t.status === "completed" || t.status === "success") ? "success" : (t.status === "failed" ? "failed" : "pending"),
+          created_at: t.created_at,
+        }));
+        const existingIds = new Set(results.map(r => r.id));
+        for (const mt of mappedTx) {
+          if (!existingIds.has(mt.id)) results.push(mt);
+        }
+      }
+
+      return results;
     },
   });
 
