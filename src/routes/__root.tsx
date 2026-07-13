@@ -7,7 +7,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { Toaster } from "@/components/ui/sonner";
 
 import appCss from "../styles.css?url";
@@ -121,15 +121,27 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
+  const lastUserIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
     import("@/integrations/supabase/client").then(({ supabase }) => {
       if (!mounted) return;
-      const { data: sub } = supabase.auth.onAuthStateChange((event) => {
-        if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
-        router.invalidate();
-        if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
+      const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+        if (event === "SIGNED_OUT") {
+          lastUserIdRef.current = null;
+          queryClient.clear();
+          router.invalidate();
+          return;
+        }
+
+        const newUserId = session?.user?.id || null;
+        if (newUserId && newUserId !== lastUserIdRef.current) {
+          lastUserIdRef.current = newUserId;
+          if (event === "SIGNED_IN") {
+            router.invalidate();
+          }
+        }
       });
       (window as unknown as { __sbSub?: { unsubscribe: () => void } }).__sbSub =
         sub.subscription;
