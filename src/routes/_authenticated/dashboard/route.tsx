@@ -13,6 +13,7 @@ import {
   Users,
   Lock as LockIcon,
   Crown,
+  Wallet,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -226,6 +227,7 @@ function DashboardLayout() {
 
   const navItems: { to: string; icon: typeof LayoutDashboard; label: string; exact?: boolean; locked?: boolean; lockedTip?: string }[] = [
     { to: "/dashboard", icon: LayoutDashboard, label: "Vue d'ensemble", exact: true },
+    { to: "/dashboard/wallet", icon: Wallet, label: "Portefeuille" },
     { to: "/dashboard/transactions", icon: ListOrdered, label: "Transactions" },
     { to: "/dashboard/payment-links", icon: LinkIcon, label: "Liens de paiement" },
     {

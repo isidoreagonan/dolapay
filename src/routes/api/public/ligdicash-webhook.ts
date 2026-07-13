@@ -72,7 +72,7 @@ export const Route = createFileRoute("/api/public/ligdicash-webhook")({
             await supabaseAdmin
               .from("transactions")
               .update({
-                status: verifiedStatus,
+                status: verifiedStatus as "success" | "failed" | "pending",
               })
               .eq("id", txId);
 
@@ -90,7 +90,7 @@ export const Route = createFileRoute("/api/public/ligdicash-webhook")({
             .maybeSingle();
 
           if (item && item.status !== "success") {
-            let verifiedStatus = newStatus;
+            let verifiedStatus: "success" | "failed" | "pending" | "processing" = newStatus;
             let verifiedError = isSuccess ? null : `LigdiCash: ${payload.status}`;
 
             if (payload.token) {

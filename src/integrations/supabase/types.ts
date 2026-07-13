@@ -539,6 +539,10 @@ export type Database = {
           profile_id: string
           status: Database["public"]["Enums"]["tx_status"]
           type: Database["public"]["Enums"]["tx_type"]
+          provider: string | null
+          payment_method: string | null
+          net_amount: number | null
+          customer_phone: string | null
         }
         Insert: {
           amount: number
@@ -551,6 +555,10 @@ export type Database = {
           profile_id: string
           status?: Database["public"]["Enums"]["tx_status"]
           type: Database["public"]["Enums"]["tx_type"]
+          provider?: string | null
+          payment_method?: string | null
+          net_amount?: number | null
+          customer_phone?: string | null
         }
         Update: {
           amount?: number
@@ -563,6 +571,10 @@ export type Database = {
           profile_id?: string
           status?: Database["public"]["Enums"]["tx_status"]
           type?: Database["public"]["Enums"]["tx_type"]
+          provider?: string | null
+          payment_method?: string | null
+          net_amount?: number | null
+          customer_phone?: string | null
         }
         Relationships: [
           {
@@ -594,6 +606,95 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      wallets: {
+        Row: {
+          balance: number
+          created_at: string
+          currency: Database["public"]["Enums"]["tx_currency"]
+          hashed_pin: string | null
+          id: string
+          profile_id: string
+          updated_at: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          currency?: Database["public"]["Enums"]["tx_currency"]
+          hashed_pin?: string | null
+          id?: string
+          profile_id: string
+          updated_at?: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          currency?: Database["public"]["Enums"]["tx_currency"]
+          hashed_pin?: string | null
+          id?: string
+          profile_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallets_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      withdrawal_requests: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: Database["public"]["Enums"]["tx_currency"]
+          id: string
+          method: string
+          profile_id: string
+          recipient_phone: string
+          status: string
+          wallet_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: Database["public"]["Enums"]["tx_currency"]
+          id?: string
+          method: string
+          profile_id: string
+          recipient_phone: string
+          status?: string
+          wallet_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: Database["public"]["Enums"]["tx_currency"]
+          id?: string
+          method?: string
+          profile_id?: string
+          recipient_phone?: string
+          status?: string
+          wallet_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "withdrawal_requests_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "withdrawal_requests_wallet_id_fkey"
+            columns: ["wallet_id"]
+            isOneToOne: false
+            referencedRelation: "wallets"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
