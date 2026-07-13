@@ -41,14 +41,16 @@ export const Route = createFileRoute("/api/public/withdraw")({
 
             const hashedPin = hashPin(pin);
 
-            // Mettre à jour le portefeuille avec le PIN haché
+            // Mettre à jour ou créer le portefeuille avec le PIN haché
             const { error: updateErr } = await supabaseAdmin
               .from("wallets")
-              .update({
+              .upsert({
+                profile_id: user.id,
                 hashed_pin: hashedPin,
+                balance: 0.00,
+                currency: "XOF",
                 updated_at: new Date().toISOString(),
-              } as any)
-              .eq("profile_id", user.id);
+              } as any, { onConflict: "profile_id" });
 
             if (updateErr) {
               console.error("Setup PIN failed:", updateErr);

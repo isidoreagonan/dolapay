@@ -152,8 +152,8 @@ function WalletPage() {
     );
   }
 
-  // Si le portefeuille n'est pas encore configuré (pas de code PIN défini)
-  if (wallet && !wallet.hashed_pin) {
+  // Si le portefeuille n'est pas encore configuré (pas de portefeuille ou pas de code PIN défini)
+  if (!wallet || !wallet.hashed_pin) {
     return (
       <div className="mx-auto max-w-md space-y-6 py-8">
         <div className="text-center space-y-2">
