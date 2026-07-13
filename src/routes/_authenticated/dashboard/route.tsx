@@ -45,6 +45,8 @@ export type Profile = {
 export function useProfile() {
   return useQuery({
     queryKey: ["my-profile"],
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
     queryFn: async (): Promise<Profile | null> => {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) return null;
@@ -144,6 +146,8 @@ export function useProfile() {
 export function useIsAdmin() {
   return useQuery({
     queryKey: ["is-admin"],
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
     queryFn: async (): Promise<boolean> => {
       const { data: sessionData } = await supabase.auth.getSession();
       const user = sessionData?.session?.user;

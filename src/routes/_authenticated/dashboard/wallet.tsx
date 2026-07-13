@@ -54,15 +54,13 @@ function WalletPage() {
   const [showWithdrawPin, setShowWithdrawPin] = useState(false);
 
   const { data: wallet, isLoading: walletLoading } = useQuery({
-    queryKey: ["my-wallet"],
+    queryKey: ["my-wallet", profile?.id],
+    enabled: !!profile?.id,
     queryFn: async (): Promise<Wallet | null> => {
-      const { data: u } = await supabase.auth.getUser();
-      if (!u.user) return null;
-
       const { data, error } = await supabase
         .from("wallets")
         .select("*")
-        .eq("profile_id", u.user.id)
+        .eq("profile_id", profile!.id)
         .maybeSingle();
 
       if (error) throw error;
@@ -71,11 +69,13 @@ function WalletPage() {
   });
 
   const { data: withdrawals = [], isLoading: withdrawalsLoading } = useQuery({
-    queryKey: ["my-withdrawals"],
+    queryKey: ["my-withdrawals", profile?.id],
+    enabled: !!profile?.id,
     queryFn: async (): Promise<WithdrawalRequest[]> => {
       const { data, error } = await supabase
         .from("withdrawal_requests")
         .select("*")
+        .eq("profile_id", profile!.id)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
