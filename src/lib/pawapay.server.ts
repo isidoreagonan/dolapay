@@ -111,7 +111,7 @@ export function cleanPhoneNumber(phone: string, defaultCountryPrefix?: string): 
   if (digits.startsWith("226") && digits.length === 11) return digits;
   if (digits.startsWith("225") && digits.length === 13) return digits;
   if (digits.startsWith("221") && digits.length === 12) return digits;
-  if (digits.startsWith("229") && digits.length === 11) return digits;
+  if (digits.startsWith("229") && (digits.length === 11 || digits.length === 13)) return digits;
   if (digits.startsWith("237") && digits.length === 12) return digits;
   if (digits.startsWith("243") && digits.length >= 11) return digits;
   if (digits.startsWith("254") && digits.length === 12) return digits;
@@ -127,7 +127,7 @@ export function cleanPhoneNumber(phone: string, defaultCountryPrefix?: string): 
   if (digits.length === 9 && country === "SEN") {
     return `221${digits}`;
   }
-  if (digits.length === 8 && country === "BEN") {
+  if ((digits.length === 8 || digits.length === 10) && country === "BEN") {
     return `229${digits}`;
   }
   if (digits.length === 9 && country === "CMR") {
@@ -171,7 +171,7 @@ export function getCorrespondentCode(providerName: string, phoneOrCountry = "BFA
   // 4. ZAMTEL
   if (normalized.includes("ZAMTEL")) return "ZAMTEL_ZMB";
 
-  // 5. T-MONEY
+  // 5. TMONEY / T-MONEY
   if (normalized.includes("TMONEY") || normalized.includes("T-MONEY")) return "TMONEY_TGO";
 
   // 6. ORANGE
@@ -238,7 +238,11 @@ export class PawaPayClient {
 
   constructor() {
     this.apiToken = process.env.PAWAPAY_API_TOKEN;
-    const isLive = process.env.PAWAPAY_ENVIRONMENT === "production" || process.env.PAWAPAY_ENV === "live";
+    const isLive = process.env.PAWAPAY_ENVIRONMENT === "production" || 
+                   process.env.PAWAPAY_ENV === "live" || 
+                   process.env.NODE_ENV === "production" || 
+                   process.env.VERCEL_ENV === "production" ||
+                   (process.env.PAWAPAY_ENVIRONMENT !== "sandbox" && process.env.PAWAPAY_ENV !== "sandbox");
     this.baseUrl = isLive
       ? "https://api.pawapay.cloud"
       : "https://api.sandbox.pawapay.cloud";

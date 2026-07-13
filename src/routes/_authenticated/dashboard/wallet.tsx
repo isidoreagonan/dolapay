@@ -432,6 +432,7 @@ function WalletPage() {
           method: `${withdrawMethod} (${activeCountry.name})`,
           phone: `+${activeCountry.prefix}${withdrawPhone}`,
           pin: withdrawPin,
+          testMode: Boolean(testMode),
         }),
       });
       const body = await response.json();

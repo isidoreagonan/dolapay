@@ -322,13 +322,15 @@ export const Route = createFileRoute("/api/public/withdraw")({
               .eq("id", user.id);
 
             // Connexion API PawaPay pour effectuer le décaissement automatique (Payout API)
-            let finalStatus = wallet.is_virtual ? "success" : "processing";
+            const isVirtualWithdraw = Boolean(json.testMode);
+            let finalStatus = isVirtualWithdraw ? "success" : "processing";
             const { pawapay, getCorrespondentCode } = await import("@/lib/pawapay.server");
             const correspondentCode = getCorrespondentCode(method, phone);
             const payoutId = `pw_${crypto.randomUUID().slice(0, 16)}`;
 
-            if (!wallet.is_virtual) {
+            if (!isVirtualWithdraw) {
               try {
+                console.log(`[PawaPay API] Initiation du décaissement Live (${amount} XOF -> ${phone} via ${correspondentCode})...`);
                 const payoutRes = await pawapay.initiatePayout({
                   payoutId,
                   amount: amount,
@@ -354,8 +356,18 @@ export const Route = createFileRoute("/api/public/withdraw")({
                   finalStatus = payoutRes.status === "ACCEPTED" ? "processing" : "pending";
                 }
               } catch (pwErr: any) {
-                console.warn("[PawaPay API] Retrait en attente de traitement manuel ou réseau :", pwErr.message);
-                finalStatus = "pending";
+                console.error("[PawaPay API] Erreur lors de l'appel initiatePayout :", pwErr);
+                // Rollback du solde car PawaPay n'a pas pu traiter le décaissement
+                await supabaseAdmin
+                  .from("wallets")
+                  .update({ balance: currentBalance, updated_at: new Date().toISOString() } as any)
+                  .eq("id", wallet.id);
+                await (supabaseAdmin.from("profiles") as any)
+                  .update({ balance: currentBalance, wallet_balance: currentBalance } as any)
+                  .eq("id", user.id);
+                return Response.json({
+                  error: `Échec d'envoi API PawaPay (${correspondentCode}) : ${pwErr.message || "Erreur réseau ou solde opérateur insuffisant."}`,
+                }, { status: 400 });
               }
             }
 
