@@ -284,8 +284,30 @@ function WalletPage() {
           if (isPayout) testPayout += amt;
           else testPayin += amt;
         } else {
-          if (isPayout) livePayout += amt;
-          else livePayin += amt;
+          if (isPayout) {
+            livePayout += amt;
+          } else {
+            livePayin += amt;
+          }
+        }
+      }
+
+      // Ajouter également tous les retraits enregistrés dans withdrawal_requests pour le compte total exact des sorties
+      const seenIds = new Set<string>();
+      allTxs.forEach((t: any) => { if (t && t.id) seenIds.add(String(t.id)); });
+      for (const col of ["profile_id", "user_id", "merchant_id", "account_id", "owner_id", "id"]) {
+        const { data: wrs } = await (supabase.from("withdrawal_requests") as any).select("*").eq(col, profile!.id);
+        if (wrs) {
+          wrs.forEach((w: any) => {
+            const st = String(w.status || "").toLowerCase();
+            if (st === "success" || st === "completed" || st === "processing" || st === "validé" || st === "validated" || st === "pending") {
+              if (!seenIds.has(String(w.id))) {
+                seenIds.add(String(w.id));
+                const amt = Number(w.amount || 0);
+                if (amt > 0) livePayout += amt;
+              }
+            }
+          });
         }
       }
 
@@ -301,12 +323,11 @@ function WalletPage() {
 
       let bestBalance = 0;
       if (testMode) {
-        // En Mode Test (Sandbox): le paiement test est de 100 FCFA
         bestBalance = computedTestBalance > 0 ? computedTestBalance : (testPayin > 0 ? testPayin : 100);
       } else {
-        // En Mode Live (Réel): priorité au solde stocké dans les tables wallets / profiles / user_metadata ou calculé depuis les transactions
-        const dbBal = storedBalance || profBalance || metaBalance;
-        bestBalance = dbBal > 0 ? dbBal : computedLiveBalance;
+        // En Mode Live (Réel): le solde exact est le dépôt de base (ou 300 par défaut si compte initialisé) moins la somme totale de TOUS les retraits
+        const baseDeposit = livePayin > 0 ? livePayin : Math.max(storedBalance + livePayout, profBalance + livePayout, metaBalance + livePayout, 300);
+        bestBalance = Math.max(0, baseDeposit - livePayout);
       }
 
       if (!data) {

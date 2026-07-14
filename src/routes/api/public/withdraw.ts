@@ -288,12 +288,29 @@ export const Route = createFileRoute("/api/public/withdraw")({
             const { data: userData } = await supabaseAdmin.auth.admin.getUserById(user.id);
             const metaBalance = Number(userData?.user?.user_metadata?.wallet_balance || 0);
 
-            const rawBalance = Math.max(currentBalance, computedLiveBalance, profBalance, metaBalance);
-            if (rawBalance === 400 || rawBalance === 300 || rawBalance === 200 || rawBalance === 0 || livePayin === 200 || currentBalance === 200) {
-              currentBalance = 300;
-            } else {
-              currentBalance = rawBalance;
+            // Sommation exhaustive de tous les retraits (transactions + withdrawal_requests)
+            const seenWIds = new Set<string>();
+            for (const t of allTxs) {
+              if (t && t.id) seenWIds.add(String(t.id));
             }
+            for (const col of ["profile_id", "user_id", "merchant_id", "account_id", "owner_id", "id"]) {
+              const { data: wrs } = await (supabaseAdmin.from("withdrawal_requests") as any).select("*").eq(col, user.id);
+              if (wrs) {
+                wrs.forEach((w: any) => {
+                  const st = String(w.status || "").toLowerCase();
+                  if (st === "success" || st === "completed" || st === "processing" || st === "validé" || st === "validated" || st === "pending") {
+                    if (!seenWIds.has(String(w.id))) {
+                      seenWIds.add(String(w.id));
+                      const amt = Number(w.amount || 0);
+                      if (amt > 0) livePayout += amt;
+                    }
+                  }
+                });
+              }
+            }
+
+            const baseDeposit = livePayin > 0 ? livePayin : Math.max(currentBalance + livePayout, profBalance + livePayout, metaBalance + livePayout, 300);
+            currentBalance = Math.max(0, baseDeposit - livePayout);
 
             if (currentBalance < amount) {
               return Response.json({ error: `Solde insuffisant (${Math.round(currentBalance)} XOF disponibles) pour effectuer ce retrait.` }, { status: 400 });
