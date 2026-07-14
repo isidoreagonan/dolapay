@@ -104,17 +104,24 @@ export async function POST(request: Request) {
           if (seenTxIds.has(String(t.id))) continue;
           seenTxIds.add(String(t.id));
           const st = String(t.status || "").toLowerCase();
-          const isSuccess = st === "completed" || st === "successful" || st === "success" || st === "paid" || st === "validé" || st === "validated" || st === "processing" || st === "pending";
-          if (!isSuccess) continue;
+          const isCompletedSuccess = st === "completed" || st === "successful" || st === "success" || st === "paid" || st === "validé" || st === "validated" || st === "settled" || st === "ok" || st === "confirmed";
+          const isPayoutCandidate = isCompletedSuccess || st === "processing" || st === "pending";
+          if (!isPayoutCandidate) continue;
+
           const amt = Number(t.amount || 0);
           if (amt === 101) continue; // Échoué
           const desc = String(t.description || "").toLowerCase();
           const mode = String((t as any).mode || "").toLowerCase();
           const isTestTx = desc.includes("_test") || desc.includes("sandbox") || mode === "test" || mode === "sandbox";
           if (isTestTx) continue;
+
           const isPayout = String(t.type || "").toLowerCase().includes("payout") || String(t.type || "").toLowerCase().includes("withdraw");
-          if (isPayout) livePayout += amt;
-          else livePayin += amt;
+          if (isPayout) {
+            if (isPayoutCandidate) livePayout += amt;
+          } else {
+            // Seuls les dépôts réellement payés comptent pour livePayin
+            if (isCompletedSuccess) livePayin += amt;
+          }
         }
       }
     }

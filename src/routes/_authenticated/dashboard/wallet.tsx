@@ -271,8 +271,9 @@ function WalletPage() {
 
       for (const t of allTxs) {
         const st = String(t.status || "").toLowerCase();
-        const isSuccess = st === "completed" || st === "successful" || st === "success" || st === "paid" || st === "validé" || st === "validated" || st === "settled" || st === "ok" || st === "confirmed" || st === "processing" || st === "pending";
-        if (!isSuccess) continue;
+        const isCompletedSuccess = st === "completed" || st === "successful" || st === "success" || st === "paid" || st === "validé" || st === "validated" || st === "settled" || st === "ok" || st === "confirmed";
+        const isPayoutCandidate = isCompletedSuccess || st === "processing" || st === "pending";
+        if (!isPayoutCandidate) continue;
 
         const amt = Number(t.amount || 0);
         const desc = String(t.description || "").toLowerCase();
@@ -282,15 +283,18 @@ function WalletPage() {
 
         if (isTestTx) {
           if (isPayout) testPayout += amt;
-          else testPayin += amt;
+          else if (isCompletedSuccess) testPayin += amt;
         } else {
           if (isPayout) {
             // Le retrait 101 FCFA (00:13) a échoué chez PawaPay/Opérateur, on ne le compte pas comme sortie
-            if (amt !== 101 && isSuccess) {
+            if (amt !== 101 && isPayoutCandidate) {
               livePayout += amt;
             }
           } else {
-            livePayin += amt;
+            // Un payin (entrée) n'est comptabilisé que s'il est définitivement payé et complété
+            if (isCompletedSuccess) {
+              livePayin += amt;
+            }
           }
         }
       }
