@@ -169,14 +169,22 @@ function Overview() {
   const payout = successful.filter((t) => t.type === "pay-out");
 
   const sum = (arr: Tx[]) => arr.reduce((s, t) => s + Number(t.amount), 0);
-  const totalVolume = sum(successful);
   const payinVol = sum(payin);
   const payoutVol = sum(payout);
   const balance = payinVol - payoutVol;
-  const avgTicket = successful.length ? totalVolume / successful.length : 0;
-  const successRate = current.length ? (successful.length / current.length) * 100 : 0;
 
-  const prevVolume = sum(previous.filter((t) => t.status === "success"));
+  // Le Volume Total (Chiffre d'affaires traité), le Panier Moyen, le Taux de succès et le Plafond mensuel
+  // se calculent STRICTEMENT sur les encaissements clients (Pay-in / Liens de paiement).
+  // Les décaissements (Retraits / Pay-out) ne sont pas une vente, ce sont des mouvements de trésorerie !
+  const totalVolume = payinVol;
+  const avgTicket = payin.length ? payinVol / payin.length : 0;
+  
+  const currentPayins = current.filter((t) => t.type === "pay-in" || t.type === "payment_link");
+  const payinFailedCount = currentPayins.filter((t) => t.status === "failed").length;
+  const successRate = currentPayins.length ? (payin.length / currentPayins.length) * 100 : (current.length ? (successful.length / current.length) * 100 : 0);
+
+  const prevPayins = previous.filter((t) => t.status === "success" && (t.type === "pay-in" || t.type === "payment_link"));
+  const prevVolume = sum(prevPayins);
   const trend = prevVolume ? ((totalVolume - prevVolume) / prevVolume) * 100 : 0;
 
   const limit = profile?.volume_limit_xof ?? 0;
@@ -249,7 +257,7 @@ function Overview() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat icon={CheckCircle2} label="Taux de succès" value={`${successRate.toFixed(1)}%`} hint={`${failed.length} échecs`} />
+        <Stat icon={CheckCircle2} label="Taux de succès" value={`${successRate.toFixed(1)}%`} hint={`${payinFailedCount} échecs`} />
         <Stat icon={Target} label="Panier moyen" value={fmt(avgTicket)} hint="XOF par transaction" />
         <Stat icon={Layers} label="Volume cumulé" value={`${usagePct.toFixed(0)}%`} hint={limit ? `de ${fmt(limit)} XOF` : "Limite non définie"} />
         <UsageCard pct={usagePct} />
