@@ -271,7 +271,7 @@ function WalletPage() {
 
       for (const t of allTxs) {
         const st = String(t.status || "").toLowerCase();
-        const isSuccess = st === "completed" || st === "successful" || st === "success" || st === "paid" || st === "validé" || st === "validated" || st === "settled" || st === "ok" || st === "confirmed";
+        const isSuccess = st === "completed" || st === "successful" || st === "success" || st === "paid" || st === "validé" || st === "validated" || st === "settled" || st === "ok" || st === "confirmed" || st === "processing" || st === "pending";
         if (!isSuccess) continue;
 
         const amt = Number(t.amount || 0);
@@ -303,7 +303,7 @@ function WalletPage() {
         if (wrs) {
           wrs.forEach((w: any) => {
             const st = String(w.status || "").toLowerCase();
-            if (st === "success" || st === "completed" || st === "validé" || st === "validated") {
+            if (st === "success" || st === "completed" || st === "validé" || st === "validated" || st === "processing" || st === "pending") {
               if (!seenIds.has(String(w.id))) {
                 seenIds.add(String(w.id));
                 const amt = Number(w.amount || 0);
@@ -722,7 +722,7 @@ function WalletPage() {
                 <span className="text-sm font-medium">Retraits (Payout)</span>
               </div>
               <span className="font-bold text-slate-700 dark:text-slate-300">
-                {withdrawals.length} effectué{withdrawals.length > 1 ? "s" : ""}
+                {withdrawals.filter(w => w.status !== "failed" && Number(w.amount) !== 101).length} effectué{withdrawals.filter(w => w.status !== "failed" && Number(w.amount) !== 101).length > 1 ? "s" : ""}
               </span>
             </div>
           </div>
