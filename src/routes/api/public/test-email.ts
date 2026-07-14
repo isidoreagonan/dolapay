@@ -6,6 +6,46 @@ export const Route = createFileRoute("/api/public/test-email")({
     handlers: {
       GET: async ({ request }) => {
         const url = new URL(request.url);
+        const checkPayout = url.searchParams.get("check_payout");
+        if (checkPayout) {
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const { data: batch } = await supabaseAdmin.from("payout_batches").select("*").eq("id", checkPayout).maybeSingle();
+          const { data: items } = await supabaseAdmin.from("payout_batch_items").select("*").eq("batch_id", checkPayout);
+          let item = items && items[0];
+          if (!item) {
+            const { data: itemSingle } = await supabaseAdmin.from("payout_batch_items").select("*").eq("id", checkPayout).maybeSingle();
+            item = itemSingle;
+          }
+          let prof: any = null;
+          let batchIdToUse = batch?.id || item?.batch_id;
+          let ownerIdToUse = batch?.owner_id || batch?.profile_id;
+          if (batchIdToUse && !ownerIdToUse) {
+            const { data: b2 } = await supabaseAdmin.from("payout_batches").select("*").eq("id", batchIdToUse).maybeSingle();
+            ownerIdToUse = b2?.owner_id || b2?.profile_id;
+          }
+          if (ownerIdToUse) {
+            const { data: p } = await supabaseAdmin.from("profiles").select("*").eq("id", ownerIdToUse).maybeSingle();
+            prof = p;
+          }
+          let emailSent = false;
+          let emailErr = null;
+          try {
+            const { notifyPayoutStatus } = await import("@/lib/email.server");
+            await notifyPayoutStatus(supabaseAdmin, item?.id || checkPayout, "pending");
+            emailSent = true;
+          } catch (errEmail: any) {
+            emailErr = errEmail?.message || String(errEmail);
+          }
+          return Response.json({
+            checkPayoutId: checkPayout,
+            batchFound: batch,
+            itemFound: item,
+            profileFound: prof ? { id: prof.id, email: prof.email, company: prof.company_name } : null,
+            emailSent,
+            emailErr,
+          });
+        }
+
         const toEmail = url.searchParams.get("email");
 
         if (!toEmail || !toEmail.includes("@")) {
