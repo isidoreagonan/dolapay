@@ -32,6 +32,56 @@ export const Route = createFileRoute("/api/public/test-email")({
           return Response.json({ transactions: txs, liveStatuses });
         }
 
+        const testDep = url.searchParams.get("test_deposit_email");
+        if (testDep) {
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const { data: tx } = await supabaseAdmin.from("transactions").select("*").eq("id", testDep).maybeSingle();
+          if (!tx) return Response.json({ error: "Tx introuvable", id: testDep });
+          
+          const profileId = tx.profile_id || tx.user_id || tx.merchant_id || tx.owner_id;
+          const { data: prof } = await supabaseAdmin.from("profiles").select("*").eq("id", profileId).maybeSingle();
+          
+          let customerName = tx.customer_name || "Client";
+          let customerEmail: string | undefined = tx.customer_email || tx.client_email || undefined;
+          let linkTitle = "Paiement DolaPay";
+          if (tx.description) {
+            const parts = tx.description.split("·").map((p: string) => p.trim());
+            if (parts[0]) linkTitle = parts[0].replace(/\[[^\]]+\]\s*/, "").replace(" [EMAIL_SENT]", "");
+            if (parts[1]) {
+              const nameMatch = parts[1].match(/^([^(]+)(?:\(([^)]+)\))?/);
+              if (nameMatch) {
+                if (!tx.customer_name) customerName = nameMatch[1].trim();
+                if (!customerEmail && nameMatch[2] && nameMatch[2].includes("@")) customerEmail = nameMatch[2].trim();
+              }
+            }
+          }
+
+          const apiKey = process.env.RESEND_API_KEY || "re_dummy_key";
+          const resend = new Resend(apiKey);
+          const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "DolaPay <notification@dola-pay.com>";
+
+          const resMerchant = prof?.email ? await resend.emails.send({
+            from: FROM_EMAIL,
+            to: [prof.email],
+            subject: `💰 [Test] Nouveau paiement : ${tx.amount} ${tx.currency}`,
+            html: `<p>Test Email Marchand pour ${prof.email} - Paiement ${tx.amount} ${tx.currency} de ${customerName}</p>`,
+          }) : null;
+
+          const resCustomer = customerEmail ? await resend.emails.send({
+            from: FROM_EMAIL,
+            to: [customerEmail],
+            subject: `✅ [Test] Reçu de paiement : ${linkTitle}`,
+            html: `<p>Test Email Client pour ${customerEmail} - Vous avez payé ${tx.amount} ${tx.currency} chez ${prof?.company_name || prof?.full_name}</p>`,
+          }) : null;
+
+          return Response.json({
+            transaction: { id: tx.id, amount: tx.amount, description: tx.description },
+            extracted: { merchantEmail: prof?.email, customerName, customerEmail, linkTitle, FROM_EMAIL, apiKeyPrefix: apiKey.slice(0, 7) },
+            resMerchant,
+            resCustomer,
+          });
+        }
+
         const checkPayout = url.searchParams.get("check_payout");
         if (checkPayout) {
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
