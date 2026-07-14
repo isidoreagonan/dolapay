@@ -58,7 +58,7 @@ export const Route = createFileRoute("/api/public/pawapay-webhook")({
               // Récupérer la transaction existante pour recalculer net/frais si nécessaire
               const { data: tx, error: getErr } = await supabaseAdmin
                 .from("transactions")
-                .select("id, amount, profile_id, status, description")
+                .select("*")
                 .eq("id", event.depositId)
                 .maybeSingle();
 
