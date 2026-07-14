@@ -120,16 +120,35 @@ export const Route = createFileRoute("/api/public/ligdicash-webhook")({
                 .select("status")
                 .eq("batch_id", item.batch_id);
 
-              if (items && items.every((i) => i.status === "success" || i.status === "failed")) {
-                const allSuccess = items.every((i) => i.status === "success");
-                await supabaseAdmin
-                  .from("payout_batches")
-                  .update({ status: allSuccess ? "completed" : "failed" })
-                  .eq("id", item.batch_id);
-              }
-            }
+                if (items && items.every((i) => i.status === "success" || i.status === "failed")) {
+                  const allSuccess = items.every((i) => i.status === "success");
+                  await supabaseAdmin
+                    .from("payout_batches")
+                    .update({ status: allSuccess ? "completed" : "failed" })
+                    .eq("id", item.batch_id);
+                }
 
-            return Response.json({ received: true, processed: "payout", status: verifiedStatus });
+                // Récupérer le propriétaire du lot et déclencher le recalcul du solde par sync-wallet
+                const { data: batchData } = await supabaseAdmin
+                  .from("payout_batches")
+                  .select("owner_id")
+                  .eq("id", item.batch_id)
+                  .maybeSingle();
+                if (batchData?.owner_id) {
+                  fetch(new URL("/api/public/sync-wallet", request.url).toString(), {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ userId: batchData.owner_id })
+                  }).catch(() => {});
+                }
+              }
+
+              // Mettre à jour également withdrawal_requests si l'ID correspond
+              await (supabaseAdmin.from("withdrawal_requests") as any)
+                .update({ status: verifiedStatus })
+                .eq("id", itemId);
+
+              return Response.json({ received: true, processed: "payout", status: verifiedStatus });
           }
         }
 

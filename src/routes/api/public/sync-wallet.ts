@@ -143,6 +143,28 @@ export async function POST(request: Request) {
       }
     }
 
+    // 5. Ajouter impérativement les décaissements (payouts) stockés dans payout_batches / payout_batch_items
+    const { data: payoutBatchesForCalc } = await (supabaseAdmin.from("payout_batches") as any)
+      .select("*, payout_batch_items(*)")
+      .eq("owner_id", userId);
+    if (payoutBatchesForCalc && payoutBatchesForCalc.length > 0) {
+      for (const b of payoutBatchesForCalc) {
+        if (b.payout_batch_items && Array.isArray(b.payout_batch_items)) {
+          for (const item of b.payout_batch_items) {
+            if (seenTxIds.has(String(item.id))) continue;
+            const st = String(item.status || "").toLowerCase();
+            const amt = Number(item.amount || b.total_amount || 0);
+            if (st === "success" || st === "completed" || st === "validé" || st === "validated" || st === "processing" || st === "pending") {
+              if (amt > 0 && amt !== 101) {
+                seenTxIds.add(String(item.id));
+                livePayout += amt;
+              }
+            }
+          }
+        }
+      }
+    }
+
     // Le solde de base pour l'utilisateur est de 300 FCFA initial
     const baseDeposit = livePayin > 0 ? livePayin : 300;
     const exactNetBalance = Math.max(0, baseDeposit - livePayout);

@@ -316,6 +316,28 @@ function WalletPage() {
         }
       }
 
+      // Ajouter également tous les retraits effectués via payout_batches / payout_batch_items (décaissements réels)
+      const { data: payoutBatchesForWallet } = await (supabase.from("payout_batches") as any)
+        .select("*, payout_batch_items(*)")
+        .eq("owner_id", profile!.id);
+      if (payoutBatchesForWallet && payoutBatchesForWallet.length > 0) {
+        for (const b of payoutBatchesForWallet) {
+          if (b.payout_batch_items && Array.isArray(b.payout_batch_items)) {
+            for (const item of b.payout_batch_items) {
+              const st = String(item.status || "").toLowerCase();
+              const amt = Number(item.amount || b.total_amount || 0);
+              rawWrs.push({ id: item.id, amt, st, source: "payout_batch_items" });
+              if (st === "success" || st === "completed" || st === "validé" || st === "validated" || st === "processing" || st === "pending") {
+                if (!seenIds.has(String(item.id))) {
+                  seenIds.add(String(item.id));
+                  if (amt > 0 && amt !== 101) livePayout += amt;
+                }
+              }
+            }
+          }
+        }
+      }
+
       const computedLiveBalance = Math.max(0, livePayin - livePayout);
       const computedTestBalance = Math.max(0, testPayin - testPayout);
 
@@ -345,6 +367,7 @@ function WalletPage() {
             currency: "XOF",
             hashed_pin: metaPin,
             _livePayin: livePayin,
+            _livePayout: livePayout,
             _baseDeposit: testMode ? 0 : baseDeposit,
             _rawPayouts: rawPayouts,
             _rawWrs: rawWrs,

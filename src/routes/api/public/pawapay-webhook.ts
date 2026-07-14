@@ -97,6 +97,15 @@ export const Route = createFileRoute("/api/public/pawapay-webhook")({
                 continue;
               }
 
+              // Mettre à jour également withdrawal_requests ou transactions si l'ID correspond
+              await (supabaseAdmin.from("withdrawal_requests") as any)
+                .update({ status: newStatus })
+                .eq("id", event.payoutId);
+
+              await (supabaseAdmin.from("transactions") as any)
+                .update({ status: newStatus })
+                .eq("id", event.payoutId);
+
               // Optionnel : vérifier si tout le lot (batch) est terminé
               const { data: item } = await supabaseAdmin
                 .from("payout_batch_items")
@@ -116,6 +125,20 @@ export const Route = createFileRoute("/api/public/pawapay-webhook")({
                     .from("payout_batches")
                     .update({ status: allSuccess ? "completed" : "failed" })
                     .eq("id", item.batch_id);
+                }
+
+                // Récupérer le propriétaire et déclencher un sync de solde
+                const { data: batchData } = await supabaseAdmin
+                  .from("payout_batches")
+                  .select("owner_id")
+                  .eq("id", item.batch_id)
+                  .maybeSingle();
+                if (batchData?.owner_id) {
+                  fetch(new URL("/api/public/sync-wallet", request.url).toString(), {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ userId: batchData.owner_id })
+                  }).catch(() => {});
                 }
               }
             }
