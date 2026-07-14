@@ -63,9 +63,7 @@ function PayoutsPage() {
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data ?? []).map((b: any) => {
-        const isOlderThan1Min = Date.now() - new Date(b.created_at).getTime() > 60 * 1000;
-        const st = (b.status === "processing" || b.status === "pending") && isOlderThan1Min ? "completed" : b.status;
-        return { ...b, status: st };
+        return { ...b };
       }) as Batch[];
     },
   });

@@ -126,8 +126,7 @@ function Overview() {
                 if (!existingIds.has(item.id)) {
                   existingIds.add(item.id);
                   const amt = Number(item.amount || b.total_amount || 0);
-                  const isOlderThan1Min = Date.now() - new Date(item.created_at || b.created_at).getTime() > 60 * 1000;
-                  const st = amt === 101 ? "failed" : ((item.status === "completed" || item.status === "success" || item.status === "validé" || (isOlderThan1Min && (item.status === "processing" || item.status === "pending" || item.status === "En cours"))) ? "success" : (item.status === "failed" || item.status === "rejected" ? "failed" : "pending"));
+                  const st = (item.status === "completed" || item.status === "success" || item.status === "validé") ? "success" : (item.status === "failed" || item.status === "rejected" ? "failed" : "pending");
                   results.push({
                     id: item.id,
                     amount: amt,

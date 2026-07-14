@@ -429,8 +429,7 @@ function WalletPage() {
             if (!existingIds.has(r.id)) {
               existingIds.add(r.id);
               const amt = Number(r.amount || 0);
-              const isOlderThan1Min = Date.now() - new Date(r.created_at).getTime() > 60 * 1000;
-              const st = amt === 101 ? "failed" : ((r.status === "completed" || r.status === "success" || r.status === "validé" || (isOlderThan1Min && (r.status === "processing" || r.status === "pending" || r.status === "En cours"))) ? "success" : (r.status === "failed" || r.status === "rejected" ? "failed" : "pending"));
+              const st = (r.status === "completed" || r.status === "success" || r.status === "validé") ? "success" : (r.status === "failed" || r.status === "rejected" ? "failed" : "pending");
               results.push({ ...(r as any), status: st } as WithdrawalRequest);
             }
           }
@@ -451,8 +450,7 @@ function WalletPage() {
             if (!existingIds.has(t.id)) {
               existingIds.add(t.id);
               const amt = Number(t.amount || 0);
-              const isOlderThan1Min = Date.now() - new Date(t.created_at).getTime() > 60 * 1000;
-              const st = amt === 101 ? "failed" : ((t.status === "completed" || t.status === "success" || t.status === "validé" || (isOlderThan1Min && (t.status === "processing" || t.status === "pending" || t.status === "En cours"))) ? "success" : (t.status === "failed" || t.status === "rejected" ? "failed" : "pending"));
+              const st = (t.status === "completed" || t.status === "success" || t.status === "validé") ? "success" : (t.status === "failed" || t.status === "rejected" ? "failed" : "pending");
               results.push({
                 id: t.id,
                 amount: t.amount,
@@ -480,8 +478,7 @@ function WalletPage() {
               if (!existingIds.has(item.id)) {
                 existingIds.add(item.id);
                 const amt = Number(item.amount || b.total_amount || 0);
-                const isOlderThan1Min = Date.now() - new Date(item.created_at || b.created_at).getTime() > 60 * 1000;
-                const st = amt === 101 ? "failed" : ((item.status === "completed" || item.status === "success" || item.status === "validé" || (isOlderThan1Min && (item.status === "processing" || item.status === "pending" || item.status === "En cours"))) ? "success" : (item.status === "failed" || item.status === "rejected" ? "failed" : "pending"));
+                const st = (item.status === "completed" || item.status === "success" || item.status === "validé") ? "success" : (item.status === "failed" || item.status === "rejected" ? "failed" : "pending");
                 results.push({
                   id: item.id,
                   amount: amt,

@@ -39,23 +39,17 @@ async function handleSyncWallet(request: Request) {
               updatedCount++;
               allItemsSuccess = false;
             } else if (st === "processing" || st === "pending") {
-              // Si le retrait est en cours depuis plus de 1 minute ou que c'est un retrait réel de 100 FCFA
-              const createdTimestamp = new Date(item.created_at || b.created_at).getTime();
-              const isOlderThan1Min = Date.now() - createdTimestamp > 60 * 1000;
-
-              let finalStatus = "success";
-              if (amt === 101) finalStatus = "failed";
-
-              // Vérifier aussi via PawaPay si possible
+              let finalStatus: string | null = null;
               try {
                 const statusRes = await pawapay.getPayoutStatus(item.id);
-                if (statusRes && (statusRes.status === "FAILED" || statusRes.status === "REJECTED")) {
+                if (statusRes && (statusRes.status === "COMPLETED" || (statusRes as any).status === "SUCCESS")) {
+                  finalStatus = "success";
+                } else if (statusRes && (statusRes.status === "FAILED" || statusRes.status === "REJECTED")) {
                   finalStatus = "failed";
-                  allItemsSuccess = false;
                 }
               } catch {}
 
-              if (finalStatus === "success" || isOlderThan1Min) {
+              if (finalStatus === "success" || finalStatus === "failed") {
                 await (supabaseAdmin.from("payout_batch_items") as any).update({ status: finalStatus }).eq("id", item.id);
                 await (supabaseAdmin.from("withdrawal_requests") as any).update({ status: finalStatus }).eq("id", item.id);
                 await (supabaseAdmin.from("transactions") as any).update({ status: finalStatus }).eq("id", item.id);
@@ -64,8 +58,6 @@ async function handleSyncWallet(request: Request) {
                   const { notifyPayoutStatus } = await import("@/lib/email.server");
                   await notifyPayoutStatus(supabaseAdmin, item.id, finalStatus as any);
                 } catch (e) {}
-              } else {
-                allItemsSuccess = false;
               }
             } else if (st === "failed") {
               allItemsSuccess = false;
@@ -78,30 +70,27 @@ async function handleSyncWallet(request: Request) {
       }
     }
 
-    // 2. Mettre à jour également les withdrawal_requests et transactions directement
-    for (const col of ["profile_id", "user_id", "merchant_id", "account_id", "owner_id", "id"]) {
+    // 2. Vérifier les transactions de retrait orphelines (withdrawal_requests et transactions)
+    for (const col of ["profile_id", "user_id"]) {
       const { data: wrs } = await (supabaseAdmin.from("withdrawal_requests") as any).select("*").eq(col, userId);
       if (wrs && wrs.length > 0) {
         for (const w of wrs) {
-          const amt = Number(w.amount || 0);
           const st = String(w.status || "").toLowerCase();
-          if (amt === 101 && st !== "failed") {
-            await (supabaseAdmin.from("withdrawal_requests") as any).update({ status: "failed" }).eq("id", w.id);
-            updatedCount++;
+          if (st === "processing" || st === "pending") {
             try {
-              const { notifyWithdrawalRequestStatus } = await import("@/lib/email.server");
-              await notifyWithdrawalRequestStatus(supabaseAdmin, w.id, "failed");
-            } catch (e) {}
-          } else if (st === "processing" || st === "pending") {
-            const isOlderThan1Min = Date.now() - new Date(w.created_at).getTime() > 60 * 1000;
-            if (isOlderThan1Min || amt === 100) {
-              await (supabaseAdmin.from("withdrawal_requests") as any).update({ status: "success" }).eq("id", w.id);
-              updatedCount++;
-              try {
+              const statusRes = await pawapay.getPayoutStatus(w.id);
+              if (statusRes && (statusRes.status === "COMPLETED" || (statusRes as any).status === "SUCCESS")) {
+                await (supabaseAdmin.from("withdrawal_requests") as any).update({ status: "success" }).eq("id", w.id);
+                updatedCount++;
                 const { notifyWithdrawalRequestStatus } = await import("@/lib/email.server");
                 await notifyWithdrawalRequestStatus(supabaseAdmin, w.id, "success");
-              } catch (e) {}
-            }
+              } else if (statusRes && (statusRes.status === "FAILED" || statusRes.status === "REJECTED")) {
+                await (supabaseAdmin.from("withdrawal_requests") as any).update({ status: "failed" }).eq("id", w.id);
+                updatedCount++;
+                const { notifyWithdrawalRequestStatus } = await import("@/lib/email.server");
+                await notifyWithdrawalRequestStatus(supabaseAdmin, w.id, "failed");
+              }
+            } catch {}
           }
         }
       }
@@ -114,17 +103,18 @@ async function handleSyncWallet(request: Request) {
 
     if (txPayouts && txPayouts.length > 0) {
       for (const tx of txPayouts) {
-        const amt = Number(tx.amount || 0);
         const st = String(tx.status || "").toLowerCase();
-        if (amt === 101 && st !== "failed") {
-          await (supabaseAdmin.from("transactions") as any).update({ status: "failed" }).eq("id", tx.id);
-          updatedCount++;
-        } else if (st === "processing" || st === "pending") {
-          const isOlderThan1Min = Date.now() - new Date(tx.created_at).getTime() > 60 * 1000;
-          if (isOlderThan1Min || amt === 100) {
-            await (supabaseAdmin.from("transactions") as any).update({ status: "success" }).eq("id", tx.id);
-            updatedCount++;
-          }
+        if (st === "processing" || st === "pending") {
+          try {
+            const statusRes = await pawapay.getPayoutStatus(tx.id);
+            if (statusRes && (statusRes.status === "COMPLETED" || (statusRes as any).status === "SUCCESS")) {
+              await (supabaseAdmin.from("transactions") as any).update({ status: "success" }).eq("id", tx.id);
+              updatedCount++;
+            } else if (statusRes && (statusRes.status === "FAILED" || statusRes.status === "REJECTED")) {
+              await (supabaseAdmin.from("transactions") as any).update({ status: "failed" }).eq("id", tx.id);
+              updatedCount++;
+            }
+          } catch {}
         }
       }
     }
@@ -180,7 +170,7 @@ async function handleSyncWallet(request: Request) {
       }
     }
 
-    const baseDeposit = livePayin > 0 ? livePayin : 300;
+    const baseDeposit = livePayin;
     const exactNetBalance = Math.max(0, baseDeposit - livePayout);
 
     // Mettre à jour wallets

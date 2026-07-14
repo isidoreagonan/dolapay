@@ -22,7 +22,6 @@ export const Route = createFileRoute("/api/public/tx-status/$id")({
         if (st === "pending" || st === "processing" || st === "en cours") {
           const createdTime = new Date(data.created_at || Date.now()).getTime();
           const elapsedSec = (Date.now() - createdTime) / 1000;
-          const isOlderThan20s = elapsedSec >= 20;
 
           let newStatus: "success" | "failed" | null = null;
           let extraDesc = "";
@@ -41,13 +40,17 @@ export const Route = createFileRoute("/api/public/tx-status/$id")({
                 const fMsg = live.response_text || "Paiement refusé par l'opérateur";
                 extraDesc = ` · [Échec] ${fCode}: ${fMsg}`;
                 failureReasonObj = { code: fCode, message: fMsg };
-              } else if (isOlderThan20s) {
-                // Dès que 20s sont passées après validation USSD/ligdicash sans échec explicite
-                newStatus = "success";
+              } else if (elapsedSec >= 300) {
+                newStatus = "failed";
+                extraDesc = " · [Échec] TIMEOUT: Délai d'expiration du paiement dépassé";
+                failureReasonObj = { code: "TIMEOUT", message: "Le paiement a expiré sans confirmation de l'opérateur." };
               }
             } catch (err) {
               console.error("[tx-status] Error checking live LigdiCash status:", err);
-              if (isOlderThan20s) newStatus = "success";
+              if (elapsedSec >= 300) {
+                newStatus = "failed";
+                extraDesc = " · [Échec] TIMEOUT: Délai d'expiration du paiement dépassé";
+              }
             }
           } else {
             // PawaPay (USSD Mobile Money : MTN, Orange, Moov, Wave...)
@@ -62,13 +65,17 @@ export const Route = createFileRoute("/api/public/tx-status/$id")({
                 const fMsg = live.failureReason?.failureMessage || "Paiement refusé par l'opérateur Mobile Money";
                 extraDesc = ` · [Échec] ${fCode}: ${fMsg}`;
                 failureReasonObj = { code: fCode, message: fMsg };
-              } else if (isOlderThan20s) {
-                // Le client a validé sur son téléphone mobile money (20s écoulées), on valide automatiquement la transaction
-                newStatus = "success";
+              } else if (elapsedSec >= 300) {
+                newStatus = "failed";
+                extraDesc = " · [Échec] TIMEOUT: Délai d'expiration du paiement dépassé";
+                failureReasonObj = { code: "TIMEOUT", message: "Le paiement a expiré sans confirmation de l'opérateur." };
               }
             } catch (err) {
               console.error("[tx-status] Error checking live PawaPay status:", err);
-              if (isOlderThan20s) newStatus = "success";
+              if (elapsedSec >= 300) {
+                newStatus = "failed";
+                extraDesc = " · [Échec] TIMEOUT: Délai d'expiration du paiement dépassé";
+              }
             }
           }
 

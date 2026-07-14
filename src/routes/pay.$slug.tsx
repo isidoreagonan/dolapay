@@ -331,29 +331,17 @@ function PayPage() {
             if (json.status === "success" || json.status === "failed") {
               setStatus(json.status);
               clearInterval(poll);
-              return;
-            } else if (elapsedSeconds >= 22) {
-              setStatus("success");
-              clearInterval(poll);
-              toast.success("Paiement validé avec succès !");
+              if (json.status === "success") {
+                toast.success("Paiement validé avec succès !");
+              }
               return;
             } else {
               setStatus(json.status);
             }
           }
-        } else if (elapsedSeconds >= 22) {
-          setStatus("success");
-          clearInterval(poll);
-          toast.success("Paiement validé avec succès !");
-          return;
         }
       } catch {
-        if (elapsedSeconds >= 22) {
-          setStatus("success");
-          clearInterval(poll);
-          toast.success("Paiement validé avec succès !");
-          return;
-        }
+        // En cas d'erreur réseau temporaire, on continue le polling sans valider à tort
       }
     }, 2000);
 
