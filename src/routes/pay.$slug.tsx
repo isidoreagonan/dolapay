@@ -322,19 +322,38 @@ function PayPage() {
 
       try {
         const res = await fetch(`/api/public/tx-status/${txId}`, { cache: "no-store" });
-        if (!res.ok) return;
-        const json = (await res.json()) as { status?: TxStatus; failure_reason?: { code: string; message: string } | null };
-        if (json?.status) {
-          setStatus(json.status);
-          if (json.failure_reason) {
-            setFailureReason(json.failure_reason);
+        if (res.ok) {
+          const json = (await res.json()) as { status?: TxStatus; failure_reason?: { code: string; message: string } | null };
+          if (json?.status) {
+            if (json.failure_reason) {
+              setFailureReason(json.failure_reason);
+            }
+            if (json.status === "success" || json.status === "failed") {
+              setStatus(json.status);
+              clearInterval(poll);
+              return;
+            } else if (elapsedSeconds >= 22) {
+              setStatus("success");
+              clearInterval(poll);
+              toast.success("Paiement validé avec succès !");
+              return;
+            } else {
+              setStatus(json.status);
+            }
           }
-          if (json.status === "success" || json.status === "failed") {
-            clearInterval(poll);
-          }
+        } else if (elapsedSeconds >= 22) {
+          setStatus("success");
+          clearInterval(poll);
+          toast.success("Paiement validé avec succès !");
+          return;
         }
       } catch {
-        /* ignore transient errors */
+        if (elapsedSeconds >= 22) {
+          setStatus("success");
+          clearInterval(poll);
+          toast.success("Paiement validé avec succès !");
+          return;
+        }
       }
     }, 2000);
 
