@@ -268,6 +268,7 @@ function WalletPage() {
       // 2. Calculer le solde des paiements Live et des paiements Test
       let livePayin = 0, livePayout = 0;
       let testPayin = 0, testPayout = 0;
+      const rawPayouts: any[] = [];
 
       for (const t of allTxs) {
         const st = String(t.status || "").toLowerCase();
@@ -279,6 +280,7 @@ function WalletPage() {
         const isCompletedSuccess = st === "completed" || st === "successful" || st === "success" || st === "paid" || st === "validé" || st === "validated" || st === "settled" || st === "ok" || st === "confirmed";
 
         if (isPayout) {
+          rawPayouts.push({ id: t.id, amt, st, type: t.type, mode });
           if (!isTestTx && amt > 0 && amt !== 101 && st !== "failed" && st !== "rejected") {
             livePayout += amt;
           } else if (isTestTx && amt > 0 && st !== "failed") {
@@ -341,8 +343,10 @@ function WalletPage() {
             currency: "XOF",
             hashed_pin: metaPin,
             _livePayin: livePayin,
-            _livePayout: livePayout,
             _baseDeposit: testMode ? 0 : baseDeposit,
+            _rawPayouts: rawPayouts,
+            _testPayin: testPayin,
+            _testPayout: testPayout,
           } as any as Wallet;
         }
         return null;
@@ -352,6 +356,9 @@ function WalletPage() {
       (data as any)._livePayin = livePayin;
       (data as any)._livePayout = livePayout;
       (data as any)._baseDeposit = testMode ? 0 : baseDeposit;
+      (data as any)._rawPayouts = rawPayouts;
+      (data as any)._testPayin = testPayin;
+      (data as any)._testPayout = testPayout;
 
       if (!data.hashed_pin && data.pin) {
         data.hashed_pin = data.pin;
@@ -685,8 +692,12 @@ function WalletPage() {
               <div className="text-3xl sm:text-4xl font-black tracking-tight">
                 {wallet ? fmt(wallet.balance) : "0"} <span className="text-lg font-bold text-purple-200">{wallet?.currency || "XOF"}</span>
               </div>
-              <div className="text-xs text-white/50 font-mono mt-1">
-                DEBUG: Payin={wallet ? (wallet as any)._livePayin : 0} | Payout={wallet ? (wallet as any)._livePayout : 0} | Base={wallet ? (wallet as any)._baseDeposit : 0}
+              <div className="text-[10px] text-white/70 font-mono mt-1 max-h-24 overflow-auto bg-black/20 p-1 rounded">
+                DEBUG: LIn={wallet ? (wallet as any)._livePayin : 0} | LOut={wallet ? (wallet as any)._livePayout : 0} | Base={wallet ? (wallet as any)._baseDeposit : 0} | TIn={wallet ? (wallet as any)._testPayin : 0} | TOut={wallet ? (wallet as any)._testPayout : 0}
+                <br/>
+                WRS: {JSON.stringify(withdrawals.map(w => ({ amt: w.amount, st: w.status, meth: w.method })))}
+                <br/>
+                RAW: {JSON.stringify(wallet ? (wallet as any)._rawPayouts : [])}
               </div>
             </div>
             <WalletIcon className="h-8 w-8 text-white/30" />
