@@ -636,17 +636,28 @@ export async function notifyDepositSuccess(supabaseAdmin: any, transactionId: st
  */
 export async function notifyPayoutStatus(supabaseAdmin: any, payoutIdOrItem: any, status: "pending" | "success" | "failed", errorMessage?: string): Promise<void> {
   try {
+    const idStr = typeof payoutIdOrItem === "string" ? payoutIdOrItem : payoutIdOrItem?.id;
     let item = typeof payoutIdOrItem === "string" ? null : payoutIdOrItem;
-    if (!item && typeof payoutIdOrItem === "string") {
-      const { data } = await supabaseAdmin.from("payout_batch_items").select("*").eq("id", payoutIdOrItem).maybeSingle();
-      item = data;
+    
+    if (!item && idStr) {
+      const { data: dItem } = await supabaseAdmin.from("payout_batch_items").select("*").eq("id", idStr).maybeSingle();
+      item = dItem;
+    }
+    if (!item && idStr) {
+      const { data: dReq } = await supabaseAdmin.from("withdrawal_requests").select("*").eq("id", idStr).maybeSingle();
+      item = dReq;
+    }
+    if (!item && idStr) {
+      const { data: dTx } = await supabaseAdmin.from("transactions").select("*").eq("id", idStr).maybeSingle();
+      item = dTx;
     }
     if (!item) return;
 
-    const { data: batch } = await supabaseAdmin.from("payout_batches").select("*").eq("id", item.batch_id).maybeSingle();
-    if (!batch) return;
-
-    const profileId = batch.profile_id || batch.owner_id || batch.user_id;
+    let profileId = item.profile_id || item.user_id || item.merchant_id || item.owner_id;
+    if (!profileId && item.batch_id) {
+      const { data: batch } = await supabaseAdmin.from("payout_batches").select("*").eq("id", item.batch_id).maybeSingle();
+      if (batch) profileId = batch.profile_id || batch.owner_id || batch.user_id;
+    }
     if (!profileId) return;
 
     const { data: prof } = await supabaseAdmin.from("profiles").select("email, full_name, company_name").eq("id", profileId).maybeSingle();
@@ -658,11 +669,11 @@ export async function notifyPayoutStatus(supabaseAdmin: any, payoutIdOrItem: any
       merchantEmail: prof.email,
       merchantName,
       amount: Number(item.amount || 0),
-      currency: batch.currency || item.currency || "XOF",
-      recipientPhone: item.recipient_phone || item.phone || "N/A",
+      currency: item.currency || "XOF",
+      recipientPhone: item.recipient_phone || item.phone || item.customer_phone || "N/A",
       provider: item.provider || item.method || "Mobile Money",
       status,
-      payoutId: item.id,
+      payoutId: idStr || item.id,
       errorMessage,
     });
   } catch (err) {
@@ -674,30 +685,5 @@ export async function notifyPayoutStatus(supabaseAdmin: any, payoutIdOrItem: any
  * Helper atomique : Notifier une demande de retrait en direct via dashboard/API
  */
 export async function notifyWithdrawalRequestStatus(supabaseAdmin: any, withdrawalId: string, status: "pending" | "success" | "failed", errorMessage?: string): Promise<void> {
-  try {
-    const { data: req } = await supabaseAdmin.from("withdrawal_requests").select("*").eq("id", withdrawalId).maybeSingle();
-    if (!req) return;
-
-    const profileId = req.profile_id || req.user_id || req.merchant_id;
-    if (!profileId) return;
-
-    const { data: prof } = await supabaseAdmin.from("profiles").select("email, full_name, company_name").eq("id", profileId).maybeSingle();
-    if (!prof || !prof.email) return;
-
-    const merchantName = prof.company_name || prof.full_name || "Marchand DolaPay";
-
-    await sendPayoutNotificationEmail({
-      merchantEmail: prof.email,
-      merchantName,
-      amount: Number(req.amount || 0),
-      currency: req.currency || "XOF",
-      recipientPhone: req.recipient_phone || req.phone || "N/A",
-      provider: req.method || req.provider || "Mobile Money",
-      status,
-      payoutId: req.id,
-      errorMessage,
-    });
-  } catch (err) {
-    console.error("[email.server] Error in notifyWithdrawalRequestStatus:", err);
-  }
+  return notifyPayoutStatus(supabaseAdmin, withdrawalId, status, errorMessage);
 }

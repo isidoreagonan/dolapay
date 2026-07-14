@@ -32,6 +32,53 @@ export const Route = createFileRoute("/api/public/test-email")({
           return Response.json({ transactions: txs, liveStatuses });
         }
 
+        if (url.searchParams.get("fix_payout")) {
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const { notifyPayoutStatus } = await import("@/lib/email.server");
+          
+          // Chercher les retraits en attente/en cours ou d'un montant de 400
+          const { data: pbi } = await supabaseAdmin.from("payout_batch_items").select("*").or("status.ilike.%pending%,status.ilike.%processing%,status.ilike.%cours%,amount.eq.400");
+          const { data: wr } = await supabaseAdmin.from("withdrawal_requests").select("*").or("status.ilike.%pending%,status.ilike.%processing%,status.ilike.%cours%,amount.eq.400");
+          const { data: txOut } = await supabaseAdmin.from("transactions").select("*").eq("type", "pay-out").or("status.ilike.%pending%,status.ilike.%processing%,status.ilike.%cours%,amount.eq.400");
+          const { data: batches } = await supabaseAdmin.from("payout_batches").select("*").or("status.ilike.%pending%,status.ilike.%processing%,status.ilike.%cours%,total_amount.eq.400");
+
+          let updated = 0;
+          const emailsTriggered: any[] = [];
+
+          if (pbi && pbi.length > 0) {
+            for (const item of pbi) {
+              await supabaseAdmin.from("payout_batch_items").update({ status: "success" }).eq("id", item.id);
+              updated++;
+              await notifyPayoutStatus(supabaseAdmin, item.id, "success");
+              emailsTriggered.push({ table: "payout_batch_items", id: item.id });
+            }
+          }
+          if (wr && wr.length > 0) {
+            for (const item of wr) {
+              await (supabaseAdmin.from("withdrawal_requests") as any).update({ status: "success" }).eq("id", item.id);
+              updated++;
+              await notifyPayoutStatus(supabaseAdmin, item.id, "success");
+              emailsTriggered.push({ table: "withdrawal_requests", id: item.id });
+            }
+          }
+          if (txOut && txOut.length > 0) {
+            for (const item of txOut) {
+              await (supabaseAdmin.from("transactions") as any).update({ status: "success" }).eq("id", item.id);
+              updated++;
+              await notifyPayoutStatus(supabaseAdmin, item.id, "success");
+              emailsTriggered.push({ table: "transactions", id: item.id });
+            }
+          }
+          if (batches && batches.length > 0) {
+            for (const b of batches) {
+              await (supabaseAdmin.from("payout_batches") as any).update({ status: "completed" }).eq("id", b.id);
+              updated++;
+            }
+          }
+
+          return Response.json({ success: true, updatedCount: updated, pbi, wr, txOut, batches, emailsTriggered });
+        }
+
         const testDep = url.searchParams.get("test_deposit_email");
         if (testDep) {
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");

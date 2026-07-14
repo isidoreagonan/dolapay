@@ -389,23 +389,21 @@ export const Route = createFileRoute("/api/public/withdraw")({
             }
 
             // Créer la demande de retrait (withdrawal_request) - Tentatives multiples multi-schéma
+            // Créer la demande de retrait (withdrawal_request) - Tentatives multiples multi-schéma avec id: payoutId
             const insertAttempts = [
-              { profile_id: user.id, wallet_id: wallet.id || user.id, amount, currency: "XOF", method, recipient_phone: phone, status: finalStatus },
-              { user_id: user.id, wallet_id: wallet.id || user.id, amount, currency: "XOF", method, recipient_phone: phone, status: finalStatus },
-              { merchant_id: user.id, wallet_id: wallet.id || user.id, amount, currency: "XOF", method, recipient_phone: phone, status: finalStatus },
-              // Si le statut final ("success" / "processing") est refusé par une contrainte ENUM, tester "pending"
-              { profile_id: user.id, wallet_id: wallet.id || user.id, amount, currency: "XOF", method, recipient_phone: phone, status: "pending" },
-              { user_id: user.id, wallet_id: wallet.id || user.id, amount, currency: "XOF", method, recipient_phone: phone, status: "pending" },
-              // Si wallet_id ou currency pose problème de clé étrangère
-              { profile_id: user.id, amount, method, recipient_phone: phone, status: "pending" },
-              { user_id: user.id, amount, method, recipient_phone: phone, status: "pending" },
-              { profile_id: user.id, amount, method, status: "pending" }
+              { id: payoutId, profile_id: user.id, wallet_id: wallet.id || user.id, amount, currency: "XOF", method, recipient_phone: phone, status: finalStatus },
+              { id: payoutId, user_id: user.id, wallet_id: wallet.id || user.id, amount, currency: "XOF", method, recipient_phone: phone, status: finalStatus },
+              { id: payoutId, merchant_id: user.id, wallet_id: wallet.id || user.id, amount, currency: "XOF", method, recipient_phone: phone, status: finalStatus },
+              { id: payoutId, profile_id: user.id, wallet_id: wallet.id || user.id, amount, currency: "XOF", method, recipient_phone: phone, status: "pending" },
+              { id: payoutId, user_id: user.id, wallet_id: wallet.id || user.id, amount, currency: "XOF", method, recipient_phone: phone, status: "pending" },
+              { id: payoutId, profile_id: user.id, amount, method, recipient_phone: phone, status: "pending" },
+              { id: payoutId, user_id: user.id, amount, method, recipient_phone: phone, status: "pending" }
             ];
 
             let reqErr: any = null;
             let insertedOk = false;
 
-            let reqId: string | null = null;
+            let reqId: string | null = payoutId;
             for (const payload of insertAttempts) {
               const res = await (supabaseAdmin.from("withdrawal_requests") as any).insert(payload).select("id").maybeSingle();
               if (!res.error) {
@@ -423,12 +421,13 @@ export const Route = createFileRoute("/api/public/withdraw")({
               
               const txStatus = (finalStatus === "success" || finalStatus === "completed" || finalStatus === "processing") ? finalStatus : "pending";
               const txPayload = {
+                id: payoutId,
                 profile_id: user.id,
                 amount: amount,
                 currency: "XOF",
                 type: "pay-out",
                 status: txStatus,
-                description: `Retrait Mobile Money - ${method} (${phone})`,
+                description: `Retrait Mobile Money - ${method} (${phone}) [ID: ${payoutId}]`,
                 provider: method,
                 customer_phone: phone,
                 net_amount: amount
@@ -455,6 +454,7 @@ export const Route = createFileRoute("/api/public/withdraw")({
                   const { data: batchItemRes } = await supabaseAdmin
                     .from("payout_batch_items")
                     .insert({
+                      id: payoutId,
                       batch_id: batch.id,
                       recipient_phone: phone,
                       recipient_name: phone,
