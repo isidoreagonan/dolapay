@@ -43,7 +43,17 @@ export const Route = createFileRoute("/api/public/pawapay-webhook")({
 
             // 1. Traitement des Encaissements (Deposits)
             if (event.depositId) {
-              const newStatus = event.status === "COMPLETED" ? "success" : "failed";
+              const stRaw = String(event.status || "").toUpperCase();
+              let newStatus: "success" | "failed" | "processing" | null = null;
+              if (stRaw === "COMPLETED" || stRaw === "SUCCESS" || stRaw === "PAID") {
+                newStatus = "success";
+              } else if (stRaw === "FAILED" || stRaw === "REJECTED" || stRaw === "CANCELLED") {
+                newStatus = "failed";
+              } else if (stRaw === "ACCEPTED" || stRaw === "SUBMITTED" || stRaw === "PENDING") {
+                newStatus = "processing";
+              }
+
+              if (!newStatus) continue;
               
               // Récupérer la transaction existante pour recalculer net/frais si nécessaire
               const { data: tx, error: getErr } = await supabaseAdmin
@@ -68,7 +78,9 @@ export const Route = createFileRoute("/api/public/pawapay-webhook")({
                   .from("transactions")
                   .update({
                     status: newStatus,
-                    description: tx.description ? tx.description + extraDesc : extraDesc,
+                    description: (newStatus === "failed" && failureCode)
+                      ? (tx.description ? tx.description + extraDesc : extraDesc)
+                      : tx.description,
                   } as any)
                   .eq("id", event.depositId);
 
@@ -110,10 +122,20 @@ export const Route = createFileRoute("/api/public/pawapay-webhook")({
             // 2. Traitement des Décaissements (Payouts)
             if (event.payoutId || (event as any).id) {
               const pid = event.payoutId || (event as any).id;
-              const newStatus = event.status === "COMPLETED" || event.status === "SUCCESS" || event.status === "ACCEPTED" ? "success" : "failed";
+              const stRaw = String(event.status || "").toUpperCase();
+              let newStatus: "success" | "failed" | "processing" | null = null;
+              if (stRaw === "COMPLETED" || stRaw === "SUCCESS" || stRaw === "PAID") {
+                newStatus = "success";
+              } else if (stRaw === "FAILED" || stRaw === "REJECTED" || stRaw === "CANCELLED") {
+                newStatus = "failed";
+              } else if (stRaw === "ACCEPTED" || stRaw === "SUBMITTED" || stRaw === "PENDING") {
+                newStatus = "processing";
+              }
+
+              if (!newStatus) continue;
 
               await (supabaseAdmin.from("payout_batch_items") as any)
-                .update({ status: newStatus, error: event.failureReason?.failureMessage || null })
+                .update({ status: newStatus, error: (newStatus === "failed" ? event.failureReason?.failureMessage : null) })
                 .eq("id", pid)
                 .catch((e: any) => console.error("Error upd payout_batch_items:", e));
 

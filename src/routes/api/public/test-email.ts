@@ -6,6 +6,32 @@ export const Route = createFileRoute("/api/public/test-email")({
     handlers: {
       GET: async ({ request }) => {
         const url = new URL(request.url);
+        const checkTx = url.searchParams.get("check_tx");
+        if (checkTx) {
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const { pawapay } = await import("@/lib/pawapay.server");
+          const { data: txs } = await supabaseAdmin
+            .from("transactions")
+            .select("id, amount, status, provider, description, created_at, type, payment_method, customer_phone")
+            .order("created_at", { ascending: false })
+            .limit(10);
+          
+          const liveStatuses: any = {};
+          if (txs && txs.length > 0) {
+            for (const t of txs.slice(0, 3)) {
+              if (t.type === "payment_link" || t.provider === "pawapay" || t.payment_method === "pawapay" || t.status === "pending" || t.status === "processing") {
+                try {
+                  const liveDep = await pawapay.getDepositStatus(t.id);
+                  liveStatuses[t.id] = { type: "deposit", result: liveDep };
+                } catch (e: any) {
+                  liveStatuses[t.id] = { type: "deposit", error: e.message || String(e) };
+                }
+              }
+            }
+          }
+          return Response.json({ transactions: txs, liveStatuses });
+        }
+
         const checkPayout = url.searchParams.get("check_payout");
         if (checkPayout) {
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
