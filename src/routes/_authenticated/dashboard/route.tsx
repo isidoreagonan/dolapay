@@ -102,7 +102,15 @@ export function useProfile() {
               kyc_status: "pending",
               volume_limit_xof: 2000000,
               onboarding_completed: false,
-            }).then();
+            }).then(() => {
+              try {
+                fetch("/api/public/send-notification", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ type: "welcome", email: pendingProfile.email, name: pendingProfile.full_name }),
+                }).catch(() => {});
+              } catch {}
+            });
           }
         } catch (_) {}
 
