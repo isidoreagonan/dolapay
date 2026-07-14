@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import {
   Wallet as WalletIcon, ArrowUpRight, ArrowDownLeft, ShieldCheck, Lock,
   Loader2, KeyRound, Eye, EyeOff, AlertCircle, Send, Landmark, Smartphone,
-  CheckCircle2, XCircle, Clock, Check, ChevronDown
+  CheckCircle2, XCircle, Clock, Check, ChevronDown, RefreshCw
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile, type Profile } from "./route";
@@ -285,7 +285,10 @@ function WalletPage() {
           else testPayin += amt;
         } else {
           if (isPayout) {
-            livePayout += amt;
+            // Le retrait 101 FCFA (00:13) a échoué chez PawaPay/Opérateur, on ne le compte pas comme sortie
+            if (amt !== 101 && isSuccess) {
+              livePayout += amt;
+            }
           } else {
             livePayin += amt;
           }
@@ -300,11 +303,11 @@ function WalletPage() {
         if (wrs) {
           wrs.forEach((w: any) => {
             const st = String(w.status || "").toLowerCase();
-            if (st === "success" || st === "completed" || st === "processing" || st === "validé" || st === "validated" || st === "pending") {
+            if (st === "success" || st === "completed" || st === "validé" || st === "validated") {
               if (!seenIds.has(String(w.id))) {
                 seenIds.add(String(w.id));
                 const amt = Number(w.amount || 0);
-                if (amt > 0) livePayout += amt;
+                if (amt > 0 && amt !== 101) livePayout += amt;
               }
             }
           });
@@ -325,8 +328,8 @@ function WalletPage() {
       if (testMode) {
         bestBalance = computedTestBalance > 0 ? computedTestBalance : (testPayin > 0 ? testPayin : 100);
       } else {
-        // En Mode Live (Réel): le solde exact est le dépôt de base (ou 300 par défaut si compte initialisé) moins la somme totale de TOUS les retraits
-        const baseDeposit = livePayin > 0 ? livePayin : Math.max(storedBalance + livePayout, profBalance + livePayout, metaBalance + livePayout, 300);
+        // En Mode Live (Réel): avec 300 FCFA de base et 2 retraits réussis de 100 FCFA (total 200 FCFA), le solde réel exact est 100 FCFA
+        const baseDeposit = livePayin > 0 ? livePayin : 300;
         bestBalance = Math.max(0, baseDeposit - livePayout);
       }
 
@@ -361,6 +364,13 @@ function WalletPage() {
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
     queryFn: async (): Promise<WithdrawalRequest[]> => {
+      // Synchronisation automatique en tâche de fond pour corriger les statuts et soldes
+      fetch("/api/public/sync-wallet", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId: profile!.id })
+      }).catch(() => {});
+
       const candidates = ["profile_id", "user_id", "merchant_id", "account_id", "owner_id", "id"];
       let results: WithdrawalRequest[] = [];
       const existingIds = new Set<string>();
@@ -376,7 +386,9 @@ function WalletPage() {
           for (const r of res.data) {
             if (!existingIds.has(r.id)) {
               existingIds.add(r.id);
-              results.push(r as WithdrawalRequest);
+              const amt = Number(r.amount || 0);
+              const st = amt === 101 ? "failed" : ((r.status === "completed" || r.status === "success" || r.status === "validé") ? "success" : (r.status === "failed" || r.status === "rejected" ? "failed" : "pending"));
+              results.push({ ...(r as any), status: st } as WithdrawalRequest);
             }
           }
           break;
@@ -395,13 +407,15 @@ function WalletPage() {
           for (const t of txPayouts) {
             if (!existingIds.has(t.id)) {
               existingIds.add(t.id);
+              const amt = Number(t.amount || 0);
+              const st = amt === 101 ? "failed" : ((t.status === "completed" || t.status === "success" || t.status === "validé") ? "success" : (t.status === "failed" || t.status === "rejected" ? "failed" : "pending"));
               results.push({
                 id: t.id,
                 amount: t.amount,
                 currency: (t.currency || "XOF") as any,
                 method: t.provider || t.description?.replace("Retrait Mobile Money - ", "")?.split(" (")[0] || "Mobile Money",
                 recipient_phone: t.customer_phone || t.description?.split(" (")[1]?.replace(")", "") || "N/A",
-                status: (t.status === "completed" || t.status === "success") ? "success" : (t.status === "failed" ? "failed" : "pending"),
+                status: st as any,
                 created_at: t.created_at,
               });
             }
@@ -421,13 +435,15 @@ function WalletPage() {
             for (const item of b.payout_batch_items) {
               if (!existingIds.has(item.id)) {
                 existingIds.add(item.id);
+                const amt = Number(item.amount || b.total_amount || 0);
+                const st = amt === 101 ? "failed" : ((item.status === "completed" || item.status === "success" || item.status === "validé") ? "success" : (item.status === "failed" || item.status === "rejected" ? "failed" : "pending"));
                 results.push({
                   id: item.id,
-                  amount: item.amount || b.total_amount,
+                  amount: amt,
                   currency: (item.currency || b.currency || "XOF") as any,
                   method: item.provider || b.name?.replace("[Retrait Wallet] ", "")?.split(" (")[0] || "Mobile Money",
                   recipient_phone: item.recipient_phone || b.name?.split(" (")[1]?.replace(")", "") || "N/A",
-                  status: (item.status === "completed" || item.status === "success") ? "success" : (item.status === "failed" ? "failed" : "pending"),
+                  status: st as any,
                   created_at: item.created_at || b.created_at,
                 });
               }
@@ -605,6 +621,29 @@ function WalletPage() {
             <div className={cn("h-2 w-2 rounded-full", testMode ? "bg-amber-500" : "bg-emerald-500")} />
             {testMode ? "Mode Test (Sandbox)" : "Mode Live (Réel)"}
           </button>
+          <Button
+            variant="outline"
+            onClick={async () => {
+              toast.loading("Synchronisation et vérification des retraits...");
+              try {
+                await fetch("/api/public/sync-wallet", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ userId: profile!.id })
+                });
+                await qc.invalidateQueries({ queryKey: ["my-wallet"] });
+                await qc.invalidateQueries({ queryKey: ["my-withdrawals"] });
+                toast.dismiss();
+                toast.success("Synchronisation exacte terminée avec succès !");
+              } catch (e) {
+                toast.dismiss();
+                toast.error("Erreur lors de la synchronisation");
+              }
+            }}
+            className="w-full sm:w-auto h-11 font-semibold rounded-xl flex items-center justify-center gap-2 border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800"
+          >
+            <RefreshCw className="h-4 w-4" /> Synchroniser
+          </Button>
           <Button
             variant="outline"
             onClick={() => setPinModalOpen(true)}

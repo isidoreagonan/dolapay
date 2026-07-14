@@ -376,6 +376,33 @@ export class PawaPayClient {
       return null;
     }
   }
+
+  async getPayoutStatus(payoutId: string): Promise<{
+    payoutId: string;
+    status: "ACCEPTED" | "SUBMITTED" | "COMPLETED" | "FAILED" | "REJECTED";
+    failureReason?: {
+      failureCode?: string;
+      failureMessage?: string;
+    } | null;
+    rejectionReason?: {
+      rejectionCode?: string;
+      rejectionMessage?: string;
+    } | null;
+  } | null> {
+    try {
+      const res = await this.request<any>(`/payouts/${encodeURIComponent(payoutId)}`, "GET");
+      if (Array.isArray(res) && res.length > 0) {
+        return res[0];
+      }
+      if (res && !Array.isArray(res) && res.status) {
+        return res;
+      }
+      return null;
+    } catch (e) {
+      console.warn(`[PawaPay] getPayoutStatus failed for ${payoutId}:`, e);
+      return null;
+    }
+  }
 }
 
 export const pawapay = new PawaPayClient();

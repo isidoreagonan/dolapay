@@ -419,38 +419,20 @@ export const Route = createFileRoute("/api/public/withdraw")({
             if (true) {
               console.log("[Withdraw] Enregistrement dans transactions (pay-out) et payout_batches...");
               
-              const txStatus = (finalStatus === "success" || finalStatus === "completed" || finalStatus === "processing") ? "success" : "pending";
-              const txPayloads = [
-                {
-                  profile_id: user.id,
-                  amount: amount,
-                  currency: "XOF",
-                  type: "pay-out",
-                  status: txStatus,
-                  description: `Retrait Mobile Money - ${method} (${phone})`,
-                  provider: method,
-                  customer_phone: phone,
-                  net_amount: amount
-                },
-                {
-                  profile_id: user.id,
-                  amount: amount,
-                  currency: "XOF",
-                  type: "pay-out",
-                  status: "success",
-                  description: `Retrait Mobile Money - ${method} (${phone})`,
-                }
-              ];
+              const txStatus = (finalStatus === "success" || finalStatus === "completed" || finalStatus === "processing") ? finalStatus : "pending";
+              const txPayload = {
+                profile_id: user.id,
+                amount: amount,
+                currency: "XOF",
+                type: "pay-out",
+                status: txStatus,
+                description: `Retrait Mobile Money - ${method} (${phone})`,
+                provider: method,
+                customer_phone: phone,
+                net_amount: amount
+              };
 
-              for (const pl of txPayloads) {
-                const resTx = await (supabaseAdmin.from("transactions") as any).insert(pl);
-                if (!resTx.error) {
-                  insertedOk = true;
-                  reqErr = null;
-                  break;
-                }
-                reqErr = resTx.error;
-              }
+              await (supabaseAdmin.from("transactions") as any).insert(txPayload);
 
               // Enregistrer également dans payout_batches / payout_batch_items
               try {
@@ -462,7 +444,7 @@ export const Route = createFileRoute("/api/public/withdraw")({
                     total_amount: amount,
                     currency: "XOF",
                     total_count: 1,
-                    status: "processing",
+                    status: txStatus,
                   } as any)
                   .select("id")
                   .maybeSingle();
@@ -477,7 +459,7 @@ export const Route = createFileRoute("/api/public/withdraw")({
                       amount: amount,
                       currency: "XOF",
                       provider: method,
-                      status: "success",
+                      status: txStatus,
                     } as any);
                   insertedOk = true;
                   reqErr = null;
