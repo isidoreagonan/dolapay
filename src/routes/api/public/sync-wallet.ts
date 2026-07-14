@@ -115,7 +115,7 @@ export async function POST(request: Request) {
           const isTestTx = desc.includes("_test") || desc.includes("sandbox") || mode === "test" || mode === "sandbox";
           if (isTestTx) continue;
 
-          const isPayout = String(t.type || "").toLowerCase().includes("payout") || String(t.type || "").toLowerCase().includes("withdraw");
+          const isPayout = String(t.type || "").toLowerCase().includes("payout") || String(t.type || "").toLowerCase().includes("pay-out") || String(t.type || "").toLowerCase().includes("withdraw");
           if (isPayout) {
             if (isPayoutCandidate) livePayout += amt;
           } else {

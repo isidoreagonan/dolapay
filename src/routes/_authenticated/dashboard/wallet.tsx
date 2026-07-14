@@ -279,7 +279,7 @@ function WalletPage() {
         const desc = String(t.description || "").toLowerCase();
         const mode = String((t as any).mode || "").toLowerCase();
         const isTestTx = desc.includes("_test") || desc.includes("sandbox") || mode === "test" || mode === "sandbox";
-        const isPayout = String(t.type || "").toLowerCase().includes("payout") || String(t.type || "").toLowerCase().includes("withdraw");
+        const isPayout = String(t.type || "").toLowerCase().includes("payout") || String(t.type || "").toLowerCase().includes("pay-out") || String(t.type || "").toLowerCase().includes("withdraw");
 
         if (isTestTx) {
           if (isPayout) testPayout += amt;
