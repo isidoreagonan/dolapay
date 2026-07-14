@@ -9,7 +9,8 @@ import { Label } from "@/components/ui/label";
 import {
   Wallet as WalletIcon, ArrowUpRight, ArrowDownLeft, ShieldCheck, Lock,
   Loader2, KeyRound, Eye, EyeOff, AlertCircle, Send, Landmark, Smartphone,
-  CheckCircle2, XCircle, Clock, Check, ChevronDown, RefreshCw
+  CheckCircle2, XCircle, Clock, Check, ChevronDown, RefreshCw,
+  DollarSign, Search, FileSpreadsheet, Filter, PiggyBank, CreditCard
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile, type Profile } from "./route";
@@ -216,6 +217,7 @@ function WalletPage() {
   const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [pinModalOpen, setPinModalOpen] = useState(false);
   const [testMode, setTestMode] = useState(false);
+  const [tableSearch, setTableSearch] = useState("");
 
   // Form State for Withdrawal
   const [withdrawCountry, setWithdrawCountry] = useState("BF");
@@ -640,19 +642,42 @@ function WalletPage() {
 
   const accountId = profile?.id ? `acc_${profile.id.replace(/-/g, "").slice(0, 16)}` : "";
 
+  const pendingWithdrawals = withdrawals.filter(w => {
+    const st = String(w.status || "").toLowerCase();
+    return st === "processing" || st === "pending" || st === "en cours";
+  });
+  const pendingWithdrawalsTotal = pendingWithdrawals.reduce((acc, w) => acc + Number(w.amount || 0), 0);
+
+  const completedWithdrawals = withdrawals.filter(w => {
+    const st = String(w.status || "").toLowerCase();
+    return st === "success" || st === "completed" || st === "validé" || st === "réussi";
+  });
+  const completedWithdrawalsTotal = completedWithdrawals.reduce((acc, w) => acc + Number(w.amount || 0), 0);
+
+  const filteredWithdrawals = withdrawals.filter(w => {
+    if (!tableSearch) return true;
+    const q = tableSearch.toLowerCase();
+    return (
+      String(w.id || "").toLowerCase().includes(q) ||
+      String(w.recipient_phone || "").toLowerCase().includes(q) ||
+      String(w.method || "").toLowerCase().includes(q) ||
+      String(w.status || "").toLowerCase().includes(q)
+    );
+  });
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Mon Portefeuille</h1>
-          <p className="text-sm text-muted-foreground">Gérez votre solde DolaPay, visualisez vos rapports et initiez des retraits.</p>
+          <h1 className="text-2xl font-black tracking-tight">Gestion du Portefeuille</h1>
+          <p className="text-sm text-muted-foreground">Suivez vos soldes et gérez vos moyens de retrait.</p>
         </div>
-        <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
+        <div className="flex flex-wrap items-center gap-2.5">
           <button
             onClick={() => setTestMode(!testMode)}
             className={cn(
-              "inline-flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-xs font-bold transition-colors border shadow-sm w-full sm:w-auto justify-center h-11",
+              "inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold transition-colors border shadow-sm justify-center h-10",
               testMode
                 ? "bg-amber-500/15 text-amber-600 border-amber-500/30 hover:bg-amber-500/25 dark:text-amber-400"
                 : "bg-emerald-500/15 text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/25 dark:text-emerald-400"
@@ -663,8 +688,9 @@ function WalletPage() {
           </button>
           <Button
             variant="outline"
+            size="sm"
             onClick={async () => {
-              toast.loading("Synchronisation et vérification des retraits...");
+              toast.loading("Synchronisation en cours...");
               try {
                 await fetch("/api/public/sync-wallet", {
                   method: "POST",
@@ -674,169 +700,251 @@ function WalletPage() {
                 await qc.invalidateQueries({ queryKey: ["my-wallet"] });
                 await qc.invalidateQueries({ queryKey: ["my-withdrawals"] });
                 toast.dismiss();
-                toast.success("Synchronisation exacte terminée avec succès !");
+                toast.success("Synchronisation exacte terminée !");
               } catch (e) {
                 toast.dismiss();
-                toast.error("Erreur lors de la synchronisation");
+                toast.error("Erreur de synchronisation");
               }
             }}
-            className="w-full sm:w-auto h-11 font-semibold rounded-xl flex items-center justify-center gap-2 border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-800"
+            className="h-10 px-3.5 text-xs font-semibold rounded-xl flex items-center gap-1.5 border-border hover:bg-muted"
           >
-            <RefreshCw className="h-4 w-4" /> Synchroniser
+            <RefreshCw className="h-3.5 w-3.5" /> Synchroniser
           </Button>
           <Button
             variant="outline"
+            size="sm"
             onClick={() => setPinModalOpen(true)}
-            className="w-full sm:w-auto h-11 font-semibold rounded-xl flex items-center justify-center gap-2 border-slate-300 dark:border-slate-700"
+            className="h-10 px-3.5 text-xs font-semibold rounded-xl flex items-center gap-1.5 border-border hover:bg-muted"
           >
-            <KeyRound className="h-4 w-4" /> Gérer mon code PIN
+            <Filter className="h-3.5 w-3.5" /> Code PIN
           </Button>
           <Button
-            onClick={() => setWithdrawOpen(true)}
-            className="w-full sm:w-auto h-11 font-bold rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center gap-2"
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              if (filteredWithdrawals.length === 0) return;
+              const headers = ["ID", "Date", "Méthode", "Numéro", "Montant", "Devise", "Statut"];
+              const rows = filteredWithdrawals.map(w => [
+                w.id,
+                new Date(w.created_at).toISOString(),
+                w.method,
+                w.recipient_phone,
+                w.amount,
+                w.currency,
+                w.status
+              ]);
+              const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+              const link = document.createElement("a");
+              link.setAttribute("href", encodeURI(csvContent));
+              link.setAttribute("download", `retraits_dolapay_${new Date().toISOString().slice(0, 10)}.csv`);
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+            }}
+            disabled={filteredWithdrawals.length === 0}
+            className="h-10 px-3.5 text-xs font-semibold rounded-xl flex items-center gap-1.5 border-border hover:bg-muted text-slate-700 dark:text-slate-200"
           >
-            <ArrowUpRight className="h-4 w-4" /> Faire un retrait
+            <FileSpreadsheet className="h-3.5 w-3.5" /> Exporter en Excel
           </Button>
         </div>
       </div>
 
-      {/* Main Grid: Card + Stats */}
-      <div className="grid gap-6 md:grid-cols-3">
-        {/* Virtual Credit Card with Glassmorphism */}
-        <div className="md:col-span-2 relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-purple-600 to-primary p-6 text-white shadow-2xl flex flex-col justify-between min-h-[220px]">
-          {/* Glass Overlay effects */}
-          <div className="absolute inset-0 bg-white/5 backdrop-blur-[2px] pointer-events-none" />
-          <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-white/10 blur-2xl" />
-          
-          <div className="relative flex justify-between items-start z-10">
-            <div className="space-y-1">
-              <div className="text-xs uppercase tracking-widest text-purple-200/80 font-bold flex items-center gap-2">
-                Solde Disponible
-                <span className={cn("px-2 py-0.5 rounded text-[9px] font-extrabold uppercase", testMode ? "bg-amber-400 text-slate-900" : "bg-emerald-400 text-slate-900")}>
-                  {testMode ? "Sandbox" : "Live"}
-                </span>
-              </div>
-              <div className="text-3xl sm:text-4xl font-black tracking-tight">
-                {wallet ? fmt(wallet.balance) : "0"} <span className="text-lg font-bold text-purple-200">{wallet?.currency || "XOF"}</span>
-              </div>
-              <div className="text-[10px] text-white/70 font-mono mt-1 max-h-32 overflow-auto bg-black/20 p-1 rounded break-all">
-                DEBUG: LIn={wallet ? (wallet as any)._livePayin : 0} | LOut={wallet ? (wallet as any)._livePayout : 0} | Base={wallet ? (wallet as any)._baseDeposit : 0} | TIn={wallet ? (wallet as any)._testPayin : 0} | TOut={wallet ? (wallet as any)._testPayout : 0}
-                <br/>
-                WRS_RES: {JSON.stringify(withdrawals.map(w => ({ amt: w.amount, st: w.status })))}
-                <br/>
-                RAW_TXS: {JSON.stringify(wallet ? (wallet as any)._rawPayouts : [])}
-                <br/>
-                RAW_WRS: {JSON.stringify(wallet ? (wallet as any)._rawWrs : [])}
-              </div>
-            </div>
-            <WalletIcon className="h-8 w-8 text-white/30" />
-          </div>
-
-          <div className="relative z-10 space-y-4">
-            <div className="font-mono text-lg tracking-widest text-purple-100">
-              {accountId ? `${accountId.slice(0, 4)}  ${accountId.slice(4, 8)}  ${accountId.slice(8, 12)}  ${accountId.slice(12, 16)}` : "**** **** **** ****"}
-            </div>
-            <div className="flex justify-between items-end text-xs">
-              <div>
-                <div className="text-purple-300 font-bold uppercase tracking-wider text-[9px]">Titulaire du compte</div>
-                <div className="font-semibold text-sm">{profile?.full_name || profile?.email}</div>
-              </div>
-              <div className="text-right">
-                <span className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-0.5 text-[10px] font-bold backdrop-blur">
-                  {profile?.account_type.toUpperCase()} TIER
-                </span>
-              </div>
+      {/* Top 4 Minimalist Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Card 1: Solde Total */}
+        <Card className="p-5 rounded-2xl border bg-card/80 backdrop-blur flex flex-col justify-between space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground">Solde Total</span>
+            <div className="h-8 w-8 rounded-full border border-border flex items-center justify-center text-muted-foreground/70">
+              <DollarSign className="h-4 w-4" />
             </div>
           </div>
-        </div>
-
-        {/* Quick Stats Panel */}
-        <Card className="p-6 border-slate-200/60 dark:border-slate-800/60 flex flex-col justify-between space-y-4">
-          <div className="space-y-4">
-            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Résumé des flux</h3>
-            <div className="flex justify-between items-center pb-3 border-b border-border">
-              <div className="flex items-center gap-2">
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-600">
-                  <ArrowDownLeft className="h-4 w-4" />
-                </div>
-                <span className="text-sm font-medium">Entrées (Payin)</span>
-              </div>
-              <span className="font-bold text-emerald-600">Actif</span>
+          <div>
+            <div className="text-2xl font-black tracking-tight text-foreground">
+              {wallet ? fmt(wallet.balance) : "0.00"} <span className="text-sm font-bold text-muted-foreground">{wallet?.currency || "XOF"}</span>
             </div>
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-primary/15 text-primary">
-                  <ArrowUpRight className="h-4 w-4" />
-                </div>
-                <span className="text-sm font-medium">Retraits (Payout)</span>
-              </div>
-              <span className="font-bold text-slate-700 dark:text-slate-300">
-                {withdrawals.filter(w => w.status !== "failed" && Number(w.amount) !== 101).length} effectué{withdrawals.filter(w => w.status !== "failed" && Number(w.amount) !== 101).length > 1 ? "s" : ""}
-              </span>
+            <div className="flex items-center gap-1.5 mt-1 text-[11px] text-muted-foreground">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              Transactions approuvées
             </div>
           </div>
+        </Card>
 
-          <div className="flex items-center gap-2 text-[10px] text-muted-foreground bg-muted/50 p-2.5 rounded-xl border border-border">
-            <ShieldCheck className="h-4 w-4 text-emerald-500 shrink-0" />
-            <span>Tous les retraits vers vos comptes Mobile Money sont sécurisés avec cryptage de niveau bancaire.</span>
+        {/* Card 2: Solde Disponible */}
+        <Card className="p-5 rounded-2xl border bg-card/80 backdrop-blur flex flex-col justify-between space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground">Solde Disponible</span>
+            <div className="h-8 w-8 rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+              <WalletIcon className="h-4 w-4" />
+            </div>
+          </div>
+          <div>
+            <div className="text-2xl font-black tracking-tight text-purple-600 dark:text-purple-400">
+              {wallet ? fmt(wallet.balance) : "0.00"} <span className="text-sm font-bold opacity-80">{wallet?.currency || "XOF"}</span>
+            </div>
+            <div className="flex items-center gap-1.5 mt-1 text-[11px] text-purple-600/80 dark:text-purple-400/80 font-semibold">
+              <span className="h-1.5 w-1.5 rounded-full bg-purple-500 animate-pulse" />
+              Disponible pour retrait immédiat
+            </div>
+          </div>
+        </Card>
+
+        {/* Card 3: Retrait en Attente */}
+        <Card className="p-5 rounded-2xl border bg-card/80 backdrop-blur flex flex-col justify-between space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground">Retrait en Attente</span>
+            <div className="h-8 w-8 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center">
+              <Clock className="h-4 w-4" />
+            </div>
+          </div>
+          <div>
+            <div className="text-2xl font-black tracking-tight text-amber-500">
+              {fmt(pendingWithdrawalsTotal)} <span className="text-sm font-bold opacity-80">{wallet?.currency || "XOF"}</span>
+            </div>
+            <div className="flex items-center gap-1.5 mt-1 text-[11px] text-amber-500/90 font-medium">
+              <span>{pendingWithdrawals.length} demande{pendingWithdrawals.length > 1 ? "s" : ""} en cours</span>
+            </div>
+          </div>
+        </Card>
+
+        {/* Card 4: Solde Retiré */}
+        <Card className="p-5 rounded-2xl border bg-card/80 backdrop-blur flex flex-col justify-between space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-extrabold uppercase tracking-wider text-muted-foreground">Solde Retiré</span>
+            <div className="h-8 w-8 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+              <PiggyBank className="h-4 w-4" />
+            </div>
+          </div>
+          <div>
+            <div className="text-2xl font-black tracking-tight text-emerald-500">
+              {fmt(completedWithdrawalsTotal)} <span className="text-sm font-bold opacity-80">{wallet?.currency || "XOF"}</span>
+            </div>
+            <div className="flex items-center gap-1.5 mt-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+              <CheckCircle2 className="h-3 w-3" />
+              <span>{completedWithdrawals.length} demande{completedWithdrawals.length > 1 ? "s" : ""} validée{completedWithdrawals.length > 1 ? "s" : ""}</span>
+            </div>
           </div>
         </Card>
       </div>
 
-      {/* Withdrawal History */}
-      <div className="space-y-4">
-        <h2 className="text-lg font-bold tracking-tight">Historique des retraits</h2>
-        {withdrawals.length === 0 ? (
-          <Card className="flex flex-col items-center justify-center p-12 text-center border-dashed border-2">
-            <WalletIcon className="h-10 w-10 text-muted-foreground/30 mb-3" />
-            <h3 className="text-sm font-bold">Aucun retrait effectué</h3>
-            <p className="text-xs text-muted-foreground max-w-xs mt-1">Vous n'avez pas encore initié de demande de retrait d'argent sur ce portefeuille.</p>
-          </Card>
-        ) : (
-          <Card className="overflow-hidden border-slate-200/60 dark:border-slate-800/60">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="bg-muted text-muted-foreground text-xs uppercase font-bold border-b border-border">
-                  <tr>
-                    <th className="px-6 py-3.5">Date</th>
-                    <th className="px-6 py-3.5">Méthode</th>
-                    <th className="px-6 py-3.5">Numéro récepteur</th>
-                    <th className="px-6 py-3.5 text-right">Montant</th>
-                    <th className="px-6 py-3.5 text-center">Statut</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {withdrawals.map((w) => (
-                    <tr key={w.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-900/30 transition-colors">
-                      <td className="px-6 py-4 font-medium text-slate-500">
-                        {new Date(w.created_at).toLocaleDateString("fr-FR", {
-                          day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"
-                        })}
-                      </td>
-                      <td className="px-6 py-4 font-bold text-xs">
-                        <span className={cn(
-                          "px-2 py-0.5 rounded-full uppercase text-[10px]",
-                          w.method === "ORANGE" && "bg-orange-500/10 text-orange-600",
-                          w.method === "MOOV" && "bg-blue-500/10 text-blue-600",
-                          w.method === "TELECEL" && "bg-red-500/10 text-red-600"
-                        )}>
-                          {w.method} MONEY
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 font-mono text-xs">{w.recipient_phone}</td>
-                      <td className="px-6 py-4 text-right font-bold">
-                        -{fmt(w.amount)} <span className="text-xs text-muted-foreground">{w.currency}</span>
-                      </td>
-                      <td className="px-6 py-4 flex items-center justify-center">
-                        <StatusBadge status={w.status} />
-                      </td>
+      {/* Main Two-Column Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column: Historique des Retraits */}
+        <div className="lg:col-span-2 space-y-4">
+          <Card className="p-5 rounded-3xl border bg-card">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b border-border">
+              <div className="flex items-center gap-2 font-bold text-base text-foreground">
+                <Clock className="h-4.5 w-4.5 text-primary" />
+                <span>Historique des Retraits</span>
+              </div>
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                <Input
+                  placeholder="Rechercher..."
+                  value={tableSearch}
+                  onChange={(e) => setTableSearch(e.target.value)}
+                  className="pl-9 h-9 text-xs rounded-xl border-border bg-muted/30 focus:bg-background"
+                />
+              </div>
+            </div>
+
+            <div className="mt-4 overflow-x-auto">
+              {filteredWithdrawals.length === 0 ? (
+                <div className="py-20 text-center text-sm font-medium text-muted-foreground italic">
+                  Aucun retrait trouvé
+                </div>
+              ) : (
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-muted/50 text-muted-foreground font-bold uppercase text-[10px] tracking-wider border-b border-border">
+                    <tr>
+                      <th className="px-4 py-3">ID / Date</th>
+                      <th className="px-4 py-3">Montant</th>
+                      <th className="px-4 py-3">Statut</th>
+                      <th className="px-4 py-3">Date de création</th>
+                      <th className="px-4 py-3">Vers</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-border">
+                    {filteredWithdrawals.map((w) => (
+                      <tr key={w.id} className="hover:bg-muted/30 transition-colors font-medium">
+                        <td className="px-4 py-3.5 font-mono text-[11px] text-muted-foreground">
+                          {String(w.id || "").slice(0, 8)}...
+                          <div className="text-[10px] text-muted-foreground/60">
+                            {new Date(w.created_at).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3.5 font-bold text-sm text-foreground">
+                          -{fmt(w.amount)} <span className="text-xs font-normal text-muted-foreground">{w.currency || "XOF"}</span>
+                        </td>
+                        <td className="px-4 py-3.5">
+                          <StatusBadge status={w.status} />
+                        </td>
+                        <td className="px-4 py-3.5 text-muted-foreground">
+                          {new Date(w.created_at).toLocaleDateString("fr-FR", {
+                            day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit"
+                          })}
+                        </td>
+                        <td className="px-4 py-3.5 font-semibold text-foreground">
+                          {w.recipient_phone || "N/A"}
+                          <div className="text-[10px] font-bold text-primary uppercase">
+                            {w.method || "MOBILE"} MONEY
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           </Card>
-        )}
+        </div>
+
+        {/* Right Column: Retraits Instantanés & Moyens de Paiement */}
+        <div className="lg:col-span-1 space-y-6">
+          {/* Card 1: Retraits Instantanés (Dark Orange CTA Card) */}
+          <Card className="rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 text-white p-6 shadow-xl relative overflow-hidden">
+            <ArrowUpRight className="absolute -right-6 -top-6 h-36 w-36 text-white/5 pointer-events-none" />
+            <div className="relative z-10 space-y-3">
+              <h3 className="text-xl font-black tracking-tight">Retraits Instantanés</h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Le délai de retrait est automatique ou max 24h. Passé ce délai, contactez le support.
+              </p>
+              <Button
+                onClick={() => setWithdrawOpen(true)}
+                className="w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white font-bold h-11 rounded-xl shadow-lg shadow-orange-500/25 transition-transform active:scale-[0.98]"
+              >
+                Demander un retrait
+              </Button>
+            </div>
+          </Card>
+
+          {/* Card 2: Moyens de Paiement */}
+          <Card className="rounded-3xl p-6 border bg-card space-y-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-sm flex items-center gap-2 text-foreground">
+                <CreditCard className="h-4 w-4 text-orange-500" /> Moyens de Paiement
+              </h3>
+              <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-orange-500/10 text-orange-600">
+                Sécurisé
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Suivez vos soldes et gérez vos moyens de retrait Mobile Money.
+            </p>
+            <Button
+              onClick={() => setPinModalOpen(true)}
+              variant="outline"
+              className="w-full h-10 border-orange-500/30 text-orange-600 hover:bg-orange-500/10 font-bold rounded-xl flex items-center justify-center gap-2 text-xs"
+            >
+              + Ajouter un moyen (ou PIN)
+            </Button>
+            <div className="p-6 text-center rounded-2xl bg-muted/40 border border-dashed text-xs text-muted-foreground space-y-2">
+              <Landmark className="h-8 w-8 mx-auto text-muted-foreground/30" />
+              <p>Aucun moyen de retrait permanent enregistré.</p>
+              <p className="text-[10px] opacity-75">Vous pouvez saisir votre numéro lors de chaque demande de retrait instantané.</p>
+            </div>
+          </Card>
+        </div>
       </div>
 
       {/* PIN Setup/Reset Modal */}
