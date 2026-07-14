@@ -140,11 +140,15 @@ function TransactionsPage() {
 
   // Statistics
   const stats = useMemo(() => {
-    const success = txs.filter((t) => t.status === "success");
-    const totalVolume = success.reduce((s, t) => s + Number(t.amount), 0);
-    const totalNet = success.reduce((s, t) => s + Number(t.net_amount || t.amount * 0.98), 0);
-    const totalFees = success.reduce((s, t) => s + Number(t.fee_amount || t.amount * 0.02), 0);
-    const successRate = txs.length > 0 ? Math.round((success.length / txs.length) * 100) : 100;
+    const payInsAll = txs.filter((t) => t.type === "pay-in" || t.type === "payment_link" || t.type === "api_charge");
+    const payInsSuccess = payInsAll.filter((t) => t.status === "success" || t.status === "completed" || t.status === "validé" || t.status === "Réussi");
+    
+    const totalVolume = payInsSuccess.reduce((s, t) => s + Number(t.amount), 0);
+    const totalNet = payInsSuccess.reduce((s, t) => s + Number(t.net_amount ?? Math.round(t.amount * 0.98)), 0);
+    const totalFees = txs.filter((t) => t.status === "success" || t.status === "completed" || t.status === "validé" || t.status === "Réussi").reduce((s, t) => s + Number(t.fee_amount ?? Math.round(t.amount * 0.02)), 0);
+    
+    const successRate = payInsAll.length > 0 ? Math.round((payInsSuccess.length / payInsAll.length) * 100) : (txs.length > 0 ? Math.round((txs.filter((t) => t.status === "success" || t.status === "completed" || t.status === "validé" || t.status === "Réussi").length / txs.length) * 100) : 100);
+    
     return { totalVolume, totalNet, totalFees, successRate };
   }, [txs]);
 
