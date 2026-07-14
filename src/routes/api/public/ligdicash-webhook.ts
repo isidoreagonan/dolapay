@@ -44,7 +44,7 @@ export const Route = createFileRoute("/api/public/ligdicash-webhook")({
         if (txId) {
           const { data: tx } = await supabaseAdmin
             .from("transactions")
-            .select("id, amount, profile_id, status, type, description, ligdicash_token")
+            .select("*")
             .eq("id", txId)
             .maybeSingle();
 

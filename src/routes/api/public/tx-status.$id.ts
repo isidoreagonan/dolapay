@@ -12,10 +12,13 @@ export const Route = createFileRoute("/api/public/tx-status/$id")({
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         const { data, error } = await supabaseAdmin
           .from("transactions")
-          .select("status, description, provider, ligdicash_token, created_at, amount, profile_id")
+          .select("*")
           .eq("id", params.id)
           .maybeSingle();
-        if (error) return Response.json({ error: "Server error" }, { status: 500 });
+        if (error) {
+          console.error("[tx-status] DB Error fetching tx:", error);
+          return Response.json({ error: error.message || "Server error", code: error.code }, { status: 500 });
+        }
         if (!data) return Response.json({ error: "Not found" }, { status: 404 });
 
         const st = String(data.status || "").toLowerCase();
