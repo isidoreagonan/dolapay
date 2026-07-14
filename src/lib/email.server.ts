@@ -192,15 +192,18 @@ async function sendRawEmail(to: string, subject: string, htmlContent: string): P
     console.warn(`[email.server] Invalid recipient address: ${to}`);
     return false;
   }
-  if (!process.env.RESEND_API_KEY || process.env.RESEND_API_KEY === "re_dummy_key") {
+  const currentApiKey = process.env.RESEND_API_KEY;
+  if (!currentApiKey || currentApiKey === "re_dummy_key") {
     console.warn(`[email.server] RESEND_API_KEY non défini ou factice. Simulation d'envoi vers ${to} (${subject})`);
     console.log(`[email.server Preview]\nSubject: ${subject}\nTo: ${to}`);
     return true;
   }
 
   try {
-    const { data, error } = await resend.emails.send({
-      from: FROM_EMAIL,
+    const liveResend = new Resend(currentApiKey);
+    const liveFrom = process.env.RESEND_FROM_EMAIL || FROM_EMAIL || "DolaPay <notification@dola-pay.com>";
+    const { data, error } = await liveResend.emails.send({
+      from: liveFrom,
       to: [to],
       subject,
       html: htmlContent,
@@ -581,14 +584,18 @@ export async function notifyDepositSuccess(supabaseAdmin: any, transactionId: st
     let linkTitle = "Paiement DolaPay";
 
     if (tx.description) {
-      const parts = tx.description.split("·").map((p: string) => p.trim());
-      if (parts[0]) linkTitle = parts[0].replace(/\[[^\]]+\]\s*/, "").replace(" [EMAIL_SENT]", "");
+      const descClean = tx.description.replace(" [EMAIL_SENT]", "");
+      const parts = descClean.split("·").map((p: string) => p.trim());
+      if (parts[0]) linkTitle = parts[0].replace(/\[[^\]]+\]\s*/, "").trim();
+      
+      const emailMatch = descClean.match(/\(([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9._-]+)\)/);
+      if (emailMatch && emailMatch[1] && emailMatch[1] !== "noemail@client.com") {
+        if (!customerEmail) customerEmail = emailMatch[1].trim();
+      }
+
       if (parts[1]) {
-        const nameMatch = parts[1].match(/^([^(]+)(?:\(([^)]+)\))?/);
-        if (nameMatch) {
-          if (!tx.customer_name) customerName = nameMatch[1].trim();
-          if (!customerEmail && nameMatch[2] && nameMatch[2].includes("@")) customerEmail = nameMatch[2].trim();
-        }
+        const namePart = parts[1].replace(/\([^)]+\)/g, "").trim();
+        if (namePart && !tx.customer_name) customerName = namePart;
       }
     }
 

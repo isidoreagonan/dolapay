@@ -78,7 +78,7 @@ export const Route = createFileRoute("/api/public/pay/$slug")({
             parsed.data.customer_phone.replace(/\D/g, "").startsWith("226") ||
             parsed.data.provider.toUpperCase() === "CARD";
 
-          const emailInfo = parsed.data.customer_email ? ` (${parsed.data.customer_email})` : "";
+          const emailStr = parsed.data.customer_email ? parsed.data.customer_email.trim() : "noemail@client.com";
           const { data: tx, error: txErr } = await supabaseAdmin
             .from("transactions")
             .insert({
@@ -88,11 +88,9 @@ export const Route = createFileRoute("/api/public/pay/$slug")({
               type: "payment_link",
               status: "pending",
               idempotency_key: idemKey,
-              description: `[${params.slug}] ${link.title} · ${parsed.data.customer_name}${emailInfo} · ${parsed.data.provider} ${parsed.data.customer_phone}`,
+              description: `[${params.slug}] ${link.title} · ${parsed.data.customer_name} (${emailStr}) · ${parsed.data.provider} ${parsed.data.customer_phone}`,
               // Add required live DB columns
               net_amount: link.amount,
-              customer_name: parsed.data.customer_name,
-              customer_email: parsed.data.customer_email || null,
               customer_phone: parsed.data.customer_phone,
               provider: isLigdiCash ? "ligdicash" : "pawapay",
               payment_method: parsed.data.provider,
