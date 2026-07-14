@@ -125,13 +125,47 @@ export async function POST(request: Request) {
       }
     }
 
+    // Fonction helper pour interroger PawaPay en direct si un retrait est en cours ("processing"/"pending")
+    async function checkAndSyncPendingPayout(payoutId: string, batchId?: string): Promise<string> {
+      try {
+        const statusRes = await pawapay.getPayoutStatus(payoutId);
+        if (!statusRes) return "processing";
+        if (statusRes.status === "COMPLETED") {
+          await (supabaseAdmin.from("payout_batch_items") as any).update({ status: "success" }).eq("id", payoutId);
+          await (supabaseAdmin.from("withdrawal_requests") as any).update({ status: "success" }).eq("id", payoutId);
+          await (supabaseAdmin.from("transactions") as any).update({ status: "success" }).eq("id", payoutId);
+          if (batchId) {
+            const { data: allItems } = await (supabaseAdmin.from("payout_batch_items") as any).select("status").eq("batch_id", batchId);
+            if (allItems && allItems.every((i: any) => i.status === "success" || i.status === "COMPLETED")) {
+              await (supabaseAdmin.from("payout_batches") as any).update({ status: "completed" }).eq("id", batchId);
+            }
+          }
+          return "success";
+        } else if (statusRes.status === "FAILED" || statusRes.status === "REJECTED") {
+          await (supabaseAdmin.from("payout_batch_items") as any).update({ status: "failed", error: statusRes.failureReason?.failureMessage || statusRes.rejectionReason?.rejectionMessage || null }).eq("id", payoutId);
+          await (supabaseAdmin.from("withdrawal_requests") as any).update({ status: "failed" }).eq("id", payoutId);
+          await (supabaseAdmin.from("transactions") as any).update({ status: "failed" }).eq("id", payoutId);
+          if (batchId) {
+            await (supabaseAdmin.from("payout_batches") as any).update({ status: "failed" }).eq("id", batchId);
+          }
+          return "failed";
+        }
+      } catch (e) {
+        console.error(`[Sync Payout Status Error] ${payoutId}:`, e);
+      }
+      return "processing";
+    }
+
     // Ajouter également les retraits réussis présents dans withdrawal_requests
     for (const col of ["profile_id", "user_id", "merchant_id", "account_id", "owner_id", "id"]) {
       const { data: wrs } = await (supabaseAdmin.from("withdrawal_requests") as any).select("*").eq(col, userId);
       if (wrs) {
-        wrs.forEach((w: any) => {
-          if (seenTxIds.has(String(w.id))) return;
-          const st = String(w.status || "").toLowerCase();
+        for (const w of wrs) {
+          if (seenTxIds.has(String(w.id))) continue;
+          let st = String(w.status || "").toLowerCase();
+          if (st === "processing" || st === "pending") {
+            st = await checkAndSyncPendingPayout(String(w.id));
+          }
           if (st === "success" || st === "completed" || st === "validé" || st === "validated" || st === "processing" || st === "pending") {
             const amt = Number(w.amount || 0);
             if (amt > 0 && amt !== 101) {
@@ -139,7 +173,7 @@ export async function POST(request: Request) {
               livePayout += amt;
             }
           }
-        });
+        }
       }
     }
 
@@ -152,9 +186,12 @@ export async function POST(request: Request) {
         if (b.payout_batch_items && Array.isArray(b.payout_batch_items)) {
           for (const item of b.payout_batch_items) {
             if (seenTxIds.has(String(item.id))) continue;
-            const st = String(item.status || "").toLowerCase();
-            const amt = Number(item.amount || b.total_amount || 0);
+            let st = String(item.status || "").toLowerCase();
+            if (st === "processing" || st === "pending") {
+              st = await checkAndSyncPendingPayout(String(item.id), String(b.id));
+            }
             if (st === "success" || st === "completed" || st === "validé" || st === "validated" || st === "processing" || st === "pending") {
+              const amt = Number(item.amount || b.total_amount || 0);
               if (amt > 0 && amt !== 101) {
                 seenTxIds.add(String(item.id));
                 livePayout += amt;
