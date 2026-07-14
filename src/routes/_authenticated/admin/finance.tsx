@@ -41,7 +41,62 @@ function FinancePage() {
         .order("created_at", { ascending: false })
         .limit(5000);
       if (error) throw error;
-      return (data ?? []) as Tx[];
+      const results: Tx[] = (data ?? []) as Tx[];
+      const existingIds = new Set(results.map((t) => t.id));
+
+      // Fetch all successful withdrawal_requests
+      const { data: wrs } = await (supabase.from("withdrawal_requests") as any)
+        .select("id,amount,status,created_at,currency")
+        .gte("created_at", since);
+      if (wrs && wrs.length > 0) {
+        for (const w of wrs) {
+          if (!existingIds.has(w.id)) {
+            const amt = Number(w.amount || 0);
+            const st = amt === 101 ? "failed" : ((w.status === "completed" || w.status === "success" || w.status === "validé") ? "success" : (w.status === "failed" || w.status === "rejected" ? "failed" : "pending"));
+            if (st === "success" && amt > 0 && amt !== 101) {
+              existingIds.add(w.id);
+              results.push({
+                id: w.id,
+                amount: amt,
+                status: "success",
+                type: "pay-out",
+                created_at: w.created_at,
+                currency: "XOF",
+              } as any);
+            }
+          }
+        }
+      }
+
+      // Fetch all successful payout_batch_items
+      const { data: batches } = await (supabase.from("payout_batches") as any)
+        .select("created_at, total_amount, payout_batch_items(*)")
+        .gte("created_at", since);
+      if (batches && batches.length > 0) {
+        for (const b of batches) {
+          if (b.payout_batch_items && Array.isArray(b.payout_batch_items)) {
+            for (const item of b.payout_batch_items) {
+              if (!existingIds.has(item.id)) {
+                const amt = Number(item.amount || b.total_amount || 0);
+                const st = amt === 101 ? "failed" : ((item.status === "completed" || item.status === "success" || item.status === "validé") ? "success" : (item.status === "failed" || item.status === "rejected" ? "failed" : "pending"));
+                if (st === "success" && amt > 0 && amt !== 101) {
+                  existingIds.add(item.id);
+                  results.push({
+                    id: item.id,
+                    amount: amt,
+                    status: "success",
+                    type: "pay-out",
+                    created_at: item.created_at || b.created_at,
+                    currency: "XOF",
+                  } as any);
+                }
+              }
+            }
+          }
+        }
+      }
+
+      return results;
     },
   });
 

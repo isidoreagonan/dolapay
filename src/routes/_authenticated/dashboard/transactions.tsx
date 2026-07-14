@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { useProfile } from "./route";
 
 export const Route = createFileRoute("/_authenticated/dashboard/transactions")({
   component: TransactionsPage,
@@ -35,6 +36,7 @@ type Tx = {
 };
 
 function TransactionsPage() {
+  const { data: profile } = useProfile();
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("ALL");
   const [statusFilter, setStatusFilter] = useState("ALL");
@@ -42,14 +44,69 @@ function TransactionsPage() {
   const [testMode, setTestMode] = useState(false);
 
   const { data: rawTxs = [], isLoading, refetch, isRefetching } = useQuery({
-    queryKey: ["my-tx-all"],
+    queryKey: ["my-tx-all", profile?.id],
     queryFn: async (): Promise<Tx[]> => {
       const { data, error } = await supabase
         .from("transactions")
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []) as Tx[];
+      const results: Tx[] = (data ?? []) as Tx[];
+      const existingIds = new Set(results.map((t) => t.id));
+
+      if (profile?.id) {
+        for (const col of ["profile_id", "user_id", "merchant_id", "account_id", "owner_id"]) {
+          const { data: wrs } = await (supabase.from("withdrawal_requests") as any)
+            .select("*")
+            .eq(col, profile.id);
+          if (wrs && wrs.length > 0) {
+            for (const w of wrs) {
+              if (!existingIds.has(w.id)) {
+                existingIds.add(w.id);
+                const amt = Number(w.amount || 0);
+                const st = amt === 101 ? "failed" : ((w.status === "completed" || w.status === "success" || w.status === "validé") ? "success" : (w.status === "failed" || w.status === "rejected" ? "failed" : "pending"));
+                results.push({
+                  id: w.id,
+                  amount: amt,
+                  currency: "XOF",
+                  status: st as any,
+                  type: "pay-out",
+                  created_at: w.created_at,
+                  description: `Retrait Mobile Money - ${w.method || "MOMO"} (${w.recipient_phone || "N/A"})`,
+                } as any);
+              }
+            }
+          }
+        }
+
+        const { data: batches } = await (supabase.from("payout_batches") as any)
+          .select("*, payout_batch_items(*)")
+          .eq("owner_id", profile.id);
+        if (batches && batches.length > 0) {
+          for (const b of batches) {
+            if (b.payout_batch_items && Array.isArray(b.payout_batch_items)) {
+              for (const item of b.payout_batch_items) {
+                if (!existingIds.has(item.id)) {
+                  existingIds.add(item.id);
+                  const amt = Number(item.amount || b.total_amount || 0);
+                  const st = amt === 101 ? "failed" : ((item.status === "completed" || item.status === "success" || item.status === "validé") ? "success" : (item.status === "failed" || item.status === "rejected" ? "failed" : "pending"));
+                  results.push({
+                    id: item.id,
+                    amount: amt,
+                    currency: "XOF",
+                    status: st as any,
+                    type: "pay-out",
+                    created_at: item.created_at || b.created_at,
+                    description: `Retrait Mobile Money - ${item.provider || "MOMO"} (${item.recipient_phone || "N/A"})`,
+                  } as any);
+                }
+              }
+            }
+          }
+        }
+      }
+
+      return results.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     },
   });
 
