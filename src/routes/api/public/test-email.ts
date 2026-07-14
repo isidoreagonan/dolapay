@@ -35,7 +35,23 @@ export const Route = createFileRoute("/api/public/test-email")({
         const resend = new Resend(apiKey);
         const fromEmail = process.env.RESEND_FROM_EMAIL || "DolaPay <notification@dola-pay.com>";
 
+        const type = url.searchParams.get("type") || "general";
         try {
+          if (type === "payout") {
+            const { sendPayoutNotificationEmail } = await import("@/lib/email.server");
+            const sent = await sendPayoutNotificationEmail({
+              merchantEmail: toEmail,
+              merchantName: "Marchand Test",
+              amount: 15000,
+              currency: "XOF",
+              recipientPhone: "+2290157385885",
+              provider: "MTN Bénin",
+              status: "success",
+              payoutId: "TEST-PAYOUT-001",
+            });
+            return Response.json({ success: sent, type: "payout", email: toEmail });
+          }
+
           const { data, error } = await resend.emails.send({
             from: fromEmail,
             to: [toEmail],
