@@ -298,15 +298,17 @@ function WalletPage() {
       // Ajouter également tous les retraits enregistrés dans withdrawal_requests pour le compte total exact des sorties
       const seenIds = new Set<string>();
       allTxs.forEach((t: any) => { if (t && t.id) seenIds.add(String(t.id)); });
+      const rawWrs: any[] = [];
       for (const col of ["profile_id", "user_id", "merchant_id", "account_id", "owner_id", "id"]) {
         const { data: wrs } = await (supabase.from("withdrawal_requests") as any).select("*").eq(col, profile!.id);
         if (wrs) {
           wrs.forEach((w: any) => {
             const st = String(w.status || "").toLowerCase();
+            const amt = Number(w.amount || 0);
+            rawWrs.push({ id: w.id, amt, st });
             if (st === "success" || st === "completed" || st === "validé" || st === "validated" || st === "processing" || st === "pending") {
               if (!seenIds.has(String(w.id))) {
                 seenIds.add(String(w.id));
-                const amt = Number(w.amount || 0);
                 if (amt > 0 && amt !== 101) livePayout += amt;
               }
             }
@@ -345,6 +347,7 @@ function WalletPage() {
             _livePayin: livePayin,
             _baseDeposit: testMode ? 0 : baseDeposit,
             _rawPayouts: rawPayouts,
+            _rawWrs: rawWrs,
             _testPayin: testPayin,
             _testPayout: testPayout,
           } as any as Wallet;
@@ -357,6 +360,7 @@ function WalletPage() {
       (data as any)._livePayout = livePayout;
       (data as any)._baseDeposit = testMode ? 0 : baseDeposit;
       (data as any)._rawPayouts = rawPayouts;
+      (data as any)._rawWrs = rawWrs;
       (data as any)._testPayin = testPayin;
       (data as any)._testPayout = testPayout;
 
@@ -692,12 +696,14 @@ function WalletPage() {
               <div className="text-3xl sm:text-4xl font-black tracking-tight">
                 {wallet ? fmt(wallet.balance) : "0"} <span className="text-lg font-bold text-purple-200">{wallet?.currency || "XOF"}</span>
               </div>
-              <div className="text-[10px] text-white/70 font-mono mt-1 max-h-24 overflow-auto bg-black/20 p-1 rounded">
+              <div className="text-[10px] text-white/70 font-mono mt-1 max-h-32 overflow-auto bg-black/20 p-1 rounded break-all">
                 DEBUG: LIn={wallet ? (wallet as any)._livePayin : 0} | LOut={wallet ? (wallet as any)._livePayout : 0} | Base={wallet ? (wallet as any)._baseDeposit : 0} | TIn={wallet ? (wallet as any)._testPayin : 0} | TOut={wallet ? (wallet as any)._testPayout : 0}
                 <br/>
-                WRS: {JSON.stringify(withdrawals.map(w => ({ amt: w.amount, st: w.status, meth: w.method })))}
+                WRS_RES: {JSON.stringify(withdrawals.map(w => ({ amt: w.amount, st: w.status })))}
                 <br/>
-                RAW: {JSON.stringify(wallet ? (wallet as any)._rawPayouts : [])}
+                RAW_TXS: {JSON.stringify(wallet ? (wallet as any)._rawPayouts : [])}
+                <br/>
+                RAW_WRS: {JSON.stringify(wallet ? (wallet as any)._rawWrs : [])}
               </div>
             </div>
             <WalletIcon className="h-8 w-8 text-white/30" />
