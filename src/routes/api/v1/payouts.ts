@@ -94,6 +94,7 @@ export const Route = createFileRoute("/api/v1/payouts")({
 
           if (res.status === "REJECTED") {
             await supabaseAdmin.from("payout_batches").update({ status: "failed" }).eq("id", batch.id);
+            await supabaseAdmin.from("payout_batch_items").update({ status: "failed" }).eq("id", payoutId);
             return Response.json(
               { error: { code: "operator_rejected", message: res.rejectionReason?.rejectionMessage || "Retrait refusé." } },
               { status: 400 }
@@ -102,6 +103,15 @@ export const Route = createFileRoute("/api/v1/payouts")({
         } catch (err) {
           console.error("PawaPay payout error:", err);
         }
+
+        // Déclencher une synchronisation immédiate du solde en base de données (sync-wallet)
+        try {
+          fetch(new URL("/api/public/sync-wallet", request.url).toString(), {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId: auth.profile_id })
+          }).catch(() => {});
+        } catch {}
 
         return Response.json({
           id: batch.id,
