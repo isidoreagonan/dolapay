@@ -271,30 +271,24 @@ function WalletPage() {
 
       for (const t of allTxs) {
         const st = String(t.status || "").toLowerCase();
-        const isCompletedSuccess = st === "completed" || st === "successful" || st === "success" || st === "paid" || st === "validé" || st === "validated" || st === "settled" || st === "ok" || st === "confirmed";
-        const isPayoutCandidate = isCompletedSuccess || st === "processing" || st === "pending";
-        if (!isPayoutCandidate) continue;
-
         const amt = Number(t.amount || 0);
         const desc = String(t.description || "").toLowerCase();
         const mode = String((t as any).mode || "").toLowerCase();
         const isTestTx = desc.includes("_test") || desc.includes("sandbox") || mode === "test" || mode === "sandbox";
         const isPayout = String(t.type || "").toLowerCase().includes("payout") || String(t.type || "").toLowerCase().includes("pay-out") || String(t.type || "").toLowerCase().includes("withdraw");
+        const isCompletedSuccess = st === "completed" || st === "successful" || st === "success" || st === "paid" || st === "validé" || st === "validated" || st === "settled" || st === "ok" || st === "confirmed";
 
-        if (isTestTx) {
-          if (isPayout) testPayout += amt;
-          else if (isCompletedSuccess) testPayin += amt;
+        if (isPayout) {
+          if (!isTestTx && amt > 0 && amt !== 101 && st !== "failed" && st !== "rejected") {
+            livePayout += amt;
+          } else if (isTestTx && amt > 0 && st !== "failed") {
+            testPayout += amt;
+          }
         } else {
-          if (isPayout) {
-            // Le retrait 101 FCFA (00:13) a échoué chez PawaPay/Opérateur, on ne le compte pas comme sortie
-            if (amt !== 101 && isPayoutCandidate) {
-              livePayout += amt;
-            }
-          } else {
-            // Un payin (entrée) n'est comptabilisé que s'il est définitivement payé et complété
-            if (isCompletedSuccess) {
-              livePayin += amt;
-            }
+          if (!isTestTx && isCompletedSuccess && amt > 0) {
+            livePayin += amt;
+          } else if (isTestTx && isCompletedSuccess && amt > 0) {
+            testPayin += amt;
           }
         }
       }
