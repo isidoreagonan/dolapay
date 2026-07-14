@@ -84,10 +84,24 @@ function SignUp() {
           phone: fullPhone,
         })
         .eq("id", data.user.id);
+      try {
+        fetch("/api/public/send-notification", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ type: "welcome", email, name: fullName }),
+        }).catch(() => {});
+      } catch {}
       setLoading(false);
       toast.success("Compte créé. Bienvenue !");
       navigate({ to: "/dashboard" });
     } else {
+      try {
+        fetch("/api/public/send-notification", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ type: "welcome", email, name: fullName }),
+        }).catch(() => {});
+      } catch {}
       setLoading(false);
       toast.success("Vérifiez votre e-mail pour confirmer votre compte.");
     }

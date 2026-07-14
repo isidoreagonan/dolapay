@@ -94,6 +94,15 @@ export const Route = createFileRoute("/api/public/pawapay-webhook")({
                   }
                 }
 
+                if (newStatus === "success") {
+                  try {
+                    const { notifyDepositSuccess } = await import("@/lib/email.server");
+                    await notifyDepositSuccess(supabaseAdmin, event.depositId);
+                  } catch (e) {
+                    console.error("[PawaPay Webhook] Error notifying deposit email:", e);
+                  }
+                }
+
                 console.log(`[PawaPay Webhook] Transaction ${event.depositId} updated to ${newStatus}`);
               }
             }
@@ -117,6 +126,14 @@ export const Route = createFileRoute("/api/public/pawapay-webhook")({
                 .update({ status: newStatus })
                 .eq("id", pid)
                 .catch(() => {});
+
+              try {
+                const { notifyPayoutStatus, notifyWithdrawalRequestStatus } = await import("@/lib/email.server");
+                await notifyPayoutStatus(supabaseAdmin, pid, newStatus, event.failureReason?.failureMessage);
+                await notifyWithdrawalRequestStatus(supabaseAdmin, pid, newStatus, event.failureReason?.failureMessage);
+              } catch (e) {
+                console.error("[PawaPay Webhook] Error notifying payout email:", e);
+              }
 
               // Optionnel : vérifier si tout le lot (batch) est terminé
               const { data: item } = await supabaseAdmin

@@ -60,6 +60,10 @@ async function handleSyncWallet(request: Request) {
                 await (supabaseAdmin.from("withdrawal_requests") as any).update({ status: finalStatus }).eq("id", item.id);
                 await (supabaseAdmin.from("transactions") as any).update({ status: finalStatus }).eq("id", item.id);
                 updatedCount++;
+                try {
+                  const { notifyPayoutStatus } = await import("@/lib/email.server");
+                  await notifyPayoutStatus(supabaseAdmin, item.id, finalStatus as any);
+                } catch (e) {}
               } else {
                 allItemsSuccess = false;
               }
@@ -84,11 +88,19 @@ async function handleSyncWallet(request: Request) {
           if (amt === 101 && st !== "failed") {
             await (supabaseAdmin.from("withdrawal_requests") as any).update({ status: "failed" }).eq("id", w.id);
             updatedCount++;
+            try {
+              const { notifyWithdrawalRequestStatus } = await import("@/lib/email.server");
+              await notifyWithdrawalRequestStatus(supabaseAdmin, w.id, "failed");
+            } catch (e) {}
           } else if (st === "processing" || st === "pending") {
             const isOlderThan1Min = Date.now() - new Date(w.created_at).getTime() > 60 * 1000;
             if (isOlderThan1Min || amt === 100) {
               await (supabaseAdmin.from("withdrawal_requests") as any).update({ status: "success" }).eq("id", w.id);
               updatedCount++;
+              try {
+                const { notifyWithdrawalRequestStatus } = await import("@/lib/email.server");
+                await notifyWithdrawalRequestStatus(supabaseAdmin, w.id, "success");
+              } catch (e) {}
             }
           }
         }

@@ -84,6 +84,19 @@ function Merchant360() {
     mutationFn: async (patch: Record<string, unknown>) => {
       const { error } = await supabase.from("profiles").update(patch as never).eq("id", id);
       if (error) throw error;
+      if (patch.kyc_status === "approved" || patch.kyc_status === "rejected") {
+        try {
+          await fetch("/api/public/send-notification", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              type: patch.kyc_status === "approved" ? "kyc_approved" : "kyc_rejected",
+              profileId: id,
+              reason: (patch as any).kyc_rejection_reason || "Documents flous ou incomplets",
+            }),
+          });
+        } catch (e) {}
+      }
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin-merchant", id] });

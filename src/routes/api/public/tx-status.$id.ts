@@ -79,21 +79,30 @@ export const Route = createFileRoute("/api/public/tx-status/$id")({
               .eq("id", params.id);
 
             // Si le paiement est réussi, on s'assure d'actualiser instantanément le solde du marchand
-            if (newStatus === "success" && data.profile_id && Number(data.amount) > 0) {
+            if (newStatus === "success") {
+              if (data.profile_id && Number(data.amount) > 0) {
+                try {
+                  const amt = Number(data.amount);
+                  // Mise à jour de la table wallets si possible
+                  const { data: w } = await (supabaseAdmin.from("wallets") as any).select("balance").eq("profile_id", data.profile_id).maybeSingle();
+                  if (w && typeof w.balance === "number") {
+                    await (supabaseAdmin.from("wallets") as any).update({ balance: w.balance + amt, updated_at: new Date().toISOString() }).eq("profile_id", data.profile_id);
+                  }
+                  const { data: prof } = await (supabaseAdmin.from("profiles") as any).select("balance, wallet_balance").eq("id", data.profile_id).maybeSingle();
+                  if (prof) {
+                    const currBal = Number(prof.balance || prof.wallet_balance || 0);
+                    await (supabaseAdmin.from("profiles") as any).update({ balance: currBal + amt, wallet_balance: currBal + amt }).eq("id", data.profile_id);
+                  }
+                } catch (e) {
+                  console.error("[tx-status] Error auto-crediting merchant balance:", e);
+                }
+              }
+
               try {
-                const amt = Number(data.amount);
-                // Mise à jour de la table wallets si possible
-                const { data: w } = await (supabaseAdmin.from("wallets") as any).select("balance").eq("profile_id", data.profile_id).maybeSingle();
-                if (w && typeof w.balance === "number") {
-                  await (supabaseAdmin.from("wallets") as any).update({ balance: w.balance + amt, updated_at: new Date().toISOString() }).eq("profile_id", data.profile_id);
-                }
-                const { data: prof } = await (supabaseAdmin.from("profiles") as any).select("balance, wallet_balance").eq("id", data.profile_id).maybeSingle();
-                if (prof) {
-                  const currBal = Number(prof.balance || prof.wallet_balance || 0);
-                  await (supabaseAdmin.from("profiles") as any).update({ balance: currBal + amt, wallet_balance: currBal + amt }).eq("id", data.profile_id);
-                }
+                const { notifyDepositSuccess } = await import("@/lib/email.server");
+                await notifyDepositSuccess(supabaseAdmin, params.id);
               } catch (e) {
-                console.error("[tx-status] Error auto-crediting merchant balance:", e);
+                console.error("[tx-status] Error notifying deposit success:", e);
               }
             }
 

@@ -95,10 +95,23 @@ export const Route = createFileRoute("/api/v1/payouts")({
           if (res.status === "REJECTED") {
             await supabaseAdmin.from("payout_batches").update({ status: "failed" }).eq("id", batch.id);
             await supabaseAdmin.from("payout_batch_items").update({ status: "failed" }).eq("id", payoutId);
+            try {
+              const { notifyPayoutStatus } = await import("@/lib/email.server");
+              await notifyPayoutStatus(supabaseAdmin, payoutId, "failed", res.rejectionReason?.rejectionMessage || "Retrait refusé.");
+            } catch (e) {
+              console.error("Email notification error:", e);
+            }
             return Response.json(
               { error: { code: "operator_rejected", message: res.rejectionReason?.rejectionMessage || "Retrait refusé." } },
               { status: 400 }
             );
+          } else {
+            try {
+              const { notifyPayoutStatus } = await import("@/lib/email.server");
+              await notifyPayoutStatus(supabaseAdmin, payoutId, "pending");
+            } catch (e) {
+              console.error("Email notification error:", e);
+            }
           }
         } catch (err) {
           console.error("PawaPay payout error:", err);

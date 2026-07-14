@@ -1,0 +1,687 @@
+import { Resend } from "resend";
+
+const apiKey = process.env.RESEND_API_KEY || "re_dummy_key";
+const resend = new Resend(apiKey);
+
+const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "DolaPay <notification@dola-pay.com>";
+
+/**
+ * Base HTML Template wrapper with DolaPay Brand Design
+ */
+function getBaseEmailHtml(title: string, contentHtml: string): string {
+  return `
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${title}</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+    .wrapper {
+      width: 100%;
+      background-color: #f8fafc;
+      padding: 40px 20px;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #ffffff;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+      border: 1px solid #e2e8f0;
+    }
+    .header {
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+      padding: 35px 40px;
+      text-align: center;
+    }
+    .header-title {
+      color: #ffffff;
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin: 0;
+    }
+    .header-badge {
+      display: inline-block;
+      margin-top: 8px;
+      background-color: rgba(255, 255, 255, 0.15);
+      color: #e0e7ff;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .body {
+      padding: 40px;
+    }
+    .h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #0f172a;
+      margin-top: 0;
+      margin-bottom: 16px;
+    }
+    .text {
+      font-size: 15px;
+      line-height: 1.6;
+      color: #475569;
+      margin-bottom: 20px;
+    }
+    .card-box {
+      background-color: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 24px;
+      margin: 25px 0;
+    }
+    .row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 14px;
+    }
+    .row:last-child {
+      border-bottom: none;
+    }
+    .row-label {
+      color: #64748b;
+      font-weight: 500;
+    }
+    .row-value {
+      color: #0f172a;
+      font-weight: 700;
+      text-align: right;
+    }
+    .amount-box {
+      text-align: center;
+      padding: 20px 10px;
+      background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
+      border: 1px solid #dbeafe;
+      border-radius: 16px;
+      margin-bottom: 25px;
+    }
+    .amount-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #3b82f6;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .amount-value {
+      font-size: 32px;
+      font-weight: 800;
+      color: #1e3a8a;
+      margin-top: 4px;
+    }
+    .btn-container {
+      text-align: center;
+      margin: 35px 0 20px 0;
+    }
+    .btn {
+      display: inline-block;
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      color: #ffffff !important;
+      font-size: 15px;
+      font-weight: 700;
+      text-decoration: none;
+      padding: 14px 32px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+    .footer {
+      background-color: #f1f5f9;
+      padding: 25px 40px;
+      text-align: center;
+      border-top: 1px solid #e2e8f0;
+    }
+    .footer-text {
+      font-size: 12px;
+      color: #64748b;
+      margin: 0 0 8px 0;
+      line-height: 1.5;
+    }
+    .footer-link {
+      color: #2563eb;
+      text-decoration: none;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="container">
+      <div class="header">
+        <h1 class="header-title">DolaPay</h1>
+        <div class="header-badge">Infrastructure de Paiement</div>
+      </div>
+      <div class="body">
+        ${contentHtml}
+      </div>
+      <div class="footer">
+        <p class="footer-text">
+          <strong>DolaPay</strong> · L'infrastructure financière nouvelle génération en Afrique de l'Ouest.
+        </p>
+        <p class="footer-text">
+          Vous recevez cet email car vous avez un compte ou une transaction sur <a href="https://dola-pay.com" class="footer-link">dola-pay.com</a>.
+        </p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+  `.trim();
+}
+
+/**
+ * Send raw email helper via Resend
+ */
+async function sendRawEmail(to: string, subject: string, htmlContent: string): Promise<boolean> {
+  if (!to || !to.includes("@")) {
+    console.warn(`[email.server] Invalid recipient address: ${to}`);
+    return false;
+  }
+  if (!process.env.RESEND_API_KEY || process.env.RESEND_API_KEY === "re_dummy_key") {
+    console.warn(`[email.server] RESEND_API_KEY non défini ou factice. Simulation d'envoi vers ${to} (${subject})`);
+    console.log(`[email.server Preview]\nSubject: ${subject}\nTo: ${to}`);
+    return true;
+  }
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: FROM_EMAIL,
+      to: [to],
+      subject,
+      html: htmlContent,
+    });
+
+    if (error) {
+      console.error(`[email.server] Resend error sending to ${to}:`, error);
+      return false;
+    }
+
+    console.log(`[email.server] Successfully sent email to ${to} (ID: ${data?.id})`);
+    return true;
+  } catch (err) {
+    console.error(`[email.server] Exception sending email to ${to}:`, err);
+    return false;
+  }
+}
+
+/**
+ * 1a. Email au Marchand après avoir reçu un paiement via Lien / Facture
+ */
+export async function sendPaymentReceivedMerchantEmail(params: {
+  merchantEmail: string;
+  merchantName: string;
+  amount: number;
+  currency: string;
+  customerName: string;
+  customerPhone?: string;
+  customerEmail?: string;
+  paymentMethod: string;
+  transactionId: string;
+  linkTitle?: string;
+}): Promise<boolean> {
+  const amountStr = `${new Intl.NumberFormat("fr-FR").format(params.amount)} ${params.currency}`;
+  const subject = `💰 Nouveau paiement reçu : +${amountStr}`;
+
+  const html = getBaseEmailHtml(subject, `
+    <h1 class="h1">Félicitations ${params.merchantName || "Marchand"} ! 🎉</h1>
+    <p class="text">
+      Vous venez de recevoir un nouveau paiement d'un client via votre ${params.linkTitle ? `lien de paiement <strong>"${params.linkTitle}"</strong>` : "lien de paiement DolaPay"}.
+    </p>
+
+    <div class="amount-box">
+      <div class="amount-label">Montant encaissé</div>
+      <div class="amount-value">+${amountStr}</div>
+    </div>
+
+    <div class="card-box">
+      <div class="row">
+        <span class="row-label">Client</span>
+        <span class="row-value">${params.customerName || "Inconnu"}</span>
+      </div>
+      ${params.customerPhone ? `
+      <div class="row">
+        <span class="row-label">Téléphone / Mobile Money</span>
+        <span class="row-value">${params.customerPhone}</span>
+      </div>` : ""}
+      ${params.customerEmail ? `
+      <div class="row">
+        <span class="row-label">Email client</span>
+        <span class="row-value">${params.customerEmail}</span>
+      </div>` : ""}
+      <div class="row">
+        <span class="row-label">Opérateur / Moyen de paiement</span>
+        <span class="row-value">${params.paymentMethod}</span>
+      </div>
+      <div class="row">
+        <span class="row-label">Référence Transaction</span>
+        <span class="row-value" style="font-family: monospace; font-size: 12px;">${params.transactionId}</span>
+      </div>
+      <div class="row">
+        <span class="row-label">Date & Heure</span>
+        <span class="row-value">${new Date().toLocaleString("fr-FR")}</span>
+      </div>
+    </div>
+
+    <p class="text">
+      Cet argent a été crédité sur votre solde DolaPay. Vous pouvez dès maintenant effectuer un retrait instantané vers votre compte Mobile Money.
+    </p>
+
+    <div class="btn-container">
+      <a href="https://dola-pay.com/dashboard/transactions" class="btn">Voir la transaction dans mon espace</a>
+    </div>
+  `);
+
+  return sendRawEmail(params.merchantEmail, subject, html);
+}
+
+/**
+ * 1b. Email Reçu de Paiement au Client final
+ */
+export async function sendPaymentReceiptCustomerEmail(params: {
+  customerEmail: string;
+  customerName: string;
+  merchantName: string;
+  amount: number;
+  currency: string;
+  paymentMethod: string;
+  transactionId: string;
+  linkTitle?: string;
+}): Promise<boolean> {
+  const amountStr = `${new Intl.NumberFormat("fr-FR").format(params.amount)} ${params.currency}`;
+  const subject = `✅ Reçu de votre paiement : ${amountStr} (${params.merchantName})`;
+
+  const html = getBaseEmailHtml(subject, `
+    <h1 class="h1">Reçu de votre paiement</h1>
+    <p class="text">
+      Bonjour <strong>${params.customerName || "Cher client"}</strong>,<br/>
+      Nous vous confirmons que votre paiement a été effectué et validé avec succès sur DolaPay pour le compte de <strong>${params.merchantName}</strong>.
+    </p>
+
+    <div class="amount-box" style="background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); border-color: #a7f3d0;">
+      <div class="amount-label" style="color: #059669;">Montant payé</div>
+      <div class="amount-value" style="color: #065f46;">${amountStr}</div>
+    </div>
+
+    <div class="card-box">
+      ${params.linkTitle ? `
+      <div class="row">
+        <span class="row-label">Motif / Produit</span>
+        <span class="row-value">${params.linkTitle}</span>
+      </div>` : ""}
+      <div class="row">
+        <span class="row-label">Bénéficiaire</span>
+        <span class="row-value">${params.merchantName}</span>
+      </div>
+      <div class="row">
+        <span class="row-label">Moyen de paiement</span>
+        <span class="row-value">${params.paymentMethod}</span>
+      </div>
+      <div class="row">
+        <span class="row-label">Numéro de reçu</span>
+        <span class="row-value" style="font-family: monospace; font-size: 12px;">${params.transactionId}</span>
+      </div>
+      <div class="row">
+        <span class="row-label">Date du paiement</span>
+        <span class="row-value">${new Date().toLocaleString("fr-FR")}</span>
+      </div>
+    </div>
+
+    <p class="text">
+      Merci de votre confiance. Vous pouvez conserver cet email comme preuve officielle de règlement.
+    </p>
+  `);
+
+  return sendRawEmail(params.customerEmail, subject, html);
+}
+
+/**
+ * 2. Email Notification après demande / exécution de Retrait (Payout)
+ */
+export async function sendPayoutNotificationEmail(params: {
+  merchantEmail: string;
+  merchantName: string;
+  amount: number;
+  currency: string;
+  recipientPhone: string;
+  provider: string;
+  status: "pending" | "success" | "failed";
+  payoutId?: string;
+  errorMessage?: string;
+}): Promise<boolean> {
+  const amountStr = `${new Intl.NumberFormat("fr-FR").format(params.amount)} ${params.currency}`;
+  const isSuccess = params.status === "success";
+  const isFailed = params.status === "failed";
+
+  const statusTitle = isSuccess ? "Retrait effectué avec succès !" : isFailed ? "Échec du retrait Mobile Money" : "Demande de retrait en cours";
+  const statusColor = isSuccess ? "#059669" : isFailed ? "#e11d48" : "#2563eb";
+  const subject = isSuccess ? `💸 Retrait réussi : ${amountStr} vers ${params.provider}` : isFailed ? `❌ Échec de votre retrait DolaPay (${amountStr})` : `⏳ Retrait initié : ${amountStr}`;
+
+  const html = getBaseEmailHtml(subject, `
+    <h1 class="h1" style="color: ${statusColor};">${statusTitle}</h1>
+    <p class="text">
+      Bonjour <strong>${params.merchantName || "Marchand"}</strong>,<br/>
+      Voici le statut de votre opération de décaissement depuis votre portefeuille DolaPay :
+    </p>
+
+    <div class="amount-box" style="${isSuccess ? 'background: #ecfdf5; border-color: #a7f3d0;' : isFailed ? 'background: #fff1f2; border-color: #fecdd3;' : ''}">
+      <div class="amount-label" style="color: ${statusColor};">Montant du retrait</div>
+      <div class="amount-value" style="color: ${statusColor};">${amountStr}</div>
+    </div>
+
+    <div class="card-box">
+      <div class="row">
+        <span class="row-label">Numéro bénéficiaire</span>
+        <span class="row-value">${params.recipientPhone}</span>
+      </div>
+      <div class="row">
+        <span class="row-label">Opérateur destination</span>
+        <span class="row-value">${params.provider}</span>
+      </div>
+      <div class="row">
+        <span class="row-label">Statut de l'opération</span>
+        <span class="row-value" style="color: ${statusColor}; font-weight: 800;">
+          ${isSuccess ? "✅ VALIDÉ ET PAYÉ" : isFailed ? "❌ ÉCHOUÉ / REFUSÉ" : "⏳ EN COURS DE TRAITEMENT"}
+        </span>
+      </div>
+      ${params.errorMessage ? `
+      <div class="row">
+        <span class="row-label">Motif de retour</span>
+        <span class="row-value" style="color: #e11d48; max-width: 250px;">${params.errorMessage}</span>
+      </div>` : ""}
+      <div class="row">
+        <span class="row-label">Date & Heure</span>
+        <span class="row-value">${new Date().toLocaleString("fr-FR")}</span>
+      </div>
+    </div>
+
+    ${isFailed ? `
+    <p class="text" style="color: #e11d48; font-weight: 600;">
+      Remarque : Les fonds ont été automatiquement recrédités ou n'ont pas été déduits de votre solde disponible.
+    </p>` : ""}
+
+    <div class="btn-container">
+      <a href="https://dola-pay.com/dashboard/wallet" class="btn">Consulter mon portefeuille DolaPay</a>
+    </div>
+  `);
+
+  return sendRawEmail(params.merchantEmail, subject, html);
+}
+
+/**
+ * 3. Email Bienvenue après création de compte (Welcome Email)
+ */
+export async function sendWelcomeEmail(params: {
+  userEmail: string;
+  userName: string;
+}): Promise<boolean> {
+  const subject = `🎉 Bienvenue sur DolaPay ! Démarrez vos encaissements`;
+
+  const html = getBaseEmailHtml(subject, `
+    <h1 class="h1">Bienvenue sur DolaPay, ${params.userName || "Bienvenue"} ! 🚀</h1>
+    <p class="text">
+      Nous sommes ravis de vous compter parmi les utilisateurs de la plateforme de paiement nouvelle génération pour l'Afrique de l'Ouest.
+    </p>
+    <p class="text">
+      DolaPay vous permet d'accepter en toute simplicité les paiements par <strong>Mobile Money (MTN, Orange, Moov, Wave)</strong> et <strong>Cartes Bancaires (Visa / Mastercard)</strong> au Bénin, Burkina Faso, Côte d'Ivoire, Sénégal, Togo et dans plus de 15 pays.
+    </p>
+
+    <div class="card-box" style="background-color: #eff6ff; border-color: #bfdbfe;">
+      <h3 style="margin-top: 0; font-size: 16px; color: #1e3a8a;">Vos prochaines étapes recommandées :</h3>
+      <ul style="margin: 0; padding-left: 20px; color: #1e40af; font-size: 14px; line-height: 1.8;">
+        <li><strong>Complétez votre vérification KYC</strong> pour débloquer les retraits instantanés et plafonds illimités.</li>
+        <li><strong>Créez votre premier Lien de Paiement</strong> en 30 secondes sans écrire une ligne de code.</li>
+        <li><strong>Explorez l'API et les SDKs</strong> si vous intégrez DolaPay dans votre site e-commerce ou application mobile.</li>
+      </ul>
+    </div>
+
+    <div class="btn-container">
+      <a href="https://dola-pay.com/dashboard" class="btn">Accéder à mon tableau de bord</a>
+    </div>
+
+    <p class="text" style="margin-top: 25px; font-size: 13px;">
+      Besoin d'aide ? Notre support client est à votre disposition 7j/7 pour vous accompagner à chaque étape.
+    </p>
+  `);
+
+  return sendRawEmail(params.userEmail, subject, html);
+}
+
+/**
+ * 4. Email Vérification KYC Acceptée
+ */
+export async function sendKycApprovedEmail(params: {
+  userEmail: string;
+  userName: string;
+  tierName?: string;
+}): Promise<boolean> {
+  const subject = `✅ Bonne nouvelle : Votre compte DolaPay est officiellement vérifié !`;
+
+  const html = getBaseEmailHtml(subject, `
+    <h1 class="h1" style="color: #059669;">Félicitations ${params.userName || "Marchand"} ! ✅</h1>
+    <p class="text">
+      Vos documents d'identité et les informations de votre entreprise ont été examinés et validés avec succès par notre équipe de conformité.
+    </p>
+
+    <div class="amount-box" style="background: #ecfdf5; border-color: #a7f3d0;">
+      <div class="amount-label" style="color: #059669;">Statut du compte</div>
+      <div class="amount-value" style="color: #065f46; font-size: 24px;">Vérifié · Plafonds débloqués</div>
+    </div>
+
+    <div class="card-box">
+      <div class="row">
+        <span class="row-label">Niveau de conformité</span>
+        <span class="row-value" style="color: #059669;">${params.tierName || "Niveau Vérifié / Pro"}</span>
+      </div>
+      <div class="row">
+        <span class="row-label">Retraits instantanés Mobile Money</span>
+        <span class="row-value">Actifs (24h/24 7j/7)</span>
+      </div>
+      <div class="row">
+        <span class="row-label">Clés API Live</span>
+        <span class="row-value">Disponibles</span>
+      </div>
+    </div>
+
+    <p class="text">
+      Vous pouvez désormais exploiter tout le potentiel de DolaPay pour développer votre activité dans toute la région de l'UEMOA.
+    </p>
+
+    <div class="btn-container">
+      <a href="https://dola-pay.com/dashboard" class="btn" style="background: linear-gradient(135deg, #059669 0%, #047857 100%);">Accéder à mon espace vérifié</a>
+    </div>
+  `);
+
+  return sendRawEmail(params.userEmail, subject, html);
+}
+
+/**
+ * 5. Email Vérification KYC Refusée / À corriger
+ */
+export async function sendKycRejectedEmail(params: {
+  userEmail: string;
+  userName: string;
+  reason?: string;
+}): Promise<boolean> {
+  const subject = `⚠️ Action requise : Vérification de votre compte DolaPay`;
+
+  const html = getBaseEmailHtml(subject, `
+    <h1 class="h1" style="color: #e11d48;">Mise à jour requise pour votre compte</h1>
+    <p class="text">
+      Bonjour <strong>${params.userName || "Marchand"}</strong>,<br/>
+      Notre équipe de conformité a examiné votre dossier de vérification (KYC). Nous avons besoin de précisions ou d'un document complémentaire pour finaliser la validation de votre compte.
+    </p>
+
+    <div class="card-box" style="background-color: #fff1f2; border-color: #fecdd3;">
+      <h3 style="margin-top: 0; font-size: 15px; color: #9f1239;">Motif du rejet / Précisions demandées :</h3>
+      <p style="margin: 0; color: #be123c; font-weight: 600; font-size: 14px;">
+        « ${params.reason || "Le document fourni est flou, incomplet ou ne correspond pas aux informations du titulaire du compte. Veuillez soumettre une pièce d'identité valide et lisible."} »
+      </p>
+    </div>
+
+    <p class="text">
+      Rassurez-vous : la mise à jour de vos documents ne prend que 2 minutes depuis votre espace de conformité.
+    </p>
+
+    <div class="btn-container">
+      <a href="https://dola-pay.com/verify" class="btn" style="background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);">Soumettre mes nouveaux documents</a>
+    </div>
+  `);
+
+  return sendRawEmail(params.userEmail, subject, html);
+}
+
+/**
+ * Helper atomique : Notifier un encaissement réussi (au Marchand et au Client si email renseigné)
+ */
+export async function notifyDepositSuccess(supabaseAdmin: any, transactionId: string): Promise<void> {
+  try {
+    const { data: tx, error } = await supabaseAdmin
+      .from("transactions")
+      .select("id, amount, currency, description, profile_id, customer_phone, payment_method, status")
+      .eq("id", transactionId)
+      .maybeSingle();
+
+    if (error || !tx || tx.status !== "success") return;
+    if (tx.description && tx.description.includes("[EMAIL_SENT]")) return;
+
+    // Marquer comme envoyé immédiatement pour éviter le double envoi lors des accès concurrents
+    const updatedDesc = (tx.description || "") + " [EMAIL_SENT]";
+    await supabaseAdmin.from("transactions").update({ description: updatedDesc }).eq("id", transactionId);
+
+    const { data: prof } = await supabaseAdmin
+      .from("profiles")
+      .select("email, full_name, company_name")
+      .eq("id", tx.profile_id)
+      .maybeSingle();
+
+    if (!prof || !prof.email) return;
+
+    const merchantName = prof.company_name || prof.full_name || "Marchand DolaPay";
+
+    let customerName = "Client";
+    let customerEmail: string | undefined = undefined;
+    let linkTitle = "Paiement DolaPay";
+
+    if (tx.description) {
+      const parts = tx.description.split("·").map((p: string) => p.trim());
+      if (parts[0]) linkTitle = parts[0].replace(/\[[^\]]+\]\s*/, "").replace(" [EMAIL_SENT]", "");
+      if (parts[1]) {
+        const nameMatch = parts[1].match(/^([^(]+)(?:\(([^)]+)\))?/);
+        if (nameMatch) {
+          customerName = nameMatch[1].trim();
+          if (nameMatch[2] && nameMatch[2].includes("@")) customerEmail = nameMatch[2].trim();
+        }
+      }
+    }
+
+    // 1. Email Marchand
+    await sendPaymentReceivedMerchantEmail({
+      merchantEmail: prof.email,
+      merchantName,
+      amount: Number(tx.amount),
+      currency: tx.currency || "XOF",
+      customerName,
+      customerPhone: tx.customer_phone,
+      customerEmail,
+      paymentMethod: tx.payment_method || "Mobile Money",
+      transactionId: tx.id,
+      linkTitle,
+    });
+
+    // 2. Email Client
+    if (customerEmail) {
+      await sendPaymentReceiptCustomerEmail({
+        customerEmail,
+        customerName,
+        merchantName,
+        amount: Number(tx.amount),
+        currency: tx.currency || "XOF",
+        paymentMethod: tx.payment_method || "Mobile Money",
+        transactionId: tx.id,
+        linkTitle,
+      });
+    }
+  } catch (err) {
+    console.error("[email.server] Error in notifyDepositSuccess:", err);
+  }
+}
+
+/**
+ * Helper atomique : Notifier un statut de décaissement/retrait (au Marchand)
+ */
+export async function notifyPayoutStatus(supabaseAdmin: any, payoutIdOrItem: any, status: "pending" | "success" | "failed", errorMessage?: string): Promise<void> {
+  try {
+    let item = typeof payoutIdOrItem === "string" ? null : payoutIdOrItem;
+    if (!item && typeof payoutIdOrItem === "string") {
+      const { data } = await supabaseAdmin.from("payout_batch_items").select("id, amount, phone, provider, batch_id").eq("id", payoutIdOrItem).maybeSingle();
+      item = data;
+    }
+    if (!item) return;
+
+    const { data: batch } = await supabaseAdmin.from("payout_batches").select("profile_id, currency").eq("id", item.batch_id).maybeSingle();
+    if (!batch || !batch.profile_id) return;
+
+    const { data: prof } = await supabaseAdmin.from("profiles").select("email, full_name, company_name").eq("id", batch.profile_id).maybeSingle();
+    if (!prof || !prof.email) return;
+
+    const merchantName = prof.company_name || prof.full_name || "Marchand DolaPay";
+
+    await sendPayoutNotificationEmail({
+      merchantEmail: prof.email,
+      merchantName,
+      amount: Number(item.amount || 0),
+      currency: batch.currency || "XOF",
+      recipientPhone: item.phone || "N/A",
+      provider: item.provider || "Mobile Money",
+      status,
+      payoutId: item.id,
+      errorMessage,
+    });
+  } catch (err) {
+    console.error("[email.server] Error in notifyPayoutStatus:", err);
+  }
+}
+
+/**
+ * Helper atomique : Notifier une demande de retrait en direct via dashboard/API
+ */
+export async function notifyWithdrawalRequestStatus(supabaseAdmin: any, withdrawalId: string, status: "pending" | "success" | "failed", errorMessage?: string): Promise<void> {
+  try {
+    const { data: req } = await supabaseAdmin.from("withdrawal_requests").select("id, amount, profile_id, phone, provider").eq("id", withdrawalId).maybeSingle();
+    if (!req || !req.profile_id) return;
+
+    const { data: prof } = await supabaseAdmin.from("profiles").select("email, full_name, company_name").eq("id", req.profile_id).maybeSingle();
+    if (!prof || !prof.email) return;
+
+    const merchantName = prof.company_name || prof.full_name || "Marchand DolaPay";
+
+    await sendPayoutNotificationEmail({
+      merchantEmail: prof.email,
+      merchantName,
+      amount: Number(req.amount || 0),
+      currency: "XOF",
+      recipientPhone: req.phone || "N/A",
+      provider: req.provider || "Mobile Money",
+      status,
+      payoutId: req.id,
+      errorMessage,
+    });
+  } catch (err) {
+    console.error("[email.server] Error in notifyWithdrawalRequestStatus:", err);
+  }
+}
