@@ -37,6 +37,7 @@ import { Route as ApiWebhooksDiditRouteImport } from './routes/api/webhooks/didi
 import { Route as ApiV1PayoutsRouteImport } from './routes/api/v1/payouts'
 import { Route as ApiV1ChargesRouteImport } from './routes/api/v1/charges'
 import { Route as ApiPublicWithdrawRouteImport } from './routes/api/public/withdraw'
+import { Route as ApiPublicSyncWalletRouteImport } from './routes/api/public/sync-wallet'
 import { Route as ApiPublicPawapayWebhookRouteImport } from './routes/api/public/pawapay-webhook'
 import { Route as ApiPublicLigdicashWebhookRouteImport } from './routes/api/public/ligdicash-webhook'
 import { Route as ApiPublicDiditWebhookRouteImport } from './routes/api/public/didit-webhook'
@@ -201,6 +202,11 @@ const ApiV1ChargesRoute = ApiV1ChargesRouteImport.update({
 const ApiPublicWithdrawRoute = ApiPublicWithdrawRouteImport.update({
   id: '/api/public/withdraw',
   path: '/api/public/withdraw',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicSyncWalletRoute = ApiPublicSyncWalletRouteImport.update({
+  id: '/api/public/sync-wallet',
+  path: '/api/public/sync-wallet',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicPawapayWebhookRoute = ApiPublicPawapayWebhookRouteImport.update({
@@ -373,6 +379,7 @@ export interface FileRoutesByFullPath {
   '/api/public/didit-webhook': typeof ApiPublicDiditWebhookRoute
   '/api/public/ligdicash-webhook': typeof ApiPublicLigdicashWebhookRoute
   '/api/public/pawapay-webhook': typeof ApiPublicPawapayWebhookRoute
+  '/api/public/sync-wallet': typeof ApiPublicSyncWalletRoute
   '/api/public/withdraw': typeof ApiPublicWithdrawRoute
   '/api/v1/charges': typeof ApiV1ChargesRouteWithChildren
   '/api/v1/payouts': typeof ApiV1PayoutsRoute
@@ -423,6 +430,7 @@ export interface FileRoutesByTo {
   '/api/public/didit-webhook': typeof ApiPublicDiditWebhookRoute
   '/api/public/ligdicash-webhook': typeof ApiPublicLigdicashWebhookRoute
   '/api/public/pawapay-webhook': typeof ApiPublicPawapayWebhookRoute
+  '/api/public/sync-wallet': typeof ApiPublicSyncWalletRoute
   '/api/public/withdraw': typeof ApiPublicWithdrawRoute
   '/api/v1/charges': typeof ApiV1ChargesRouteWithChildren
   '/api/v1/payouts': typeof ApiV1PayoutsRoute
@@ -477,6 +485,7 @@ export interface FileRoutesById {
   '/api/public/didit-webhook': typeof ApiPublicDiditWebhookRoute
   '/api/public/ligdicash-webhook': typeof ApiPublicLigdicashWebhookRoute
   '/api/public/pawapay-webhook': typeof ApiPublicPawapayWebhookRoute
+  '/api/public/sync-wallet': typeof ApiPublicSyncWalletRoute
   '/api/public/withdraw': typeof ApiPublicWithdrawRoute
   '/api/v1/charges': typeof ApiV1ChargesRouteWithChildren
   '/api/v1/payouts': typeof ApiV1PayoutsRoute
@@ -531,6 +540,7 @@ export interface FileRouteTypes {
     | '/api/public/didit-webhook'
     | '/api/public/ligdicash-webhook'
     | '/api/public/pawapay-webhook'
+    | '/api/public/sync-wallet'
     | '/api/public/withdraw'
     | '/api/v1/charges'
     | '/api/v1/payouts'
@@ -581,6 +591,7 @@ export interface FileRouteTypes {
     | '/api/public/didit-webhook'
     | '/api/public/ligdicash-webhook'
     | '/api/public/pawapay-webhook'
+    | '/api/public/sync-wallet'
     | '/api/public/withdraw'
     | '/api/v1/charges'
     | '/api/v1/payouts'
@@ -634,6 +645,7 @@ export interface FileRouteTypes {
     | '/api/public/didit-webhook'
     | '/api/public/ligdicash-webhook'
     | '/api/public/pawapay-webhook'
+    | '/api/public/sync-wallet'
     | '/api/public/withdraw'
     | '/api/v1/charges'
     | '/api/v1/payouts'
@@ -669,6 +681,7 @@ export interface RootRouteChildren {
   ApiPublicDiditWebhookRoute: typeof ApiPublicDiditWebhookRoute
   ApiPublicLigdicashWebhookRoute: typeof ApiPublicLigdicashWebhookRoute
   ApiPublicPawapayWebhookRoute: typeof ApiPublicPawapayWebhookRoute
+  ApiPublicSyncWalletRoute: typeof ApiPublicSyncWalletRoute
   ApiPublicWithdrawRoute: typeof ApiPublicWithdrawRoute
   ApiV1ChargesRoute: typeof ApiV1ChargesRouteWithChildren
   ApiV1PayoutsRoute: typeof ApiV1PayoutsRoute
@@ -874,6 +887,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/withdraw'
       fullPath: '/api/public/withdraw'
       preLoaderRoute: typeof ApiPublicWithdrawRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/sync-wallet': {
+      id: '/api/public/sync-wallet'
+      path: '/api/public/sync-wallet'
+      fullPath: '/api/public/sync-wallet'
+      preLoaderRoute: typeof ApiPublicSyncWalletRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/pawapay-webhook': {
@@ -1167,6 +1187,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicDiditWebhookRoute: ApiPublicDiditWebhookRoute,
   ApiPublicLigdicashWebhookRoute: ApiPublicLigdicashWebhookRoute,
   ApiPublicPawapayWebhookRoute: ApiPublicPawapayWebhookRoute,
+  ApiPublicSyncWalletRoute: ApiPublicSyncWalletRoute,
   ApiPublicWithdrawRoute: ApiPublicWithdrawRoute,
   ApiV1ChargesRoute: ApiV1ChargesRouteWithChildren,
   ApiV1PayoutsRoute: ApiV1PayoutsRoute,

@@ -201,7 +201,7 @@ async function handleSyncWallet(request: Request) {
   }
 }
 
-export const Route = createFileRoute("/api/public/sync-wallet" as any)({
+export const Route = createFileRoute("/api/public/sync-wallet")({
   server: {
     handlers: {
       POST: async ({ request }) => handleSyncWallet(request),
