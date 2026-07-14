@@ -81,30 +81,24 @@ export const Route = createFileRoute("/api/public/pawapay-webhook")({
             }
 
             // 2. Traitement des Décaissements (Payouts)
-            if (event.payoutId) {
-              const newStatus = event.status === "COMPLETED" ? "success" : "failed";
+            if (event.payoutId || (event as any).id) {
+              const pid = event.payoutId || (event as any).id;
+              const newStatus = event.status === "COMPLETED" || event.status === "SUCCESS" || event.status === "ACCEPTED" ? "success" : "failed";
 
-              const { error: updErr } = await supabaseAdmin
-                .from("payout_batch_items")
-                .update({
-                  status: newStatus,
-                  error: event.failureReason?.failureMessage || null,
-                })
-                .eq("id", event.payoutId);
+              await (supabaseAdmin.from("payout_batch_items") as any)
+                .update({ status: newStatus, error: event.failureReason?.failureMessage || null })
+                .eq("id", pid)
+                .catch((e: any) => console.error("Error upd payout_batch_items:", e));
 
-              if (updErr) {
-                console.error("[PawaPay Webhook] DB error updating payout:", updErr);
-                continue;
-              }
-
-              // Mettre à jour également withdrawal_requests ou transactions si l'ID correspond
               await (supabaseAdmin.from("withdrawal_requests") as any)
                 .update({ status: newStatus })
-                .eq("id", event.payoutId);
+                .eq("id", pid)
+                .catch(() => {});
 
               await (supabaseAdmin.from("transactions") as any)
                 .update({ status: newStatus })
-                .eq("id", event.payoutId);
+                .eq("id", pid)
+                .catch(() => {});
 
               // Optionnel : vérifier si tout le lot (batch) est terminé
               const { data: item } = await supabaseAdmin

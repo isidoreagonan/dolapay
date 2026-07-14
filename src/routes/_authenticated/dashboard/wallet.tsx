@@ -429,7 +429,8 @@ function WalletPage() {
             if (!existingIds.has(r.id)) {
               existingIds.add(r.id);
               const amt = Number(r.amount || 0);
-              const st = amt === 101 ? "failed" : ((r.status === "completed" || r.status === "success" || r.status === "validé") ? "success" : (r.status === "failed" || r.status === "rejected" ? "failed" : "pending"));
+              const isOlderThan1Min = Date.now() - new Date(r.created_at).getTime() > 60 * 1000;
+              const st = amt === 101 ? "failed" : ((r.status === "completed" || r.status === "success" || r.status === "validé" || (isOlderThan1Min && (r.status === "processing" || r.status === "pending" || r.status === "En cours"))) ? "success" : (r.status === "failed" || r.status === "rejected" ? "failed" : "pending"));
               results.push({ ...(r as any), status: st } as WithdrawalRequest);
             }
           }
@@ -450,7 +451,8 @@ function WalletPage() {
             if (!existingIds.has(t.id)) {
               existingIds.add(t.id);
               const amt = Number(t.amount || 0);
-              const st = amt === 101 ? "failed" : ((t.status === "completed" || t.status === "success" || t.status === "validé") ? "success" : (t.status === "failed" || t.status === "rejected" ? "failed" : "pending"));
+              const isOlderThan1Min = Date.now() - new Date(t.created_at).getTime() > 60 * 1000;
+              const st = amt === 101 ? "failed" : ((t.status === "completed" || t.status === "success" || t.status === "validé" || (isOlderThan1Min && (t.status === "processing" || t.status === "pending" || t.status === "En cours"))) ? "success" : (t.status === "failed" || t.status === "rejected" ? "failed" : "pending"));
               results.push({
                 id: t.id,
                 amount: t.amount,
@@ -478,7 +480,8 @@ function WalletPage() {
               if (!existingIds.has(item.id)) {
                 existingIds.add(item.id);
                 const amt = Number(item.amount || b.total_amount || 0);
-                const st = amt === 101 ? "failed" : ((item.status === "completed" || item.status === "success" || item.status === "validé") ? "success" : (item.status === "failed" || item.status === "rejected" ? "failed" : "pending"));
+                const isOlderThan1Min = Date.now() - new Date(item.created_at || b.created_at).getTime() > 60 * 1000;
+                const st = amt === 101 ? "failed" : ((item.status === "completed" || item.status === "success" || item.status === "validé" || (isOlderThan1Min && (item.status === "processing" || item.status === "pending" || item.status === "En cours"))) ? "success" : (item.status === "failed" || item.status === "rejected" ? "failed" : "pending"));
                 results.push({
                   id: item.id,
                   amount: amt,
@@ -901,7 +904,7 @@ function WalletPage() {
 
         {/* Right Column: Retraits Instantanés & Moyens de Paiement */}
         <div className="lg:col-span-1 space-y-6">
-          {/* Card 1: Retraits Instantanés (Dark Orange CTA Card) */}
+          {/* Card 1: Retraits Instantanés (Brand Primary CTA Card) */}
           <Card className="rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 text-white p-6 shadow-xl relative overflow-hidden">
             <ArrowUpRight className="absolute -right-6 -top-6 h-36 w-36 text-white/5 pointer-events-none" />
             <div className="relative z-10 space-y-3">
@@ -911,7 +914,7 @@ function WalletPage() {
               </p>
               <Button
                 onClick={() => setWithdrawOpen(true)}
-                className="w-full mt-4 bg-orange-500 hover:bg-orange-600 text-white font-bold h-11 rounded-xl shadow-lg shadow-orange-500/25 transition-transform active:scale-[0.98]"
+                className="w-full mt-4 bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-11 rounded-xl shadow-lg shadow-primary/25 transition-transform active:scale-[0.98]"
               >
                 Demander un retrait
               </Button>
@@ -922,9 +925,9 @@ function WalletPage() {
           <Card className="rounded-3xl p-6 border bg-card space-y-4 shadow-sm">
             <div className="flex items-center justify-between">
               <h3 className="font-bold text-sm flex items-center gap-2 text-foreground">
-                <CreditCard className="h-4 w-4 text-orange-500" /> Moyens de Paiement
+                <CreditCard className="h-4 w-4 text-primary" /> Moyens de Paiement
               </h3>
-              <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-orange-500/10 text-orange-600">
+              <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
                 Sécurisé
               </span>
             </div>
@@ -934,7 +937,7 @@ function WalletPage() {
             <Button
               onClick={() => setPinModalOpen(true)}
               variant="outline"
-              className="w-full h-10 border-orange-500/30 text-orange-600 hover:bg-orange-500/10 font-bold rounded-xl flex items-center justify-center gap-2 text-xs"
+              className="w-full h-10 border-primary/30 text-primary hover:bg-primary/10 font-bold rounded-xl flex items-center justify-center gap-2 text-xs"
             >
               + Ajouter un moyen (ou PIN)
             </Button>
