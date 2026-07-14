@@ -405,11 +405,13 @@ export const Route = createFileRoute("/api/public/withdraw")({
             let reqErr: any = null;
             let insertedOk = false;
 
+            let reqId: string | null = null;
             for (const payload of insertAttempts) {
-              const res = await (supabaseAdmin.from("withdrawal_requests") as any).insert(payload);
+              const res = await (supabaseAdmin.from("withdrawal_requests") as any).insert(payload).select("id").maybeSingle();
               if (!res.error) {
                 insertedOk = true;
                 reqErr = null;
+                if (res.data?.id) reqId = res.data.id;
                 break;
               }
               reqErr = res.error;
@@ -450,7 +452,7 @@ export const Route = createFileRoute("/api/public/withdraw")({
                   .maybeSingle();
 
                 if (batch?.id) {
-                  await supabaseAdmin
+                  const { data: batchItemRes } = await supabaseAdmin
                     .from("payout_batch_items")
                     .insert({
                       batch_id: batch.id,
@@ -460,9 +462,22 @@ export const Route = createFileRoute("/api/public/withdraw")({
                       currency: "XOF",
                       provider: method,
                       status: txStatus,
-                    } as any);
+                    } as any)
+                    .select("id")
+                    .maybeSingle();
                   insertedOk = true;
                   reqErr = null;
+
+                  try {
+                    const { notifyPayoutStatus, notifyWithdrawalRequestStatus } = await import("@/lib/email.server");
+                    if (batchItemRes?.id) {
+                      await notifyPayoutStatus(supabaseAdmin, batchItemRes.id, txStatus as any);
+                    } else if (reqId) {
+                      await notifyWithdrawalRequestStatus(supabaseAdmin, reqId, txStatus as any);
+                    }
+                  } catch (eEmail) {
+                    console.warn("[Withdraw] Error sending payout email:", eEmail);
+                  }
                 }
               } catch (pbErr) {
                 console.warn("[Withdraw] payout_batch insert warning:", pbErr);

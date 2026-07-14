@@ -76,6 +76,15 @@ export const Route = createFileRoute("/api/public/ligdicash-webhook")({
               })
               .eq("id", txId);
 
+            if (verifiedStatus === "success") {
+              try {
+                const { notifyDepositSuccess } = await import("@/lib/email.server");
+                await notifyDepositSuccess(supabaseAdmin, txId);
+              } catch (eEmail) {
+                console.warn("[ligdicash-webhook] Error sending payin email:", eEmail);
+              }
+            }
+
             return Response.json({ received: true, processed: "payin", status: verifiedStatus });
           }
         }
@@ -93,7 +102,7 @@ export const Route = createFileRoute("/api/public/ligdicash-webhook")({
             let verifiedStatus: "success" | "failed" | "pending" | "processing" = newStatus;
             let verifiedError = isSuccess ? null : `LigdiCash: ${payload.status}`;
 
-            if (payload.token) {
+            if (item.id && payload.token) {
               try {
                 const confirmRes = await confirmLigdiCashPayout(payload.token);
                 const liveStatus = String(confirmRes.status || "").toLowerCase();
@@ -112,6 +121,13 @@ export const Route = createFileRoute("/api/public/ligdicash-webhook")({
                 error: verifiedError,
               })
               .eq("id", itemId);
+
+            try {
+              const { notifyPayoutStatus } = await import("@/lib/email.server");
+              await notifyPayoutStatus(supabaseAdmin, itemId, verifiedStatus as any, verifiedError || undefined);
+            } catch (eEmail) {
+              console.warn("[ligdicash-webhook] Error sending payout status email:", eEmail);
+            }
 
             // Vérification de la complétion du lot (batch)
             if (item.batch_id) {

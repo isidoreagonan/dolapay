@@ -552,7 +552,7 @@ export async function notifyDepositSuccess(supabaseAdmin: any, transactionId: st
   try {
     const { data: tx, error } = await supabaseAdmin
       .from("transactions")
-      .select("id, amount, currency, description, profile_id, customer_phone, payment_method, status")
+      .select("*")
       .eq("id", transactionId)
       .maybeSingle();
 
@@ -563,18 +563,21 @@ export async function notifyDepositSuccess(supabaseAdmin: any, transactionId: st
     const updatedDesc = (tx.description || "") + " [EMAIL_SENT]";
     await supabaseAdmin.from("transactions").update({ description: updatedDesc }).eq("id", transactionId);
 
+    const profileId = tx.profile_id || tx.user_id || tx.merchant_id || tx.owner_id;
+    if (!profileId) return;
+
     const { data: prof } = await supabaseAdmin
       .from("profiles")
       .select("email, full_name, company_name")
-      .eq("id", tx.profile_id)
+      .eq("id", profileId)
       .maybeSingle();
 
     if (!prof || !prof.email) return;
 
     const merchantName = prof.company_name || prof.full_name || "Marchand DolaPay";
 
-    let customerName = "Client";
-    let customerEmail: string | undefined = undefined;
+    let customerName = tx.customer_name || "Client";
+    let customerEmail: string | undefined = tx.customer_email || tx.client_email || undefined;
     let linkTitle = "Paiement DolaPay";
 
     if (tx.description) {
@@ -583,8 +586,8 @@ export async function notifyDepositSuccess(supabaseAdmin: any, transactionId: st
       if (parts[1]) {
         const nameMatch = parts[1].match(/^([^(]+)(?:\(([^)]+)\))?/);
         if (nameMatch) {
-          customerName = nameMatch[1].trim();
-          if (nameMatch[2] && nameMatch[2].includes("@")) customerEmail = nameMatch[2].trim();
+          if (!tx.customer_name) customerName = nameMatch[1].trim();
+          if (!customerEmail && nameMatch[2] && nameMatch[2].includes("@")) customerEmail = nameMatch[2].trim();
         }
       }
     }
@@ -628,15 +631,18 @@ export async function notifyPayoutStatus(supabaseAdmin: any, payoutIdOrItem: any
   try {
     let item = typeof payoutIdOrItem === "string" ? null : payoutIdOrItem;
     if (!item && typeof payoutIdOrItem === "string") {
-      const { data } = await supabaseAdmin.from("payout_batch_items").select("id, amount, phone, provider, batch_id").eq("id", payoutIdOrItem).maybeSingle();
+      const { data } = await supabaseAdmin.from("payout_batch_items").select("*").eq("id", payoutIdOrItem).maybeSingle();
       item = data;
     }
     if (!item) return;
 
-    const { data: batch } = await supabaseAdmin.from("payout_batches").select("profile_id, currency").eq("id", item.batch_id).maybeSingle();
-    if (!batch || !batch.profile_id) return;
+    const { data: batch } = await supabaseAdmin.from("payout_batches").select("*").eq("id", item.batch_id).maybeSingle();
+    if (!batch) return;
 
-    const { data: prof } = await supabaseAdmin.from("profiles").select("email, full_name, company_name").eq("id", batch.profile_id).maybeSingle();
+    const profileId = batch.profile_id || batch.owner_id || batch.user_id;
+    if (!profileId) return;
+
+    const { data: prof } = await supabaseAdmin.from("profiles").select("email, full_name, company_name").eq("id", profileId).maybeSingle();
     if (!prof || !prof.email) return;
 
     const merchantName = prof.company_name || prof.full_name || "Marchand DolaPay";
@@ -645,9 +651,9 @@ export async function notifyPayoutStatus(supabaseAdmin: any, payoutIdOrItem: any
       merchantEmail: prof.email,
       merchantName,
       amount: Number(item.amount || 0),
-      currency: batch.currency || "XOF",
-      recipientPhone: item.phone || "N/A",
-      provider: item.provider || "Mobile Money",
+      currency: batch.currency || item.currency || "XOF",
+      recipientPhone: item.recipient_phone || item.phone || "N/A",
+      provider: item.provider || item.method || "Mobile Money",
       status,
       payoutId: item.id,
       errorMessage,
@@ -662,10 +668,13 @@ export async function notifyPayoutStatus(supabaseAdmin: any, payoutIdOrItem: any
  */
 export async function notifyWithdrawalRequestStatus(supabaseAdmin: any, withdrawalId: string, status: "pending" | "success" | "failed", errorMessage?: string): Promise<void> {
   try {
-    const { data: req } = await supabaseAdmin.from("withdrawal_requests").select("id, amount, profile_id, phone, provider").eq("id", withdrawalId).maybeSingle();
-    if (!req || !req.profile_id) return;
+    const { data: req } = await supabaseAdmin.from("withdrawal_requests").select("*").eq("id", withdrawalId).maybeSingle();
+    if (!req) return;
 
-    const { data: prof } = await supabaseAdmin.from("profiles").select("email, full_name, company_name").eq("id", req.profile_id).maybeSingle();
+    const profileId = req.profile_id || req.user_id || req.merchant_id;
+    if (!profileId) return;
+
+    const { data: prof } = await supabaseAdmin.from("profiles").select("email, full_name, company_name").eq("id", profileId).maybeSingle();
     if (!prof || !prof.email) return;
 
     const merchantName = prof.company_name || prof.full_name || "Marchand DolaPay";
@@ -674,9 +683,9 @@ export async function notifyWithdrawalRequestStatus(supabaseAdmin: any, withdraw
       merchantEmail: prof.email,
       merchantName,
       amount: Number(req.amount || 0),
-      currency: "XOF",
-      recipientPhone: req.phone || "N/A",
-      provider: req.provider || "Mobile Money",
+      currency: req.currency || "XOF",
+      recipientPhone: req.recipient_phone || req.phone || "N/A",
+      provider: req.method || req.provider || "Mobile Money",
       status,
       payoutId: req.id,
       errorMessage,
