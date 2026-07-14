@@ -329,11 +329,12 @@ function WalletPage() {
       const metaPin = authData?.user?.user_metadata?.wallet_pin;
 
       let bestBalance = 0;
+      const baseDeposit = livePayin > 0 ? livePayin : 300;
+      
       if (testMode) {
         bestBalance = computedTestBalance > 0 ? computedTestBalance : (testPayin > 0 ? testPayin : 100);
       } else {
         // En Mode Live (Réel): avec 300 FCFA de base et 2 retraits réussis de 100 FCFA (total 200 FCFA), le solde réel exact est 100 FCFA
-        const baseDeposit = livePayin > 0 ? livePayin : 300;
         bestBalance = Math.max(0, baseDeposit - livePayout);
       }
 
@@ -345,12 +346,19 @@ function WalletPage() {
             balance: bestBalance,
             currency: "XOF",
             hashed_pin: metaPin,
+            _livePayin: livePayin,
+            _livePayout: livePayout,
+            _baseDeposit: testMode ? 0 : baseDeposit,
           } as any as Wallet;
         }
         return null;
       }
 
       data.balance = bestBalance;
+      (data as any)._livePayin = livePayin;
+      (data as any)._livePayout = livePayout;
+      (data as any)._baseDeposit = testMode ? 0 : baseDeposit;
+
       if (!data.hashed_pin && data.pin) {
         data.hashed_pin = data.pin;
       }
@@ -682,6 +690,9 @@ function WalletPage() {
               </div>
               <div className="text-3xl sm:text-4xl font-black tracking-tight">
                 {wallet ? fmt(wallet.balance) : "0"} <span className="text-lg font-bold text-purple-200">{wallet?.currency || "XOF"}</span>
+              </div>
+              <div className="text-xs text-white/50 font-mono mt-1">
+                DEBUG: Payin={wallet ? (wallet as any)._livePayin : 0} | Payout={wallet ? (wallet as any)._livePayout : 0} | Base={wallet ? (wallet as any)._baseDeposit : 0}
               </div>
             </div>
             <WalletIcon className="h-8 w-8 text-white/30" />
