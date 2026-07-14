@@ -82,6 +82,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "DolaPay — Infrastructure de paiement pour l'Afrique" },
       { name: "description", content: "Une API unifiée pour le Mobile Money et les cartes bancaires partout en Afrique." },
       { name: "author", content: "DolaPay" },
+      { name: "google-site-verification", content: "AMPu5aOAwc5zNXRYuXsKvoPx-EzDtJDBYlQMuNIaYfs" },
       { name: "twitter:card", content: "summary_large_image" },
       { property: "og:image", content: logoFull.url },
       { name: "twitter:image", content: logoFull.url },
