@@ -1,34 +1,70 @@
-﻿import { createFileRoute } from "@tanstack/react-router";
-import { LegalLayout } from "@/components/LegalLayout";
+import { createFileRoute } from "@tanstack/react-router";
+export const Route = createFileRoute("/legal/privacy")({ component: Privacy });
+import LegalPage from "@/components/site/legal-page";
 
-export const Route = createFileRoute("/legal/privacy")({
-  head: () => ({
-    meta: [
-      { title: "Politique de confidentialité — DolaPay" },
-      { name: "description", content: "Comment DolaPay collecte, utilise et protège vos données." },
-    ],
-  }),
-  component: () => (
-    <LegalLayout title="Politique de confidentialité" updated="1er juin 2026">
-      <p>Cette politique de confidentialité décrit comment Dolapo ECOM LLC, éditeur de la marque DolaPay (« nous », « notre »), collecte, utilise et partage les informations vous concernant lorsque vous utilisez nos services, y compris notre site, nos API, nos tableaux de bord et nos applications mobiles (collectivement, les « Services »).</p>
-      <h2>1. Informations collectées</h2>
-      <p>Nous recueillons les informations que vous fournissez directement, les informations collectées automatiquement, et les informations transmises par des tiers tels que les prestataires KYC, les banques et les opérateurs mobiles.</p>
-      <ul>
-        <li>Informations d'identité : nom, date de naissance, pièce d'identité officielle.</li>
-        <li>Coordonnées : adresse e-mail, numéro de téléphone, adresse postale.</li>
-        <li>Données de transaction : montant, devise, contreparties, horodatages.</li>
-        <li>Données techniques : adresse IP, navigateur, système d'exploitation, identifiants d'appareil.</li>
-      </ul>
-      <h2>2. Utilisation des informations</h2>
-      <p>Nous utilisons ces informations pour exploiter, maintenir et améliorer les Services, traiter les transactions, nous conformer aux lois applicables, prévenir la fraude et communiquer avec vous.</p>
-      <h2>3. Partage des informations</h2>
-      <p>Nous partageons des informations avec nos partenaires bancaires, les opérateurs de Mobile Money, les régulateurs et nos prestataires, strictement dans la mesure nécessaire à la fourniture des Services.</p>
-      <h2>4. Conservation des données</h2>
-      <p>Nous conservons les données personnelles aussi longtemps que nécessaire à la fourniture des Services et au respect de nos obligations légales, notamment en matière de LCB-FT.</p>
-      <h2>5. Vos droits</h2>
-      <p>Sous réserve du droit applicable, vous pouvez demander l'accès, la rectification, la suppression ou la portabilité de vos données personnelles en écrivant à privacy@dola-pay.com.</p>
-      <h2>6. Contact</h2>
-      <p>Pour toute question relative à cette politique, contactez notre Délégué à la protection des données à dpo@dola-pay.com.</p>
-    </LegalLayout>
-  ),
-});
+const Privacy = () => (
+  <LegalPage
+    title="Politique de confidentialité — DolaPay"
+    description="Comment DolaPay collecte, utilise et protège vos données personnelles conformément aux règlementations en vigueur en Afrique et à l'international."
+    canonicalUrl="/privacy"
+    eyebrow="Confidentialité"
+    heading={<>Politique de <span className="text-primary">confidentialité</span></>}
+    intro="Chez DolaPay, la protection de vos données personnelles est une priorité absolue. Cette politique explique comment nous les collectons, les utilisons et les protégeons."
+    sections={[
+      {
+        title: "1. Données collectées",
+        body: (
+          <>
+            <p>Nous collectons uniquement les données strictement nécessaires à la fourniture du service :</p>
+            <ul className="list-disc list-inside space-y-1">
+              <li>Identité (nom, prénom, date de naissance) — obligation KYC</li>
+              <li>Coordonnées (email, téléphone, adresse)</li>
+              <li>Informations d'entreprise (raison sociale, immatriculation)</li>
+              <li>Données de transaction (montant, canal, référence)</li>
+              <li>Données techniques (IP, appareil, journaux d'accès)</li>
+            </ul>
+          </>
+        ),
+      },
+      {
+        title: "2. Finalités",
+        body: (
+          <p>
+            Vos données sont utilisées pour : exécuter les paiements, respecter nos obligations légales (KYC, AML, lutte contre la fraude), améliorer le service, et vous fournir un support client.
+          </p>
+        ),
+      },
+      {
+        title: "3. Sécurité",
+        body: (
+          <p>
+            DolaPay est certifié <strong>PCI-DSS niveau 1</strong>. Les données sensibles sont chiffrées au repos (AES-256) et en transit (TLS 1.3). L'accès aux systèmes de production est strictement contrôlé et audité.
+          </p>
+        ),
+      },
+      {
+        title: "4. Partage des données",
+        body: (
+          <p>
+            Nous ne vendons jamais vos données. Nous les partageons uniquement avec nos partenaires bancaires et opérateurs Mobile Money (MTN, Orange, Wave, Moov, M-Pesa…) dans la stricte mesure nécessaire à l'exécution des paiements, et avec les autorités lorsque la loi l'exige.
+          </p>
+        ),
+      },
+      {
+        title: "5. Vos droits",
+        body: (
+          <p>
+            Vous disposez d'un droit d'accès, de rectification, d'effacement et d'opposition. Contactez <a className="text-primary hover:underline" href="mailto:privacy@dola-pay.com">privacy@dola-pay.com</a>.
+          </p>
+        ),
+      },
+      {
+        title: "6. Conservation",
+        body: <p>Les données sont conservées le temps de la relation contractuelle, puis archivées 10 ans conformément aux obligations comptables et anti-blanchiment applicables dans l'UEMOA/CEMAC.</p>,
+      },
+    ]}
+  />
+);
+
+
+

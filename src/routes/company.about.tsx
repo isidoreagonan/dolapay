@@ -1,192 +1,114 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Navbar } from "@/components/Navbar";
-import { Footer } from "@/components/Footer";
-import { Target, Sparkles, ShieldCheck, Globe2, Linkedin } from "lucide-react";
-import ceoPhoto from "@/assets/ceo-isidore.png.asset.json";
+export const Route = createFileRoute("/company/about")({ component: About });
+import { motion } from "framer-motion";
+import { Link } from "@tanstack/react-router";
+import { ArrowRight, Compass, HandCoins, ShieldCheck, Users, Globe2 } from "lucide-react";
+import PageShell from "@/components/site/page-shell";
+import PageHero from "@/components/site/page-hero";
+import { Button } from "@/components/ui/button";
 
-export const Route = createFileRoute("/company/about")({
-  head: () => ({
-    meta: [
-      { title: "À propos — Construire l'Autoroute Financière de l'Afrique | DolaPay" },
-      { name: "description", content: "Une API unifiée pour connecter les entreprises du monde entier à plus de 500 millions de portefeuilles Mobile Money africains." },
-      { property: "og:title", content: "À propos — DolaPay" },
-      { property: "og:description", content: "Construire l'autoroute financière de l'Afrique. Une API unifiée, 500M+ de portefeuilles Mobile Money." },
-    ],
-  }),
-  component: AboutPage,
-});
-
-const VALUES = [
-  {
-    icon: Sparkles,
-    title: "Simplicité Radicale",
-    desc: "Si l'intégration prend plus de 10 minutes, nous avons échoué.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "Conformité Intransigeante",
-    desc: "La sécurité d'abord, le volume ensuite.",
-  },
-  {
-    icon: Globe2,
-    title: "Ambition Sans Frontières",
-    desc: "Permettre aux marchands africains de conquérir le monde.",
-  },
+const values = [
+  { icon: HandCoins, title: "Transparence radicale", desc: "Prix affichés en clair, frais opérateur répercutés à l'identique, aucune marge cachée. Toujours." },
+  { icon: Compass, title: "Bâti pour l'Afrique", desc: "Nous vivons ici. Chaque décision produit tient compte de la réalité du terrain — connexion, opérateurs, devises." },
+  { icon: ShieldCheck, title: "Sécurité de niveau bancaire", desc: "PCI-DSS niveau 1, chiffrement AES-256 au repos, TLS 1.3 en transit. Vos flux méritent le meilleur." },
+  { icon: Users, title: "Support humain", desc: "Une équipe qui parle votre langue, comprend votre business, et répond en 12 minutes en moyenne." },
 ];
 
-function AboutPage() {
-  return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
+const stats = [
+  { kpi: "12", label: "Économies couvertes" },
+  { kpi: "50+", label: "Opérateurs branchés" },
+  { kpi: "99,99%", label: "Uptime API" },
+  { kpi: "< 3 s", label: "Payout moyen" },
+];
 
-      {/* Hero */}
-      <section className="relative overflow-hidden pb-20 pt-36 sm:pt-44">
-        <div className="absolute inset-0 bg-grid opacity-60" />
-        <div className="pointer-events-none absolute -top-32 right-[-10%] h-[480px] w-[480px] rounded-full bg-primary/20 blur-3xl animate-float" />
-        <div className="relative mx-auto max-w-4xl px-4 text-center">
-          <div className="inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
-            À propos de DolaPay
-          </div>
-          <h1 className="mt-6 text-4xl font-bold leading-[1.05] tracking-tight sm:text-6xl">
-            <span className="text-gradient">Construire l'Autoroute Financière</span>
-            <br />
-            <span className="text-foreground">de l'Afrique.</span>
-          </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
-            Une API unifiée pour connecter les entreprises du monde entier à plus de{" "}
-            <span className="font-semibold text-foreground">500 millions de portefeuilles Mobile Money</span> africains.
-          </p>
-        </div>
-      </section>
+const About = () => (
+  <PageShell
+    title="À propos de DolaPay — L'infrastructure de paiement de l'Afrique"
+    description="DolaPay bâtit l'infrastructure de paiement moderne pour l'Afrique : Mobile Money, cartes, payouts et API dans 12 pays. Notre mission, notre équipe."
+    canonicalUrl="/about"
+  >
+    <PageHero
+      eyebrow="Notre mission"
+      title={<>Bâtir l'<span className="text-primary">infrastructure de paiement</span> que l'Afrique mérite.</>}
+      description="DolaPay unifie Mobile Money, cartes bancaires et payouts derrière une seule API élégante — pour que chaque marchand africain puisse encaisser aussi facilement qu'un géant du web."
+    />
 
-      {/* Section 1 — Notre Genèse */}
-      <section className="px-4 pb-20">
-        <div className="mx-auto max-w-4xl">
-          <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
-            <Target className="h-3.5 w-3.5" /> Notre Genèse
-          </div>
-          <h2 className="mt-4 text-3xl font-bold tracking-tight sm:text-5xl">Pourquoi DolaPay existe.</h2>
-          <div className="mt-8 space-y-5 text-base leading-relaxed text-muted-foreground sm:text-lg">
+    <section className="py-16 md:py-24">
+      <div className="mx-auto max-w-6xl px-4 md:px-6 grid md:grid-cols-2 gap-12 items-center">
+        <motion.div initial={{ opacity: 0, x: -20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }}>
+          <div className="text-xs uppercase tracking-wider text-primary mb-3">Notre histoire</div>
+          <h2 className="text-3xl md:text-4xl font-semibold text-navy tracking-tight">
+            Née de la frustration d'un checkout raté à Abidjan.
+          </h2>
+          <div className="mt-5 space-y-4 text-navy/70 leading-relaxed">
             <p>
-              L'Afrique est leader mondial de l'adoption du Mobile Money. Pourtant, pour une entreprise digitale ou un
-              e-commerçant, encaisser des paiements à travers le continent reste un véritable parcours du combattant.
-              Des API fragmentées, des réseaux instables et des barrières réglementaires dans chaque pays freinent la
-              croissance économique.
+              En 2023, notre fondateur perdait une vente sur trois parce que son opérateur Mobile Money n'était pas branché. Il a passé six mois à tenter d'intégrer trois PSP différents — factures opaques, APIs vieillottes, support absent.
             </p>
             <p>
-              <span className="font-semibold text-foreground">DolaPay (Dolapo ECOM LLC)</span> a été fondée avec une
-              vision claire et intransigeante : simplifier les paiements africains à une seule ligne de code. Nous
-              pensons qu'un entrepreneur à Dakar, Abidjan, Cotonou ou Kinshasa doit pouvoir vendre au monde entier aussi
-              facilement qu'une startup dans la Silicon Valley.
+              DolaPay est née de cette expérience. Une conviction simple : les entrepreneurs africains méritent une infrastructure aussi propre que Stripe, aussi complète qu'un aggregator, aussi transparente qu'une facture d'électricité.
+            </p>
+            <p>
+              Aujourd'hui, nous propulsons des marchands dans 12 pays 🇨🇮 🇸🇳 🇲🇱 🇧🇫 🇧🇯 🇹🇬 🇨🇲 🇬🇦 🇳🇬 🇬🇭 🇰🇪 🇨🇩 — et ce n'est que le début.
             </p>
           </div>
-        </div>
-      </section>
-
-      {/* Section 2 — Confiance Institutionnelle */}
-      <section className="px-4 pb-20">
-        <div className="mx-auto max-w-6xl">
-          <div className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-navy-deep via-navy to-primary p-8 text-navy-foreground shadow-glow sm:p-14">
-            <div className="absolute inset-0 bg-grid opacity-[0.08]" />
-            <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-primary-glow/30 blur-3xl animate-float" />
-            <div className="relative max-w-3xl">
-              <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider">
-                <ShieldCheck className="h-3.5 w-3.5" /> Confiance Institutionnelle
-              </div>
-              <h2 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl">
-                Sécurité bancaire, fiabilité institutionnelle.
-              </h2>
-              <div className="mt-6 space-y-4 text-base leading-relaxed text-navy-foreground/85 sm:text-lg">
-                <p>
-                  Nous ne faisons aucun compromis sur la sécurité. Déplacer des fonds exige une précision absolue et une
-                  conformité rigoureuse. DolaPay opère sous les standards internationaux les plus stricts de lutte
-                  contre le blanchiment d'argent (AML/CFT) et s'appuie sur des partenaires d'infrastructure
-                  institutionnels de premier plan comme <span className="font-semibold text-white">pawaPay</span>.
-                </p>
-                <p>
-                  Grâce à nos connexions directes avec les plus grands réseaux bancaires et télécoms, nous garantissons
-                  à nos marchands une disponibilité de{" "}
-                  <span className="font-semibold text-white">99.99%</span>, une vérification d'identité (KYB/KYC)
-                  automatisée en temps réel, et un accès immédiat à{" "}
-                  <span className="font-semibold text-white">12 économies majeures</span> du continent.
-                </p>
-              </div>
+        </motion.div>
+        <motion.div initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }} className="grid grid-cols-2 gap-4">
+          {stats.map((s) => (
+            <div key={s.label} className="rounded-2xl border border-border bg-white p-6 shadow-soft">
+              <div className="text-4xl font-semibold text-navy tracking-tight">{s.kpi}</div>
+              <div className="mt-2 text-sm text-navy/60">{s.label}</div>
             </div>
-          </div>
-        </div>
-      </section>
+          ))}
+        </motion.div>
+      </div>
+    </section>
 
-      {/* Section 3 — Leadership */}
-      <section className="px-4 pb-20">
-        <div className="mx-auto max-w-4xl">
-          <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-elegant">
-            <div className="grid gap-0 md:grid-cols-[280px_1fr]">
-              <div className="relative overflow-hidden bg-gradient-to-br from-navy-deep via-navy to-primary md:min-h-[360px]">
-                <div className="absolute inset-0 bg-grid opacity-[0.1]" />
-                <img
-                  src={ceoPhoto.url}
-                  alt="Isidore Abraham AGONAN, Fondateur & CEO de DolaPay"
-                  className="relative h-full max-h-[420px] w-full object-cover object-top md:max-h-none"
-                  loading="lazy"
-                />
-                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-navy-deep/60 to-transparent" />
-              </div>
-              <div className="p-8 sm:p-10">
-                <div className="inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
-                  Leadership & Vision
-                </div>
-                <h3 className="mt-4 font-display text-2xl font-bold text-foreground sm:text-3xl">
-                  Isidore Abraham AGONAN
-                </h3>
-                <div className="mt-1 text-sm font-semibold text-primary">Fondateur & CEO, DolaPay</div>
-                <p className="mt-5 text-base leading-relaxed text-muted-foreground">
-                  Passionné de technologie et expert en infrastructure de paiement, Isidore est dédié à la résolution de
-                  la fragmentation financière dans les marchés émergents. Évoluant entre les États-Unis (Dolapo ECOM LLC)
-                  et l'écosystème tech africain, il dirige la mission de DolaPay : démocratiser le commerce digital à
-                  travers toute l'Afrique.
-                </p>
-                <a
-                  href="https://www.linkedin.com/in/isidore-agonan/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-6 inline-flex items-center gap-2 rounded-xl bg-[#0A66C2] px-4 py-2.5 text-sm font-semibold text-white transition-transform hover:scale-[1.02]"
-                >
-                  <Linkedin className="h-4 w-4" />
-                  Voir le profil LinkedIn
-                </a>
-              </div>
-            </div>
-          </div>
+    <section className="py-16 md:py-24 bg-[#F5F8FF]">
+      <div className="mx-auto max-w-7xl px-4 md:px-6">
+        <div className="max-w-2xl">
+          <div className="text-xs uppercase tracking-wider text-primary mb-3">Nos valeurs</div>
+          <h2 className="text-3xl md:text-4xl font-semibold text-navy tracking-tight">Ce en quoi nous croyons.</h2>
         </div>
-      </section>
-
-      {/* Section 4 — Valeurs */}
-      <section className="px-4 pb-24">
-        <div className="mx-auto max-w-6xl">
-          <div className="mx-auto max-w-2xl text-center">
-            <div className="inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary">
-              Nos valeurs fondamentales
-            </div>
-            <h2 className="mt-4 text-3xl font-bold tracking-tight sm:text-5xl">Ce qui nous anime.</h2>
-          </div>
-          <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {VALUES.map((v) => (
-              <div
-                key={v.title}
-                className="group rounded-3xl border border-border bg-card p-7 transition-all hover:-translate-y-1 hover:shadow-elegant"
-              >
-                <div className="grid h-12 w-12 place-items-center rounded-xl bg-gradient-to-br from-primary to-primary-glow text-primary-foreground shadow-glow">
-                  <v.icon className="h-5 w-5" />
-                </div>
-                <h3 className="mt-5 font-display text-lg font-bold text-foreground">{v.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{v.desc}</p>
+        <div className="mt-12 grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {values.map((v, i) => (
+            <motion.div
+              key={v.title}
+              initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: i * 0.08 }}
+              className="rounded-3xl bg-white border border-border p-6 shadow-soft"
+            >
+              <div className="h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center">
+                <v.icon className="h-5 w-5 text-primary" />
               </div>
-            ))}
-          </div>
+              <div className="mt-4 text-lg font-semibold text-navy">{v.title}</div>
+              <div className="mt-1.5 text-sm text-navy/60 leading-relaxed">{v.desc}</div>
+            </motion.div>
+          ))}
         </div>
-      </section>
+      </div>
+    </section>
 
-      <Footer />
-    </div>
-  );
-}
+    <section className="py-20 md:py-28">
+      <div className="mx-auto max-w-3xl px-4 md:px-6 text-center">
+        <Globe2 className="h-8 w-8 text-primary mx-auto" />
+        <h2 className="mt-4 text-3xl md:text-4xl font-semibold text-navy tracking-tight">
+          Rejoignez la révolution du paiement africain.
+        </h2>
+        <p className="mt-4 text-navy/60 text-lg">
+          Que vous soyez marchand, développeur ou investisseur — parlons de comment DolaPay peut vous accompagner.
+        </p>
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <Button asChild size="lg" className="rounded-xl bg-primary hover:bg-primary/90">
+            <Link to="/auth/sign-up" className="flex items-center gap-2">Créer un compte <ArrowRight className="h-4 w-4" /></Link>
+          </Button>
+          <Button asChild size="lg" variant="outline" className="rounded-xl border-navy/15 text-navy hover:bg-navy/5">
+            <Link to="/coverage">Voir la couverture</Link>
+          </Button>
+        </div>
+      </div>
+    </section>
+  </PageShell>
+);
+
+
+

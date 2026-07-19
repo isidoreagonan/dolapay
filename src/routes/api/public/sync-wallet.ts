@@ -2,13 +2,13 @@ import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 import { pawapay } from "../../../lib/pawapay.server";
 
-const supabaseAdmin = createClient(
-  process.env.SUPABASE_URL || "",
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || ""
-);
-
 async function handleSyncWallet(request: Request) {
   try {
+    const supabaseAdmin = createClient(
+      process.env.SUPABASE_URL || "",
+      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || ""
+    );
+
     const body = await request.json().catch(() => ({}));
     const url = new URL(request.url);
     const userId = body?.userId || body?.profileId || url.searchParams.get("userId");

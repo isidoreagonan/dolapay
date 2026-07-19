@@ -23,6 +23,7 @@ import { Route as LegalAmlRouteImport } from './routes/legal.aml'
 import { Route as DevelopersSdksRouteImport } from './routes/developers.sdks'
 import { Route as DevelopersApiRouteImport } from './routes/developers.api'
 import { Route as CompanyPricingRouteImport } from './routes/company.pricing'
+import { Route as CompanyCoverageRouteImport } from './routes/company.coverage'
 import { Route as CompanyContactRouteImport } from './routes/company.contact'
 import { Route as CompanyAboutRouteImport } from './routes/company.about'
 import { Route as AuthSignUpRouteImport } from './routes/auth.sign-up'
@@ -37,6 +38,7 @@ import { Route as ApiWebhooksDiditRouteImport } from './routes/api/webhooks/didi
 import { Route as ApiV1PayoutsRouteImport } from './routes/api/v1/payouts'
 import { Route as ApiV1ChargesRouteImport } from './routes/api/v1/charges'
 import { Route as ApiPublicWithdrawRouteImport } from './routes/api/public/withdraw'
+import { Route as ApiPublicTestEmailRouteImport } from './routes/api/public/test-email'
 import { Route as ApiPublicSyncWalletRouteImport } from './routes/api/public/sync-wallet'
 import { Route as ApiPublicSendNotificationRouteImport } from './routes/api/public/send-notification'
 import { Route as ApiPublicPawapayWebhookRouteImport } from './routes/api/public/pawapay-webhook'
@@ -132,6 +134,11 @@ const CompanyPricingRoute = CompanyPricingRouteImport.update({
   path: '/company/pricing',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CompanyCoverageRoute = CompanyCoverageRouteImport.update({
+  id: '/company/coverage',
+  path: '/company/coverage',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CompanyContactRoute = CompanyContactRouteImport.update({
   id: '/company/contact',
   path: '/company/contact',
@@ -203,6 +210,11 @@ const ApiV1ChargesRoute = ApiV1ChargesRouteImport.update({
 const ApiPublicWithdrawRoute = ApiPublicWithdrawRouteImport.update({
   id: '/api/public/withdraw',
   path: '/api/public/withdraw',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicTestEmailRoute = ApiPublicTestEmailRouteImport.update({
+  id: '/api/public/test-email',
+  path: '/api/public/test-email',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicSyncWalletRoute = ApiPublicSyncWalletRouteImport.update({
@@ -357,6 +369,7 @@ export interface FileRoutesByFullPath {
   '/auth/sign-up': typeof AuthSignUpRoute
   '/company/about': typeof CompanyAboutRoute
   '/company/contact': typeof CompanyContactRoute
+  '/company/coverage': typeof CompanyCoverageRoute
   '/company/pricing': typeof CompanyPricingRoute
   '/developers/api': typeof DevelopersApiRoute
   '/developers/sdks': typeof DevelopersSdksRoute
@@ -388,6 +401,7 @@ export interface FileRoutesByFullPath {
   '/api/public/pawapay-webhook': typeof ApiPublicPawapayWebhookRoute
   '/api/public/send-notification': typeof ApiPublicSendNotificationRoute
   '/api/public/sync-wallet': typeof ApiPublicSyncWalletRoute
+  '/api/public/test-email': typeof ApiPublicTestEmailRoute
   '/api/public/withdraw': typeof ApiPublicWithdrawRoute
   '/api/v1/charges': typeof ApiV1ChargesRouteWithChildren
   '/api/v1/payouts': typeof ApiV1PayoutsRoute
@@ -409,6 +423,7 @@ export interface FileRoutesByTo {
   '/auth/sign-up': typeof AuthSignUpRoute
   '/company/about': typeof CompanyAboutRoute
   '/company/contact': typeof CompanyContactRoute
+  '/company/coverage': typeof CompanyCoverageRoute
   '/company/pricing': typeof CompanyPricingRoute
   '/developers/api': typeof DevelopersApiRoute
   '/developers/sdks': typeof DevelopersSdksRoute
@@ -440,6 +455,7 @@ export interface FileRoutesByTo {
   '/api/public/pawapay-webhook': typeof ApiPublicPawapayWebhookRoute
   '/api/public/send-notification': typeof ApiPublicSendNotificationRoute
   '/api/public/sync-wallet': typeof ApiPublicSyncWalletRoute
+  '/api/public/test-email': typeof ApiPublicTestEmailRoute
   '/api/public/withdraw': typeof ApiPublicWithdrawRoute
   '/api/v1/charges': typeof ApiV1ChargesRouteWithChildren
   '/api/v1/payouts': typeof ApiV1PayoutsRoute
@@ -465,6 +481,7 @@ export interface FileRoutesById {
   '/auth/sign-up': typeof AuthSignUpRoute
   '/company/about': typeof CompanyAboutRoute
   '/company/contact': typeof CompanyContactRoute
+  '/company/coverage': typeof CompanyCoverageRoute
   '/company/pricing': typeof CompanyPricingRoute
   '/developers/api': typeof DevelopersApiRoute
   '/developers/sdks': typeof DevelopersSdksRoute
@@ -496,6 +513,7 @@ export interface FileRoutesById {
   '/api/public/pawapay-webhook': typeof ApiPublicPawapayWebhookRoute
   '/api/public/send-notification': typeof ApiPublicSendNotificationRoute
   '/api/public/sync-wallet': typeof ApiPublicSyncWalletRoute
+  '/api/public/test-email': typeof ApiPublicTestEmailRoute
   '/api/public/withdraw': typeof ApiPublicWithdrawRoute
   '/api/v1/charges': typeof ApiV1ChargesRouteWithChildren
   '/api/v1/payouts': typeof ApiV1PayoutsRoute
@@ -521,6 +539,7 @@ export interface FileRouteTypes {
     | '/auth/sign-up'
     | '/company/about'
     | '/company/contact'
+    | '/company/coverage'
     | '/company/pricing'
     | '/developers/api'
     | '/developers/sdks'
@@ -552,6 +571,7 @@ export interface FileRouteTypes {
     | '/api/public/pawapay-webhook'
     | '/api/public/send-notification'
     | '/api/public/sync-wallet'
+    | '/api/public/test-email'
     | '/api/public/withdraw'
     | '/api/v1/charges'
     | '/api/v1/payouts'
@@ -573,6 +593,7 @@ export interface FileRouteTypes {
     | '/auth/sign-up'
     | '/company/about'
     | '/company/contact'
+    | '/company/coverage'
     | '/company/pricing'
     | '/developers/api'
     | '/developers/sdks'
@@ -604,6 +625,7 @@ export interface FileRouteTypes {
     | '/api/public/pawapay-webhook'
     | '/api/public/send-notification'
     | '/api/public/sync-wallet'
+    | '/api/public/test-email'
     | '/api/public/withdraw'
     | '/api/v1/charges'
     | '/api/v1/payouts'
@@ -628,6 +650,7 @@ export interface FileRouteTypes {
     | '/auth/sign-up'
     | '/company/about'
     | '/company/contact'
+    | '/company/coverage'
     | '/company/pricing'
     | '/developers/api'
     | '/developers/sdks'
@@ -659,6 +682,7 @@ export interface FileRouteTypes {
     | '/api/public/pawapay-webhook'
     | '/api/public/send-notification'
     | '/api/public/sync-wallet'
+    | '/api/public/test-email'
     | '/api/public/withdraw'
     | '/api/v1/charges'
     | '/api/v1/payouts'
@@ -680,6 +704,7 @@ export interface RootRouteChildren {
   AuthSignUpRoute: typeof AuthSignUpRoute
   CompanyAboutRoute: typeof CompanyAboutRoute
   CompanyContactRoute: typeof CompanyContactRoute
+  CompanyCoverageRoute: typeof CompanyCoverageRoute
   CompanyPricingRoute: typeof CompanyPricingRoute
   DevelopersApiRoute: typeof DevelopersApiRoute
   DevelopersSdksRoute: typeof DevelopersSdksRoute
@@ -696,6 +721,7 @@ export interface RootRouteChildren {
   ApiPublicPawapayWebhookRoute: typeof ApiPublicPawapayWebhookRoute
   ApiPublicSendNotificationRoute: typeof ApiPublicSendNotificationRoute
   ApiPublicSyncWalletRoute: typeof ApiPublicSyncWalletRoute
+  ApiPublicTestEmailRoute: typeof ApiPublicTestEmailRoute
   ApiPublicWithdrawRoute: typeof ApiPublicWithdrawRoute
   ApiV1ChargesRoute: typeof ApiV1ChargesRouteWithChildren
   ApiV1PayoutsRoute: typeof ApiV1PayoutsRoute
@@ -805,6 +831,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CompanyPricingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/company/coverage': {
+      id: '/company/coverage'
+      path: '/company/coverage'
+      fullPath: '/company/coverage'
+      preLoaderRoute: typeof CompanyCoverageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/company/contact': {
       id: '/company/contact'
       path: '/company/contact'
@@ -901,6 +934,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/withdraw'
       fullPath: '/api/public/withdraw'
       preLoaderRoute: typeof ApiPublicWithdrawRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/test-email': {
+      id: '/api/public/test-email'
+      path: '/api/public/test-email'
+      fullPath: '/api/public/test-email'
+      preLoaderRoute: typeof ApiPublicTestEmailRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/sync-wallet': {
@@ -1194,6 +1234,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthSignUpRoute: AuthSignUpRoute,
   CompanyAboutRoute: CompanyAboutRoute,
   CompanyContactRoute: CompanyContactRoute,
+  CompanyCoverageRoute: CompanyCoverageRoute,
   CompanyPricingRoute: CompanyPricingRoute,
   DevelopersApiRoute: DevelopersApiRoute,
   DevelopersSdksRoute: DevelopersSdksRoute,
@@ -1210,6 +1251,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicPawapayWebhookRoute: ApiPublicPawapayWebhookRoute,
   ApiPublicSendNotificationRoute: ApiPublicSendNotificationRoute,
   ApiPublicSyncWalletRoute: ApiPublicSyncWalletRoute,
+  ApiPublicTestEmailRoute: ApiPublicTestEmailRoute,
   ApiPublicWithdrawRoute: ApiPublicWithdrawRoute,
   ApiV1ChargesRoute: ApiV1ChargesRouteWithChildren,
   ApiV1PayoutsRoute: ApiV1PayoutsRoute,

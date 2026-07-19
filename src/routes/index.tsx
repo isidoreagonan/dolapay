@@ -1,892 +1,804 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { Navbar } from "@/components/Navbar";
-import { Footer } from "@/components/Footer";
+import { createFileRoute } from "@tanstack/react-router";
+export const Route = createFileRoute("/")({ component: Home });
+import { motion, useScroll, useTransform } from "framer-motion";
+import { useRef } from "react";
+import { Link } from "@tanstack/react-router";
+import Flag from "@/components/ui/flag";
 import {
-  ArrowRight, Sparkles, Layers, ShieldCheck, Zap, UserCheck, Radar, Wallet,
-  Lock, Server, Check, Plus, CreditCard, TrendingDown, Send,
+  ArrowRight,
+  ArrowUpRight,
+  Check,
+  Code2,
+  CreditCard,
+  Globe2,
+  Link2,
+  ShieldCheck,
+  Smartphone,
+  Sparkles,
+  TrendingUp,
+  Wallet,
+  Zap,
+  ShoppingBag,
+  Briefcase,
+  Rocket,
+  
+  Clock,
+  X,
+  Star,
+  Server,
+  Headphones,
 } from "lucide-react";
-import { useState } from "react";
-import CountriesConstellation from "@/components/CountriesConstellation";
-import { SUPPORTED_COUNTRIES } from "@/lib/supported-countries";
-import heroPortrait from "@/assets/hero-entrepreneur.png";
-import { Reveal } from "@/components/Reveal";
+import { Button } from "@/components/ui/button";
+import PageShell from "@/components/site/page-shell";
+import dashboardHero from "@/assets/dashboard-hero.jpg";
+import mobileMoney from "@/assets/mobile-money.jpg";
+import africaNetwork from "@/assets/africa-network.jpg";
 
-
-export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "DolaPay — L'infrastructure de paiement ultime pour l'Afrique" },
-      { name: "description", content: "DolaPay unifie le Mobile Money et les cartes derrière une seule API. Construisez, scalez et encaissez partout en Afrique avec une sécurité de niveau bancaire." },
-      { property: "og:title", content: "DolaPay — Infrastructure de paiement pour l'Afrique" },
-      { property: "og:description", content: "Une seule API pour le Mobile Money et les cartes. Simplifiez votre finance, même la plus complexe." },
-      { property: "og:type", content: "website" },
-    ],
+/* ---------- helpers ---------- */
+const fadeUp: any = {
+  hidden: { opacity: 0, y: 28 },
+  show: (i = 0) => ({
+    opacity: 1, y: 0,
+    transition: { duration: 0.7, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] as any },
   }),
-  component: Home,
-});
+};
 
-function Home() {
-  return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <Hero />
-
-      <Reveal><TrustRow /></Reveal>
-
-      <Reveal><PaymentMethods /></Reveal>
-      <Reveal><Features /></Reveal>
-      <Reveal><Countries /></Reveal>
-      <Reveal><DevExperience /></Reveal>
-      <Reveal><Security /></Reveal>
-      <Reveal><FAQ /></Reveal>
-      <Reveal><CTA /></Reveal>
-      <Footer />
-    </div>
-  );
-}
-
-
-function Hero() {
-  return (
-    <section className="relative overflow-hidden pb-20 pt-28 sm:pt-36 lg:pb-28">
-      <div className="absolute inset-0 bg-grid opacity-40" />
-      <div className="pointer-events-none absolute -top-32 right-[-10%] h-[480px] w-[480px] rounded-full bg-primary/25 blur-[120px] animate-float" />
-      <div className="pointer-events-none absolute -bottom-40 left-[-10%] h-[420px] w-[420px] rounded-full bg-primary-glow/20 blur-[120px]" />
-
-      <div className="relative mx-auto grid max-w-7xl items-center gap-14 px-4 lg:grid-cols-2 lg:gap-20">
-        <div className="z-10 flex flex-col space-y-7">
-
-          <h1 className="font-display text-4xl font-bold leading-[1.05] tracking-tight text-foreground sm:text-6xl lg:text-7xl">
-            L'infrastructure de <span className="text-gradient">paiement</span> pour l'Afrique.
-          </h1>
-
-          <p className="max-w-xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-            Encaissez par Mobile Money et cartes bancaires via une seule API.
-            Tarification transparente à <span className="font-semibold text-foreground">2% + frais opérateur</span> et règlement instantané.
-          </p>
-
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Link
-              to="/auth/sign-up"
-              className="group inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-3.5 text-sm font-semibold text-primary-foreground shadow-glow transition-all hover:scale-[1.02] hover:bg-primary-glow active:scale-[0.98]"
-            >
-              Créer un compte
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-            </Link>
-            <Link
-              to="/company/pricing"
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-white/5 px-6 py-3.5 text-sm font-semibold text-foreground backdrop-blur transition-colors hover:bg-white/10"
-            >
-              Voir la tarification
-            </Link>
-          </div>
-
-          <div className="flex items-center gap-3 pt-2">
-            <div className="flex -space-x-2">
-              <div className="grid h-8 w-8 place-items-center rounded-full border-2 border-background bg-slate-700 text-[10px] font-semibold text-white">JD</div>
-              <div className="grid h-8 w-8 place-items-center rounded-full border-2 border-background bg-primary/70 text-[10px] font-semibold text-white">MT</div>
-              <div className="grid h-8 w-8 place-items-center rounded-full border-2 border-background bg-sky-700 text-[10px] font-semibold text-white">+500</div>
-            </div>
-            <p className="text-xs text-muted-foreground sm:text-sm">
-              Choisi par les leaders de la tech en Afrique.
-            </p>
-          </div>
-        </div>
-
-        <HeroVisual />
-      </div>
-    </section>
-  );
-}
-
-function CoverageMarquee() {
-  const countries = SUPPORTED_COUNTRIES;
-  const items = [...countries, ...countries];
-  return (
-    <section className="border-y border-border bg-surface py-8">
-      <div className="mx-auto max-w-7xl px-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground sm:text-xs">
-            Couverture pan-africaine · 12 économies
-          </div>
-          <div className="flex items-center gap-2">
-            <NetworkBadge label="Visa" />
-            <NetworkBadge label="Mastercard" />
-          </div>
-        </div>
-        <div className="mt-5 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
-          <div className="flex w-max animate-marquee items-center gap-3">
-            {items.map((c, i) => (
-              <div
-                key={`${c.code}-${i}`}
-                className="flex shrink-0 items-center gap-2 rounded-full border border-border bg-card/80 px-3.5 py-1.5 text-xs font-semibold text-foreground shadow-sm backdrop-blur"
-              >
-                <img
-                  src={`https://flagcdn.com/w40/${c.code.toLowerCase()}.png`}
-                  alt=""
-                  className="h-3.5 w-5 rounded-[2px] object-cover ring-1 ring-border"
-                  loading="lazy"
-                  onError={(e) => {
-                    (e.currentTarget as HTMLImageElement).style.display = "none";
-                  }}
-                />
-                <span>{c.flag}</span>
-                <span>{c.name}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function NetworkBadge({ label }: { label: string }) {
-  return (
-    <span className="relative inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-gradient-to-r from-primary/15 to-primary-glow/15 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-primary shadow-[0_0_24px_-6px_hsl(var(--primary)/0.6)] sm:text-xs">
-      <CreditCard className="h-3 w-3" />
-      {label}
-    </span>
-  );
-}
-
-function PricingTeaser() {
-  const cards = [
-    {
-      icon: Wallet,
-      kicker: "Encaissements Mobile Money",
-      rate: "2%",
-      suffix: "+ Opérateur",
-      desc: "Commission DolaPay fixe + frais réels MTN, Orange, Moov, M-Pesa, Airtel ou Vodacom. 1,5% au-delà de 50M FCFA/mois.",
-      accent: "from-primary/30 to-primary-glow/20",
-    },
-    {
-      icon: Send,
-      kicker: "Décaissements API",
-      rate: "1%",
-      suffix: "+ Réseau",
-      desc: "Bulk payouts instantanés vers wallets et comptes bancaires sur 12 économies. Frais réseau facturés au coût.",
-      accent: "from-emerald-500/30 to-teal-500/15",
-    },
-    {
-      icon: CreditCard,
-      kicker: "Cartes Visa & Mastercard",
-      rate: "2,5%",
-      suffix: "+ 100 FCFA",
-      desc: "Tarif transparent + interchange bancaire. 3D-Secure et anti-fraude inclus par défaut.",
-      accent: "from-indigo-500/30 to-violet-500/15",
-    },
-  ];
-  return (
-    <section className="py-16 sm:py-20">
-      <div className="mx-auto max-w-7xl px-4">
-        <div className="mx-auto max-w-2xl text-center">
-          <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary sm:text-xs">
-            <TrendingDown className="h-3 w-3" /> Cost-Plus transparent
-          </span>
-          <h2 className="mt-4 font-display text-3xl font-bold tracking-tight text-foreground sm:text-4xl lg:text-5xl">
-            Vous ne payez que le <span className="text-gradient">juste prix</span>.
-          </h2>
-          <p className="mt-3 text-sm text-muted-foreground sm:text-base">
-            Commission DolaPay fixe + frais réels prélevés par l'opérateur. Aucun markup caché.
-          </p>
-        </div>
-        <div className="mt-10 grid gap-4 md:grid-cols-3">
-          {cards.map((c) => (
-            <div
-              key={c.kicker}
-              className="group relative overflow-hidden rounded-3xl border border-border bg-card p-6 transition-all hover:-translate-y-1 hover:shadow-elegant"
-            >
-              <div className={`pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-gradient-to-br ${c.accent} opacity-60 blur-3xl transition-opacity group-hover:opacity-90`} />
-              <div className="relative">
-                <div className="grid h-11 w-11 place-items-center rounded-xl bg-primary/10 text-primary">
-                  <c.icon className="h-5 w-5" />
-                </div>
-                <div className="mt-4 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                  {c.kicker}
-                </div>
-                <div className="mt-1 flex items-baseline gap-1.5">
-                  <span className="font-display text-4xl font-bold text-foreground">{c.rate}</span>
-                  <span className="text-sm font-semibold text-muted-foreground">{c.suffix}</span>
-                </div>
-                <p className="mt-3 text-sm text-muted-foreground">{c.desc}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="mt-8 flex justify-center">
-          <Link
-            to="/company/pricing"
-            className="group inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-glow transition-transform hover:scale-[1.02]"
-          >
-            Simuler vos frais
-            <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-          </Link>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function Stat({ value, label }: { value: string; label: string }) {
-  return (
-    <div>
-      <div className="font-display text-xl font-bold text-foreground">{value}</div>
-      <div className="text-xs">{label}</div>
-    </div>
-  );
-}
-
-function HeroVisual() {
-  return (
-    <div className="relative mx-auto flex w-full justify-center lg:justify-end">
-      {/* Soft ambient glow */}
-      <div className="pointer-events-none absolute -inset-10 rounded-full bg-primary/25 opacity-60 blur-[100px]" />
-
-      <div className="relative w-full max-w-[460px] sm:max-w-[520px]">
-        {/* Decorative dotted square */}
-        <div
-          className="absolute -left-2 -top-2 h-20 w-20 opacity-50 sm:-left-4 sm:-top-4"
-          style={{
-            backgroundImage: "radial-gradient(currentColor 1.2px, transparent 1.2px)",
-            backgroundSize: "10px 10px",
-            color: "var(--color-primary)",
-          }}
-          aria-hidden
-        />
-
-        {/* Decorative blobs behind the photo */}
-        <div className="pointer-events-none absolute -right-6 top-6 h-40 w-40 rounded-full bg-primary/15 blur-2xl" aria-hidden />
-        <div className="pointer-events-none absolute -bottom-4 -left-4 h-28 w-28 rounded-full bg-amber-300/30 blur-2xl" aria-hidden />
-
-        {/* Portrait container with soft tinted backdrop */}
-        <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[2rem] bg-gradient-to-br from-primary/10 via-white to-primary/5 shadow-elegant ring-1 ring-black/5 sm:aspect-[5/6] sm:rounded-[2.5rem]">
-          <img
-            src={heroPortrait}
-            alt="Entrepreneur africain utilisant DolaPay"
-            className="absolute inset-0 h-full w-full object-cover object-top mix-blend-multiply select-none pointer-events-none"
-            width={1024}
-            height={1024}
-            draggable={false}
-            onContextMenu={(e) => e.preventDefault()}
-          />
-          {/* Overlay invisible pour bloquer le drag/téléchargement */}
-          <div
-            className="absolute inset-0 z-10"
-            onContextMenu={(e) => e.preventDefault()}
-            onDragStart={(e) => e.preventDefault()}
-            aria-hidden
-          />
-          {/* Top gradient to fade edges */}
-          <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-white via-white/60 to-transparent" />
-        </div>
-
-        {/* Floating card — profile / merchant */}
-        <div className="absolute -left-3 top-10 z-20 w-[14rem] rounded-2xl border border-black/5 bg-white p-3 shadow-2xl sm:-left-8 sm:top-14">
-          <div className="flex items-center gap-3">
-            <div className="grid h-11 w-11 place-items-center rounded-full bg-gradient-to-br from-primary to-primary-glow font-display text-base font-bold text-white">
-              KA
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="truncate text-sm font-semibold text-foreground">Kossi Adjovi</div>
-              <div className="text-[11px] text-muted-foreground">Marchand · Lomé</div>
-            </div>
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
-            </span>
-          </div>
-          <div className="mt-3 flex items-center justify-between rounded-xl bg-muted/60 px-3 py-2">
-            <span className="text-[11px] text-muted-foreground">Solde</span>
-            <span className="font-display text-sm font-bold text-foreground">2 845 200 <span className="text-[10px] text-muted-foreground">FCFA</span></span>
-          </div>
-        </div>
-
-        {/* Floating card — country flags pill */}
-        <div className="absolute -right-2 top-1/3 z-20 flex items-center gap-2 rounded-full border border-black/5 bg-white px-3 py-2 shadow-xl sm:-right-6">
-          <div className="flex -space-x-2">
-            {["ci", "sn", "bj", "cm", "ke"].map((c, i) => (
-              <img
-                key={c}
-                src={`https://flagcdn.com/w40/${c}.png`}
-                alt=""
-                className="h-7 w-7 rounded-full border-2 border-white object-cover"
-                style={{ zIndex: 10 - i }}
-                loading="lazy"
-              />
-            ))}
-          </div>
-          <span className="pr-1 text-[11px] font-semibold text-foreground">+12 pays</span>
-        </div>
-
-        {/* Floating card — transaction success */}
-        <div className="absolute -bottom-8 left-1 z-20 w-[13rem] rounded-2xl border border-black/5 bg-white p-3 shadow-2xl sm:-bottom-6 sm:left-6 sm:w-[15rem] sm:p-3.5">
-          <div className="flex items-center gap-3">
-            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-emerald-100">
-              <Check className="h-5 w-5 text-emerald-600" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="text-[11px] text-muted-foreground">Paiement reçu</div>
-              <div className="font-display text-base font-bold text-foreground">+ 25 000 FCFA</div>
-            </div>
-          </div>
-          <div className="mt-2.5 flex items-center justify-between border-t border-border pt-2 text-[10px] text-muted-foreground">
-            <span className="inline-flex items-center gap-1">
-              <span className="h-1.5 w-1.5 rounded-full bg-orange-500" /> Orange Money
-            </span>
-            <span>il y a 2 s</span>
-          </div>
-        </div>
-
-        {/* TLS / secure chip */}
-        <div className="absolute -top-3 right-6 z-20 inline-flex items-center gap-1.5 rounded-full border border-black/5 bg-white px-2.5 py-1 text-[10px] font-semibold text-foreground shadow-lg">
-          <Lock className="h-3 w-3 text-emerald-500" />
-          PCI-DSS · TLS 1.3
-        </div>
-      </div>
-    </div>
-  );
-}
-
-
-import ligdicashLogo from "@/assets/partner-ligdicash.png.asset.json";
-import pawapayLogo from "@/assets/partner-pawapay.png.asset.json";
-import technovaLogo from "@/assets/partner-technova.png.asset.json";
-
-const PARTNERS = [
-  { name: "LigdiCash", src: ligdicashLogo.url },
-  { name: "PawaPay", src: pawapayLogo.url },
-  { name: "TechNova", src: technovaLogo.url },
-];
-
-function TrustRow() {
-  return (
-    <section className="border-y border-border bg-surface py-12">
-      <div className="mx-auto max-w-7xl px-4">
-        <div className="text-center text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-          Choisi par des entreprises innovantes partout en Afrique
-        </div>
-        {/* Mobile: marquee défilant */}
-        <div className="mt-8 overflow-hidden sm:hidden [mask-image:linear-gradient(to_right,transparent,black_15%,black_85%,transparent)]">
-          <div className="flex w-max animate-marquee items-center gap-x-12">
-            {[...PARTNERS, ...PARTNERS, ...PARTNERS, ...PARTNERS].map((p, i) => (
-              <img
-                key={`${p.name}-${i}`}
-                src={p.src}
-                alt={p.name}
-                className="h-9 w-auto shrink-0 object-contain opacity-70 grayscale transition hover:opacity-100 hover:grayscale-0"
-                loading="lazy"
-              />
-            ))}
-          </div>
-        </div>
-        {/* Desktop: grille fixe */}
-        <div className="mt-8 hidden flex-wrap items-center justify-center gap-x-20 gap-y-6 sm:flex">
-          {PARTNERS.map((p) => (
-            <img
-              key={p.name}
-              src={p.src}
-              alt={p.name}
-              className="h-12 w-auto object-contain opacity-70 grayscale transition hover:opacity-100 hover:grayscale-0"
-              loading="lazy"
-            />
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-
-const FEATURES = [
-  { icon: Layers, title: "API unifiée", desc: "Une seule intégration pour accepter Mobile Money, cartes, virements bancaires et USSD sur tout le continent.", size: "lg" },
-  { icon: UserCheck, title: "KYC/KYB automatisé", desc: "Onboardez marchands et clients en quelques minutes grâce à notre moteur de conformité." },
-  { icon: Radar, title: "Détection de fraude avancée", desc: "Scoring de risque ML en temps réel sur chaque transaction." },
-  { icon: Wallet, title: "Encaissement instantané", desc: "Réception le jour même sur votre compte ou wallet. Fini l'attente de plusieurs jours." },
-];
-
-function Features() {
-  return (
-    <section className="pb-4 pt-20 sm:pb-6">
-      <div className="mx-auto max-w-7xl px-4">
-        <SectionHead eyebrow="Plateforme" title="Tout ce qu'il faut pour faire circuler l'argent." sub="Une stack financière composable, pensée pour la réalité du commerce africain." />
-        <div className="mt-14 grid gap-5 md:grid-cols-2 lg:grid-cols-3 lg:auto-rows-[minmax(220px,_auto)]">
-          {FEATURES.map((f, i) => (
-            <article
-              key={i}
-              className={`group relative overflow-hidden rounded-3xl border border-border bg-card p-7 transition-all hover:-translate-y-1 hover:shadow-elegant ${i === 0 ? "lg:col-span-2 lg:row-span-2" : ""}`}
-            >
-              <div className="absolute -right-16 -top-16 h-40 w-40 rounded-full bg-primary/0 blur-3xl transition-all duration-500 group-hover:bg-primary/20" />
-              <div className="relative">
-                <div className="grid h-11 w-11 place-items-center rounded-xl bg-primary/10 text-primary">
-                  <f.icon className="h-5 w-5" />
-                </div>
-                <h3 className={`mt-5 font-bold text-foreground ${i === 0 ? "text-3xl" : "text-xl"}`}>{f.title}</h3>
-                <p className={`mt-2 text-muted-foreground ${i === 0 ? "max-w-md text-base" : "text-sm"}`}>{f.desc}</p>
-                {i === 0 && (
-                  <div className="mt-8 grid grid-cols-2 gap-3 text-sm">
-                    {["Mobile Money", "Cartes", "Virement bancaire", "USSD"].map((m) => (
-                      <div key={m} className="flex items-center gap-2 rounded-xl border border-border bg-background px-3 py-2">
-                        <Check className="h-4 w-4 text-primary" />
-                        <span className="font-medium text-foreground">{m}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </article>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function SectionHead({ eyebrow, title, sub }: { eyebrow: string; title: string; sub: string }) {
-  return (
-    <div className="mx-auto max-w-2xl text-center">
-      <div className="inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-primary">{eyebrow}</div>
-      <h2 className="mt-4 text-4xl font-bold tracking-tight text-foreground sm:text-5xl">{title}</h2>
-      <p className="mt-4 text-lg text-muted-foreground">{sub}</p>
-    </div>
-  );
-}
-
-function DevExperience() {
-  return (
-    <section className="relative overflow-hidden bg-navy-deep py-16 text-navy-foreground sm:py-24 lg:py-28">
-      <div className="absolute inset-0 bg-grid opacity-[0.07]" />
-      <div className="absolute left-1/2 top-0 h-80 w-[60%] -translate-x-1/2 rounded-full bg-primary/30 blur-3xl" />
-
-      <div className="relative mx-auto grid max-w-7xl gap-10 px-4 sm:px-6 lg:grid-cols-2 lg:items-center lg:gap-14">
-        <div className="min-w-0">
-          <div className="inline-block rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider">Développeurs</div>
-          <h2 className="mt-4 text-3xl font-bold tracking-tight sm:text-4xl lg:text-5xl">Acceptez des paiements en <span className="text-primary-glow">3 lignes</span> de code.</h2>
-          <p className="mt-4 max-w-md text-sm text-navy-foreground/70 sm:text-base">
-            Propre, prévisible, REST. Typage fort, requêtes idempotentes et SDKs dans tous les langages majeurs. Conçue par des développeurs, pour des développeurs.
-          </p>
-          <ul className="mt-6 space-y-3 text-sm text-navy-foreground/80 sm:mt-8">
-            {["SDKs typés pour Node, Python, PHP, Go", "Webhooks avec retries automatiques et signature HMAC", "Sandbox avec des scénarios de test réalistes"].map((t) => (
-              <li key={t} className="flex items-start gap-2">
-                <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary-glow" />
-                <span>{t}</span>
-              </li>
-            ))}
-          </ul>
-          <Link to="/developers/api" className="mt-6 inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-glow transition-transform hover:scale-[1.02] sm:mt-8">
-            Lire la documentation <ArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
-
-        <div className="min-w-0">
-          <CodeBlock />
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function CodeBlock() {
-  return (
-    <div className="relative rounded-2xl bg-gradient-to-br from-primary/40 via-white/10 to-transparent p-px shadow-glow">
-      <div className="overflow-hidden rounded-2xl bg-[oklch(0.14_0.04_265)]">
-        <div className="flex items-center justify-between border-b border-white/5 px-4 py-3">
-          <div className="flex gap-1.5">
-            <span className="h-3 w-3 rounded-full bg-red-400/70" />
-            <span className="h-3 w-3 rounded-full bg-yellow-400/70" />
-            <span className="h-3 w-3 rounded-full bg-green-400/70" />
-          </div>
-          <div className="font-mono text-xs text-navy-foreground/50">charge.ts</div>
-        </div>
-        <pre className="whitespace-pre-wrap break-words p-4 font-mono text-[11px] leading-relaxed text-navy-foreground/90 sm:overflow-x-auto sm:whitespace-pre sm:break-normal sm:p-6 sm:text-sm">
-{`import { DolaPay } from "@dolapay/node";
-
-const dolapay = new DolaPay(
-  process.env.DOLAPAY_KEY
+const Eyebrow = ({ children }: { children: React.ReactNode }) => (
+  <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium tracking-wide text-primary uppercase">
+    <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+    {children}
+  </span>
 );
 
-const charge = await dolapay.charges.create({
-  amount: 5000,
-  currency: "GHS",
-  method: "mobile_money",
-  customer: {
-    phone: "+233501234567"
-  },
-});
+/* ---------- Hero ---------- */
+const Hero = () => {
+  const ref = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
+  const y1 = useTransform(scrollYProgress, [0, 1], [0, -80]);
+  const y2 = useTransform(scrollYProgress, [0, 1], [0, -140]);
 
-console.log(charge.status);
-// "succeeded"`}
-        </pre>
+  return (
+    <section ref={ref} className="relative pt-16 md:pt-24 pb-24 md:pb-32 overflow-hidden bg-gradient-to-b from-[#EEF3FF] via-white to-white">
+      <div className="pointer-events-none absolute -top-40 -left-40 h-[520px] w-[520px] rounded-full bg-primary/20 blur-3xl" />
+      <div className="pointer-events-none absolute top-20 -right-40 h-[420px] w-[420px] rounded-full bg-electric-glow/25 blur-3xl" />
+      <div className="pointer-events-none absolute inset-0 [background-image:linear-gradient(rgba(24,60,235,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(24,60,235,0.06)_1px,transparent_1px)] [background-size:56px_56px] [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_75%)]" />
+
+      <div className="relative mx-auto max-w-7xl px-4 md:px-6">
+        <div className="text-center max-w-4xl mx-auto">
+
+          <motion.h1
+            variants={fadeUp} initial="hidden" animate="show" custom={1}
+            className="mt-6 text-navy font-semibold tracking-tight text-[2.75rem] leading-[1.05] md:text-[4.5rem] md:leading-[1.02]"
+          >
+            L'infrastructure de paiement
+            <br />
+            qui propulse{" "}
+            <span className="relative inline-block">
+              <span className="bg-gradient-to-r from-primary to-electric-glow bg-clip-text text-transparent">l'Afrique</span>
+              <motion.svg
+                initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ delay: 1, duration: 1.2, ease: "easeOut" }}
+                viewBox="0 0 300 12" className="absolute -bottom-2 left-0 w-full h-3"
+              >
+                <motion.path d="M2 8 Q 150 -2 298 8" fill="none" stroke="rgb(24 60 235)" strokeWidth="3" strokeLinecap="round" />
+              </motion.svg>
+            </span>
+          </motion.h1>
+
+          <motion.p variants={fadeUp} initial="hidden" animate="show" custom={2} className="mt-6 text-lg md:text-xl text-navy/60 max-w-2xl mx-auto">
+            Mobile Money, cartes bancaires, payouts instantanés et liens no-code — unifiés derrière une seule API élégante, pensée pour les startups et marchands africains.
+          </motion.p>
+
+          <motion.div variants={fadeUp} initial="hidden" animate="show" custom={3} className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <Button asChild size="lg" className="rounded-xl bg-primary hover:bg-primary/90 shadow-glow h-12 px-6 text-base">
+              <Link to="/auth/sign-up" className="flex items-center gap-2">Commencer gratuitement <ArrowRight className="h-4 w-4" /></Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="rounded-xl h-12 px-6 text-base border-navy/15 text-navy hover:bg-navy/5">
+              <Link to="/docs">Voir la documentation</Link>
+            </Button>
+          </motion.div>
+
+          <motion.div variants={fadeUp} initial="hidden" animate="show" custom={4} className="mt-6 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-navy/50">
+            <span className="flex items-center gap-1.5"><Check className="h-4 w-4 text-primary" /> Sans frais d'installation</span>
+            <span className="flex items-center gap-1.5"><Check className="h-4 w-4 text-primary" /> Règlements instantanés</span>
+            <span className="flex items-center gap-1.5"><Check className="h-4 w-4 text-primary" /> API en 5 minutes</span>
+          </motion.div>
+        </div>
+
+        <div className="relative mt-16 md:mt-24 mx-auto max-w-6xl">
+          <motion.div
+            initial={{ opacity: 0, y: 60 }} animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 1, ease: [0.22, 1, 0.36, 1] }}
+            style={{ y: y1 }}
+            className="relative rounded-3xl overflow-hidden border border-border shadow-glow bg-white"
+          >
+            <img
+              src={dashboardHero}
+              alt="Dashboard DolaPay"
+              className="w-full h-auto block select-none pointer-events-none"
+              draggable={false}
+              onContextMenu={(e) => e.preventDefault()}
+              onDragStart={(e) => e.preventDefault()}
+              style={{ WebkitUserSelect: "none", WebkitTouchCallout: "none" }}
+            />
+            <div
+              className="absolute inset-0 z-10"
+              style={{ WebkitUserSelect: "none", WebkitTouchCallout: "none" }}
+              onContextMenu={(e) => e.preventDefault()}
+              onDragStart={(e) => e.preventDefault()}
+            />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-white/60 via-transparent to-transparent z-20" />
+          </motion.div>
+
+          <motion.div
+            style={{ y: y2 }}
+            initial={{ opacity: 0, scale: 0.9, x: -30 }} animate={{ opacity: 1, scale: 1, x: 0 }}
+            transition={{ delay: 1, duration: 0.8 }}
+            className="hidden md:flex absolute -left-8 top-8 items-center gap-3 rounded-2xl bg-white/90 backdrop-blur border border-border shadow-card p-4 min-w-[240px]"
+          >
+            <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+              <TrendingUp className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <div className="text-xs text-navy/50">Volume traité · 7j</div>
+              <div className="text-base font-semibold text-navy">2 847 320 FCFA</div>
+            </div>
+            <span className="ml-auto text-xs font-semibold text-emerald-600">+18%</span>
+          </motion.div>
+
+          <motion.div
+            style={{ y: y2 }}
+            initial={{ opacity: 0, scale: 0.9, x: 30 }} animate={{ opacity: 1, scale: 1, x: 0 }}
+            transition={{ delay: 1.1, duration: 0.8 }}
+            className="hidden md:flex absolute -right-6 bottom-10 items-center gap-3 rounded-2xl bg-white/90 backdrop-blur border border-border shadow-card p-4 min-w-[220px]"
+          >
+            <div className="h-10 w-10 rounded-xl bg-emerald-50 flex items-center justify-center">
+              <Check className="h-5 w-5 text-emerald-600" />
+            </div>
+            <div>
+              <div className="text-xs text-navy/50 flex items-center gap-1.5">Payout · Orange Money <Flag code="ci" size={11} /></div>
+              <div className="text-base font-semibold text-navy">Réglé en 3,2s</div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+/* ---------- Operators ticker ---------- */
+const operators = [
+  "MTN Mobile Money", "Orange Money", "Wave", "Moov Money", "Airtel Money",
+  "M-Pesa", "Vodacom M-Pesa", "Visa", "Mastercard", "Free Money",
+];
+const Ticker = () => (
+  <section className="py-14 md:py-20 border-y border-border bg-white">
+    <div className="mx-auto max-w-7xl px-4 md:px-6">
+      <p className="text-center text-sm font-medium text-navy/50 uppercase tracking-wider mb-8">
+        Une API. Tous les opérateurs africains majeurs.
+      </p>
+      <div className="relative overflow-hidden [mask-image:linear-gradient(90deg,transparent,black_10%,black_90%,transparent)]">
+        <div className="flex gap-6 md:gap-12 animate-infinite-scroll whitespace-nowrap">
+          {[...operators, ...operators].map((op, i) => (
+            <div key={i} className="flex items-center gap-2 md:gap-3 text-navy/70 text-base md:text-xl font-medium">
+              <span className="h-1.5 w-1.5 md:h-2 md:w-2 rounded-full bg-primary/60" />{op}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
-  );
-}
+  </section>
+);
 
-const SECURITY = [
-  { icon: ShieldCheck, title: "PCI-DSS Niveau 1", desc: "La certification la plus exigeante pour traiter les données de cartes." },
-  { icon: Scale, title: "Conforme LCB-FT", desc: "Surveillance continue alignée sur les standards internationaux." },
-  { icon: Lock, title: "Chiffrement de bout en bout", desc: "AES-256 au repos, TLS 1.3 en transit, sur chaque requête." },
-  { icon: Server, title: "Infrastructure bancaire", desc: "Bascule multi-régions, SLA de disponibilité à 99,99%." },
-];
+/* ---------- Features ---------- */
+const Features = () => {
+  const items = [
+    { icon: Wallet, title: "Encaissements (Pay-in)", desc: "Mobile Money + cartes Visa/Mastercard. Un checkout, tous les moyens de paiement locaux.", href: "/products/pay-in" },
+    { icon: Zap, title: "Bulk Pay-out", desc: "Envoyez de l'argent vers des milliers de portefeuilles en un clic. API ou CSV.", href: "/products/pay-out" },
+    { icon: Link2, title: "Liens no-code", desc: "Vendez sur WhatsApp, Instagram, TikTok. Créez un lien, partagez, encaissez.", href: "/products/no-code" },
+    { icon: Code2, title: "API développeur", desc: "RESTful, webhooks temps réel, SDK Node/Python/PHP. Intégration en 5 minutes.", href: "/docs" },
+  ];
 
-function Security() {
   return (
-    <section className="py-28">
-      <div className="mx-auto max-w-7xl px-4">
-        <SectionHead eyebrow="Sécurité" title="La confiance, c'est notre produit." sub="Conformité et sécurité tissées dans chaque couche de la plateforme." />
-        <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {SECURITY.map((s, i) => (
-            <div key={i} className="group rounded-3xl border border-border bg-card p-6 transition-all hover:-translate-y-1 hover:border-primary/40 hover:shadow-elegant">
-              <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-primary to-primary-glow text-primary-foreground shadow-glow">
-                <s.icon className="h-5 w-5" />
-              </div>
-              <h3 className="mt-5 text-base font-bold text-foreground">{s.title}</h3>
-              <p className="mt-1.5 text-sm text-muted-foreground">{s.desc}</p>
+    <section id="produit" className="py-24 md:py-32 bg-white">
+      <div className="mx-auto max-w-7xl px-4 md:px-6">
+        <motion.div initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} className="max-w-3xl">
+          <motion.div variants={fadeUp}><Eyebrow>Un système. Tout intégré.</Eyebrow></motion.div>
+          <motion.h2 variants={fadeUp} custom={1} className="mt-4 text-4xl md:text-5xl font-semibold text-navy tracking-tight">
+            Tout ce qu'il faut pour encaisser et décaisser en Afrique.
+          </motion.h2>
+          <motion.p variants={fadeUp} custom={2} className="mt-5 text-lg text-navy/60">
+            Une plateforme unique remplaçant 6 intégrations différentes. Construite en interne, testée à l'échelle.
+          </motion.p>
+        </motion.div>
+
+        <div className="mt-16 grid grid-cols-1 md:grid-cols-6 gap-4 md:gap-5">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+            className="md:col-span-4 md:row-span-2 relative overflow-hidden rounded-3xl bg-navy p-8 md:p-10 text-white min-h-[380px] group"
+          >
+            <div className="absolute inset-0 opacity-40">
+              <img src={africaNetwork} alt="" className="w-full h-full object-cover" loading="lazy" />
             </div>
+            <div className="absolute inset-0 bg-gradient-to-tr from-navy via-navy/80 to-transparent" />
+            <div className="relative">
+              <Globe2 className="h-8 w-8 text-electric-glow" />
+              <h3 className="mt-5 text-3xl md:text-4xl font-semibold tracking-tight">
+                12 économies. <br />
+                <span className="text-electric-glow">Une seule intégration.</span>
+              </h3>
+              <p className="mt-4 text-white/70 max-w-md">
+                Zone UEMOA{" "}
+                <span className="inline-flex items-center gap-1 align-middle">
+                  {["ci","sn","ml","bf","bj","tg"].map((c) => <Flag key={c} code={c} size={12} />)}
+                </span>
+                , CEMAC{" "}
+                <span className="inline-flex items-center gap-1 align-middle">
+                  {["cm","ga"].map((c) => <Flag key={c} code={c} size={12} />)}
+                </span>
+                , Afrique de l'Est et Australe. MTN, Orange, Moov, Wave, Airtel, M-Pesa — tous branchés.
+              </p>
+              <Link to="/coverage" className="mt-6 inline-flex items-center gap-2 text-sm text-electric-glow group-hover:gap-3 transition-all">
+                Voir la couverture <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            transition={{ duration: 0.7, delay: 0.1 }}
+            className="md:col-span-2 relative overflow-hidden rounded-3xl min-h-[240px]"
+          >
+            <img src={mobileMoney} alt="Mobile Money" className="w-full h-full object-cover absolute inset-0" loading="lazy" />
+            <div className="absolute inset-0 bg-gradient-to-t from-navy/90 via-navy/30 to-transparent" />
+            <div className="absolute bottom-6 left-6 right-6 text-white">
+              <Smartphone className="h-6 w-6 mb-3" />
+              <div className="text-xl font-semibold">Mobile Money natif</div>
+              <div className="text-sm text-white/70 mt-1">STK Push, USSD, QR. Sans friction.</div>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            transition={{ duration: 0.7, delay: 0.2 }}
+            className="md:col-span-2 relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-electric-glow p-8 min-h-[240px] text-white"
+          >
+            <CreditCard className="h-7 w-7" />
+            <div className="mt-4 text-xl font-semibold">Visa & Mastercard</div>
+            <div className="text-sm text-white/80 mt-1">3DS, tokenisation, abonnements récurrents.</div>
+            <div className="absolute -right-6 -bottom-6 h-40 w-40 rounded-full bg-white/10 blur-2xl" />
+          </motion.div>
+
+          {items.map((f, i) => (
+            <motion.div
+              key={f.title}
+              initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: i * 0.05 }}
+              whileHover={{ y: -4 }}
+              className="md:col-span-3 rounded-3xl border border-border bg-white p-6 hover:shadow-card transition-shadow"
+            >
+              <Link to={f.href} className="block">
+                <div className="h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <f.icon className="h-5 w-5 text-primary" />
+                </div>
+                <div className="mt-4 text-lg font-semibold text-navy flex items-center gap-1.5">
+                  {f.title} <ArrowUpRight className="h-4 w-4 text-navy/40" />
+                </div>
+                <div className="mt-1.5 text-sm text-navy/60 leading-relaxed">{f.desc}</div>
+              </Link>
+            </motion.div>
           ))}
         </div>
       </div>
     </section>
   );
-}
+};
 
-function Scale(props: { className?: string }) {
-  return <Zap {...props} />;
-}
-
-function CTA() {
-  return (
-    <section className="px-4 pb-28">
-      <div className="relative mx-auto max-w-6xl overflow-hidden rounded-[2rem] bg-gradient-to-br from-navy-deep via-navy to-primary p-12 text-navy-foreground shadow-glow sm:p-16">
-        <div className="absolute inset-0 bg-grid opacity-[0.08]" />
-        <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-primary-glow/30 blur-3xl animate-float" />
-        <div className="relative grid gap-8 lg:grid-cols-[1.6fr_1fr] lg:items-center">
-          <div>
-            <h2 className="text-4xl font-bold tracking-tight sm:text-5xl">Prêt à simplifier votre stack financière ?</h2>
-            <p className="mt-4 max-w-xl text-navy-foreground/75">Rejoignez les centaines d'entreprises qui bâtissent l'avenir du commerce africain sur DolaPay.</p>
-          </div>
-          <div className="flex flex-wrap gap-3 lg:justify-end">
-            <Link to="/auth/sign-up" className="rounded-xl bg-white px-5 py-3 text-sm font-semibold text-navy-deep transition-transform hover:scale-[1.02]">Commencer</Link>
-            <Link to="/company/contact" className="rounded-xl border border-white/20 bg-white/5 px-5 py-3 text-sm font-semibold transition-colors hover:bg-white/10">Parler aux ventes</Link>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-import pmMtn from "@/assets/pm-mtn.png.asset.json";
-import pmOrange from "@/assets/pm-orange.png.asset.json";
-import pmMoov from "@/assets/pm-moov.png.asset.json";
-import pmAirtel from "@/assets/pm-airtel.webp.asset.json";
-import pmMpesa from "@/assets/pm-mpesa.png.asset.json";
-import pmFree from "@/assets/pm-freemoney.png.asset.json";
-import pmVodacom from "@/assets/pm-vodacom.png.asset.json";
-import pmZamtel from "@/assets/pm-zamtel.png.asset.json";
-import pmCeltiis from "@/assets/pm-celtiis.png.asset.json";
-
-const METHODS = [
-  { name: "MTN Mobile Money", logo: pmMtn.url },
-  { name: "Orange Money", logo: pmOrange.url },
-  { name: "Moov Money", logo: pmMoov.url },
-  { name: "Airtel Money", logo: pmAirtel.url },
-  { name: "M-Pesa", logo: pmMpesa.url },
-  { name: "Free Money", logo: pmFree.url },
-  { name: "Vodacom", logo: pmVodacom.url },
-  { name: "Zamtel", logo: pmZamtel.url },
-  { name: "Celtiis Money", logo: pmCeltiis.url },
+/* ---------- Use Cases ---------- */
+const useCases = [
+  {
+    icon: ShoppingBag, title: "E-commerçants",
+    desc: "Boutiques Shopify, WooCommerce ou custom : encaissez Mobile Money + cartes en un checkout unique, sans redirection.",
+    stat: "+38% de conversion checkout", tag: "Retail",
+  },
+  {
+    icon: Briefcase, title: "Freelances & créateurs",
+    desc: "Facturez vos clients en 30s avec un lien de paiement no-code. Partagez sur WhatsApp, encaissez en Mobile Money.",
+    stat: "Payé en 3 min en moyenne", tag: "Solo",
+  },
+  {
+    icon: Rocket, title: "Startups tech",
+    desc: "SaaS, marketplaces, super-apps : API robuste, webhooks signés, sandbox illimité, réconciliation automatique.",
+    stat: "Intégration en 1 sprint", tag: "Scale-up",
+  },
 ];
+const UseCases = () => (
+  <section className="py-24 md:py-32 bg-gradient-to-b from-white to-[#F5F8FF]">
+    <div className="mx-auto max-w-7xl px-4 md:px-6">
+      <div className="max-w-3xl">
+        <Eyebrow>Cas d'usage</Eyebrow>
+        <h2 className="mt-4 text-4xl md:text-5xl font-semibold text-navy tracking-tight">
+          Une infrastructure. <span className="text-primary">Mille usages.</span>
+        </h2>
+        <p className="mt-5 text-lg text-navy/60">
+          Que vous vendiez 10 ou 10 millions de FCFA par mois, DolaPay s'adapte à votre modèle.
+        </p>
+      </div>
+      <div className="mt-16 grid md:grid-cols-3 gap-5">
+        {useCases.map((u, i) => (
+          <motion.div
+            key={u.title}
+            initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: i * 0.1 }}
+            whileHover={{ y: -6 }}
+            className="rounded-3xl bg-white border border-border p-8 shadow-soft hover:shadow-card transition-all"
+          >
+            <span className="inline-flex text-xs font-medium text-navy/60 bg-primary/5 rounded-full px-3 py-1">{u.tag}</span>
+            <div className="mt-5 h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
+              <u.icon className="h-6 w-6 text-primary" />
+            </div>
+            <h3 className="mt-5 text-xl font-semibold text-navy">{u.title}</h3>
+            <p className="mt-2 text-sm text-navy/60 leading-relaxed">{u.desc}</p>
+            <div className="mt-6 pt-5 border-t border-border flex items-center gap-2 text-sm font-medium text-primary">
+              <TrendingUp className="h-4 w-4" /> {u.stat}
+            </div>
+          </motion.div>
+        ))}
+      </div>
+      <div className="mt-10 text-center">
+        <Link to="/resources/use-cases" className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:gap-2 transition-all">
+          Voir tous les cas d'usage <ArrowRight className="h-4 w-4" />
+        </Link>
+      </div>
+    </div>
+  </section>
+);
 
-function PaymentMethods() {
-  return (
-    <section className="border-y border-border bg-background py-16">
-      <div className="mx-auto max-w-7xl px-4">
-        <SectionHead eyebrow="Couverture" title="Tous les moyens de paiement qui comptent." sub="Une seule intégration, tous les wallets utilisés par vos clients." />
-        <div className="mt-12 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
-          <div className="flex w-max animate-marquee gap-4">
-            {[...METHODS, ...METHODS].map((m, i) => (
-              <div key={i} className="flex items-center gap-3 rounded-2xl border border-border bg-card px-5 py-3 shadow-sm">
-                <div className="grid h-10 w-10 place-items-center overflow-hidden rounded-lg bg-white">
-                  <img src={m.logo} alt={m.name} className="h-full w-full object-contain p-1" />
+/* ---------- Comparison ---------- */
+const compareRows = [
+  { label: "Ouverture de compte", dola: "En ligne, 5 minutes", bank: "3 à 6 semaines en agence" },
+  { label: "Règlement des fonds", dola: "Instantané, 24/7", bank: "T+2 à T+5 jours ouvrés" },
+  { label: "Mobile Money natif", dola: "MTN, Orange, Wave, Moov, M-Pesa", bank: "Souvent absent" },
+  { label: "Tarification", dola: "2% + frais opérateur (transparent)", bank: "Frais fixes + variables opaques" },
+  { label: "API & webhooks", dola: "Modernes, documentés, sandbox", bank: "SOAP legacy ou inexistants" },
+  { label: "Support technique", dola: "Humain 7j/7, WhatsApp & Slack", bank: "Numéro vert, 9h-17h" },
+];
+const Compare = () => (
+  <section className="py-24 md:py-32 bg-white">
+    <div className="mx-auto max-w-6xl px-4 md:px-6">
+      <div className="text-center max-w-2xl mx-auto">
+        <Eyebrow>Comparatif</Eyebrow>
+        <h2 className="mt-4 text-4xl md:text-5xl font-semibold text-navy tracking-tight">
+          DolaPay vs. banques classiques
+        </h2>
+        <p className="mt-5 text-lg text-navy/60">
+          Pourquoi les marchands africains modernes choisissent une infrastructure taillée pour le mobile.
+        </p>
+      </div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+        transition={{ duration: 0.7 }}
+        className="mt-14"
+      >
+        {/* Desktop table */}
+        <div className="hidden md:block rounded-3xl overflow-hidden border border-border shadow-soft bg-white">
+          <div className="grid grid-cols-3 bg-[#F5F8FF] border-b border-border">
+            <div className="p-5 text-sm font-medium text-navy/50">Critère</div>
+            <div className="p-5 text-sm font-semibold text-primary flex items-center gap-2">
+              <img src="/images/common/logo.png" alt="" className="h-5 w-auto" /> DolaPay
+            </div>
+            <div className="p-5 text-sm font-semibold text-navy/70">Banque classique</div>
+          </div>
+          {compareRows.map((r, i) => (
+            <div key={r.label} className={`grid grid-cols-3 items-center ${i % 2 === 1 ? "bg-[#FAFBFF]" : "bg-white"} border-b border-border last:border-0`}>
+              <div className="p-5 text-sm font-medium text-navy">{r.label}</div>
+              <div className="p-5 text-sm text-navy flex items-start gap-2">
+                <Check className="h-4 w-4 text-emerald-500 mt-0.5 flex-shrink-0" />
+                <span>{r.dola}</span>
+              </div>
+              <div className="p-5 text-sm text-navy/60 flex items-start gap-2">
+                <X className="h-4 w-4 text-red-400 mt-0.5 flex-shrink-0" />
+                <span>{r.bank}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Mobile stacked cards */}
+        <div className="md:hidden space-y-4">
+          {compareRows.map((r) => (
+            <div key={r.label} className="rounded-2xl border border-border bg-white shadow-soft overflow-hidden">
+              <div className="px-5 py-3 bg-[#F5F8FF] text-xs font-semibold uppercase tracking-wide text-navy/60">
+                {r.label}
+              </div>
+              <div className="p-5 space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 h-6 w-6 rounded-full bg-emerald-50 flex items-center justify-center flex-shrink-0">
+                    <Check className="h-3.5 w-3.5 text-emerald-600" />
+                  </div>
+                  <div>
+                    <div className="text-[11px] font-semibold text-primary uppercase tracking-wide">DolaPay</div>
+                    <div className="mt-0.5 text-sm text-navy leading-snug">{r.dola}</div>
+                  </div>
                 </div>
-                <span className="whitespace-nowrap font-display text-sm font-bold text-foreground">{m.name}</span>
+                <div className="flex items-start gap-3 pt-3 border-t border-border">
+                  <div className="mt-0.5 h-6 w-6 rounded-full bg-red-50 flex items-center justify-center flex-shrink-0">
+                    <X className="h-3.5 w-3.5 text-red-500" />
+                  </div>
+                  <div>
+                    <div className="text-[11px] font-semibold text-navy/50 uppercase tracking-wide">Banque classique</div>
+                    <div className="mt-0.5 text-sm text-navy/70 leading-snug">{r.bank}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </motion.div>
+    </div>
+  </section>
+);
+
+/* ---------- Reliability / stats ---------- */
+const stats = [
+  { icon: Server, kpi: "99,99%", label: "Uptime garanti", desc: "Infrastructure multi-région, monitoring 24/7." },
+  { icon: ShieldCheck, kpi: "PCI-DSS", label: "Niveau bancaire", desc: "Certifiés PCI-DSS, conformité UEMOA/CEMAC." },
+  { icon: Clock, kpi: "< 3 s", label: "Payout moyen", desc: "Décaissements instantanés, jour et nuit." },
+  { icon: Headphones, kpi: "7 j / 7", label: "Support humain", desc: "WhatsApp, Slack et téléphone en français." },
+];
+const Reliability = () => (
+  <section className="py-24 md:py-32 bg-navy text-white relative overflow-hidden">
+    <div className="absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:56px_56px] [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_80%)]" />
+    <div className="absolute top-0 left-1/2 -translate-x-1/2 h-64 w-[600px] rounded-full bg-primary/40 blur-3xl" />
+    <div className="relative mx-auto max-w-7xl px-4 md:px-6">
+      <div className="max-w-2xl">
+        <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-medium tracking-wide text-electric-glow uppercase">
+          Chiffres & fiabilité
+        </span>
+        <h2 className="mt-5 text-4xl md:text-5xl font-semibold tracking-tight">
+          Une infrastructure conçue pour <span className="text-electric-glow">ne jamais tomber.</span>
+        </h2>
+        <p className="mt-5 text-lg text-white/60">
+          Vos ventes ne s'arrêtent pas la nuit. Notre infrastructure non plus.
+        </p>
+      </div>
+      <div className="mt-14 grid grid-cols-2 md:grid-cols-4 gap-4">
+        {stats.map((s, i) => (
+          <motion.div
+            key={s.label}
+            initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: i * 0.08 }}
+            className="rounded-3xl bg-white/[0.04] border border-white/10 p-6 backdrop-blur"
+          >
+            <s.icon className="h-6 w-6 text-electric-glow" />
+            <div className="mt-4 text-4xl font-semibold tracking-tight">{s.kpi}</div>
+            <div className="mt-1 text-sm font-medium text-white">{s.label}</div>
+            <div className="mt-2 text-xs text-white/50 leading-relaxed">{s.desc}</div>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+
+/* ---------- Testimonials ---------- */
+const testimonials = [
+  {
+    quote: "Depuis qu'on est passés sur DolaPay, nos conversions Mobile Money ont bondi. Un seul checkout, tous les opérateurs — c'était exactement ce qu'il nous manquait.",
+    name: "Aïssatou Koné", role: "Fondatrice, Kora Shop", flag: "ci", city: "Abidjan",
+  },
+  {
+    quote: "Le bulk pay-out nous fait gagner 2 jours par semaine sur la paie de nos livreurs. Et l'API est propre, moderne, bien documentée.",
+    name: "Yannick Adjovi", role: "CTO, ZemGo", flag: "bj", city: "Cotonou",
+  },
+  {
+    quote: "En tant que freelance, je crée un lien de paiement, je l'envoie sur WhatsApp, et je suis payée en 3 minutes. Rien de plus simple.",
+    name: "Fatou Ndiaye", role: "Designer indépendante", flag: "sn", city: "Dakar",
+  },
+];
+const Testimonials = () => (
+  <section className="py-24 md:py-32 bg-white">
+    <div className="mx-auto max-w-7xl px-4 md:px-6">
+      <div className="text-center max-w-2xl mx-auto">
+        <Eyebrow>Ils nous font confiance</Eyebrow>
+        <h2 className="mt-4 text-4xl md:text-5xl font-semibold text-navy tracking-tight">
+          Des marchands africains, <span className="text-primary">nos meilleurs ambassadeurs.</span>
+        </h2>
+      </div>
+      <div className="mt-14 grid md:grid-cols-3 gap-5">
+        {testimonials.map((t, i) => (
+          <motion.figure
+            key={t.name}
+            initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: i * 0.1 }}
+            className="rounded-3xl border border-border bg-gradient-to-b from-white to-[#F8FAFF] p-8 shadow-soft"
+          >
+            <div className="flex gap-0.5 text-primary">
+              {Array.from({ length: 5 }).map((_, k) => <Star key={k} className="h-4 w-4 fill-current" />)}
+            </div>
+            <blockquote className="mt-5 text-navy text-[15px] leading-relaxed">« {t.quote} »</blockquote>
+            <figcaption className="mt-6 pt-5 border-t border-border">
+              <div className="text-sm font-semibold text-navy">{t.name}</div>
+              <div className="text-xs text-navy/55 mt-0.5 flex items-center gap-1.5">{t.role} · <Flag code={t.flag} size={11} /> {t.city}</div>
+            </figcaption>
+          </motion.figure>
+        ))}
+      </div>
+    </div>
+  </section>
+);
+
+/* ---------- API / Code section ---------- */
+const codeSnippet = `# Encaisser via Mobile Money — un simple POST
+curl -X POST https://api.dola-pay.com/v1/charges \\
+  -H "Authorization: Bearer $DOLA_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "amount": 25000,
+    "currency": "XOF",
+    "channel": "orange_money",
+    "customer": { "phone": "+2250700000000" },
+    "webhook": "https://mon-shop.com/hooks/dola"
+  }'`;
+
+const Developers = () => (
+  <section className="relative py-16 sm:py-24 md:py-32 bg-navy text-white overflow-hidden">
+    <div className="absolute inset-0 opacity-30 [background-image:linear-gradient(rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px)] [background-size:56px_56px] [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_80%)]" />
+    <div className="absolute top-0 left-1/2 -translate-x-1/2 h-64 w-[600px] rounded-full bg-primary/40 blur-3xl" />
+    <div className="relative mx-auto max-w-7xl px-4 md:px-6">
+      <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+        <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }}>
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-medium tracking-wide text-electric-glow uppercase">
+            <Code2 className="h-3.5 w-3.5" /> Pour les développeurs
+          </span>
+          <h2 className="mt-5 text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight">
+            Une API que <br />
+            <span className="bg-gradient-to-r from-white to-electric-glow bg-clip-text text-transparent">vos devs vont aimer.</span>
+          </h2>
+          <p className="mt-5 text-lg text-white/60 max-w-lg">
+            RESTful, JSON propre, webhooks signés, SDK dans 4 langages, sandbox illimité. Du "hello world" à votre première transaction en moins de 10 minutes.
+          </p>
+          <div className="mt-8 space-y-3">
+            {[
+              "Webhooks temps réel avec retry exponentiel",
+              "SDK Node.js, Python, PHP, Go",
+              "Sandbox complet + faux opérateurs pour tests",
+              "Documentation OpenAPI 3 générée automatiquement",
+            ].map((line) => (
+              <div key={line} className="flex items-start gap-3 text-white/80">
+                <div className="mt-1 h-5 w-5 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                  <Check className="h-3 w-3 text-electric-glow" />
+                </div>
+                {line}
               </div>
             ))}
           </div>
-        </div>
-      </div>
-    </section>
-  );
-}
+          <Button asChild size="lg" className="mt-8 rounded-xl bg-white text-navy hover:bg-white/90">
+            <Link to="/docs" className="flex items-center gap-2">Explorer la doc <ArrowUpRight className="h-4 w-4" /></Link>
+          </Button>
+        </motion.div>
 
-type Country = { name: string; flag: string; code: string; currency: string; lat: number; lng: number };
-
-const COUNTRY_GROUPS: { label: string; tag: string; items: Country[] }[] = [
-  {
-    label: "Afrique francophone",
-    tag: "XOF · XAF",
-    items: [
-      { name: "Bénin", flag: "🇧🇯", code: "BJ", currency: "XOF", lat: 9.3, lng: 2.3 },
-      { name: "Cameroun", flag: "🇨🇲", code: "CM", currency: "XAF", lat: 7.3, lng: 12.3 },
-      { name: "Côte d'Ivoire", flag: "🇨🇮", code: "CI", currency: "XOF", lat: 7.5, lng: -5.5 },
-      { name: "Gabon", flag: "🇬🇦", code: "GA", currency: "XAF", lat: -0.8, lng: 11.6 },
-      { name: "Rép. du Congo", flag: "🇨🇬", code: "CG", currency: "XAF", lat: -0.7, lng: 14.8 },
-      { name: "Sénégal", flag: "🇸🇳", code: "SN", currency: "XOF", lat: 14.5, lng: -14.5 },
-    ],
-  },
-  {
-    label: "Afrique de l'Est et australe",
-    tag: "KES · RWF · UGX · ZMW",
-    items: [
-      { name: "Kenya", flag: "🇰🇪", code: "KE", currency: "KES", lat: -0.02, lng: 37.9 },
-      { name: "Rwanda", flag: "🇷🇼", code: "RW", currency: "RWF", lat: -1.94, lng: 29.87 },
-      { name: "Ouganda", flag: "🇺🇬", code: "UG", currency: "UGX", lat: 1.37, lng: 32.29 },
-      { name: "Zambie", flag: "🇿🇲", code: "ZM", currency: "ZMW", lat: -13.13, lng: 27.85 },
-    ],
-  },
-  {
-    label: "Afrique centrale et de l'Ouest",
-    tag: "CDF · USD · SLE",
-    items: [
-      { name: "R.D. Congo", flag: "🇨🇩", code: "CD", currency: "CDF / USD", lat: -4.0, lng: 21.8 },
-      { name: "Sierra Leone", flag: "🇸🇱", code: "SL", currency: "SLE", lat: 8.46, lng: -11.78 },
-    ],
-  },
-];
-
-function Countries() {
-  const all = COUNTRY_GROUPS.flatMap((g) => g.items);
-  const total = all.length;
-  const currencies = Array.from(new Set(all.map((c) => c.currency.split(" / ")[0]))).length;
-
-
-
-
-  return (
-    <section id="countries" className="relative overflow-hidden bg-background pb-14 pt-2 sm:pb-20 sm:pt-4">
-      <div className="pointer-events-none absolute inset-0 bg-grid opacity-30" />
-      <div className="pointer-events-none absolute -top-32 left-1/4 h-[420px] w-[420px] rounded-full bg-primary/10 blur-3xl" />
-      <div className="pointer-events-none absolute bottom-0 right-0 h-[360px] w-[360px] rounded-full bg-primary-glow/10 blur-3xl" />
-
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6">
-        {/* Centered header */}
-        <div className="mx-auto max-w-3xl text-center">
-          <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-border bg-card/70 px-3 py-1 text-[10px] font-semibold uppercase tracking-wide text-foreground/80 backdrop-blur sm:text-xs sm:tracking-wider">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
-            Couverture panafricaine · {total} pays
-          </div>
-          <h2 className="mt-4 font-display text-3xl font-bold leading-[1.08] tracking-tight text-foreground sm:text-4xl lg:text-5xl">
-            Une seule API pour <span className="text-gradient">encaisser partout en Afrique.</span>
-          </h2>
-          <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:mt-4 sm:text-base">
-            De Dakar à Dar es Salaam — Mobile Money, cartes et virements bancaires. {total} pays, {currencies}+ devises, une intégration.
-          </p>
-        </div>
-
-        {/* Globe / constellation */}
-        <div className="relative mt-6 sm:mt-8">
-          <CountriesConstellation countries={all} />
-        </div>
-
-        {/* Regional breakdown */}
-        <CountriesRegionsBoard />
-      </div>
-    </section>
-  );
-}
-
-type RegionCountry = { name: string; code: string; operators: number };
-type Region = { label: string; short: string; accent: "primary" | "emerald"; countries: RegionCountry[] };
-
-const REGIONS: Region[] = [
-  {
-    label: "Afrique de l'Ouest",
-    short: "Ouest",
-    accent: "primary",
-    countries: [
-      { name: "Bénin", code: "BJ", operators: 3 },
-      { name: "Côte d'Ivoire", code: "CI", operators: 4 },
-      { name: "Sénégal", code: "SN", operators: 3 },
-      { name: "Sierra Leone", code: "SL", operators: 2 },
-    ],
-  },
-  {
-    label: "Afrique Centrale",
-    short: "Centre",
-    accent: "emerald",
-    countries: [
-      { name: "Cameroun", code: "CM", operators: 2 },
-      { name: "Congo Brazza", code: "CG", operators: 2 },
-      { name: "Gabon", code: "GA", operators: 2 },
-      { name: "R.D.C", code: "CD", operators: 3 },
-    ],
-  },
-  {
-    label: "Afrique de l'Est",
-    short: "Est",
-    accent: "primary",
-    countries: [
-      { name: "Kenya", code: "KE", operators: 2 },
-      { name: "Rwanda", code: "RW", operators: 2 },
-      { name: "Uganda", code: "UG", operators: 2 },
-      { name: "Zambie", code: "ZM", operators: 3 },
-    ],
-  },
-];
-
-function CountriesRegionsBoard() {
-  const totalCountries = REGIONS.reduce((n, r) => n + r.countries.length, 0);
-  const totalOperators = REGIONS.reduce(
-    (n, r) => n + r.countries.reduce((m, c) => m + c.operators, 0),
-    0,
-  );
-
-  return (
-    <div className="relative mx-auto mt-8 sm:mt-12">
-      {/* Compact stats strip */}
-      <div className="mx-auto mb-6 flex max-w-md items-center justify-center gap-3 rounded-full border border-border bg-card/70 px-4 py-2 text-xs font-medium text-muted-foreground backdrop-blur sm:max-w-none sm:w-fit sm:gap-6 sm:px-6 sm:py-2.5 sm:text-sm">
-        <span className="inline-flex items-center gap-2">
-          <MapPinIcon className="h-3.5 w-3.5 text-primary" />
-          <span className="font-display text-sm font-bold text-foreground sm:text-base">{totalCountries}</span>
-          <span className="hidden sm:inline">pays</span>
-        </span>
-        <span className="h-4 w-px bg-border" />
-        <span className="inline-flex items-center gap-2">
-          <TrendUpIcon className="h-3.5 w-3.5 text-emerald-500" />
-          <span className="font-display text-sm font-bold text-foreground sm:text-base">{totalOperators}+</span>
-          <span className="hidden sm:inline">opérateurs</span>
-        </span>
-        <span className="h-4 w-px bg-border" />
-        <span className="inline-flex items-center gap-2">
-          <span className="font-display text-sm font-bold text-foreground sm:text-base">{REGIONS.length}</span>
-          <span className="hidden sm:inline">régions</span>
-        </span>
-      </div>
-
-      {/* Region cards grid */}
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-3 md:gap-4">
-        {REGIONS.map((region) => {
-          const ops = region.countries.reduce((n, c) => n + c.operators, 0);
-          const isEmerald = region.accent === "emerald";
-          const accentText = isEmerald ? "text-emerald-600 dark:text-emerald-400" : "text-primary";
-          const accentBg = isEmerald ? "bg-emerald-500" : "bg-primary";
-          const accentBorder = isEmerald ? "border-emerald-500/20" : "border-primary/20";
-          return (
-            <div
-              key={region.label}
-              className={`group relative overflow-hidden rounded-2xl border ${accentBorder} bg-card/70 p-4 shadow-sm backdrop-blur transition-all hover:-translate-y-0.5 hover:shadow-elegant sm:p-5`}
-            >
-              <span className={`absolute inset-x-0 top-0 h-px ${accentBg} opacity-60`} />
-
-              {/* Header */}
-              <div className="mb-4 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <span className={`h-2 w-2 rounded-full ${accentBg}`} />
-                  <h3 className="font-display text-sm font-bold tracking-tight text-foreground sm:text-base">{region.label}</h3>
-                </div>
-                <span className={`font-display text-lg font-bold ${accentText}`}>{ops}+</span>
-              </div>
-
-              {/* Country list */}
-              <ul className="space-y-1.5">
-                {region.countries.map((c) => (
-                  <li
-                    key={c.code}
-                    className="flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-background/60"
-                  >
-                    <span className="flex min-w-0 items-center gap-2.5">
-                      <img
-                        src={`https://flagcdn.com/w40/${c.code.toLowerCase()}.png`}
-                        alt=""
-                        className="h-3.5 w-5 shrink-0 rounded-[2px] object-cover ring-1 ring-border"
-                        loading="lazy"
-                      />
-                      <span className="truncate text-xs font-semibold text-foreground sm:text-sm">{c.name}</span>
-                    </span>
-                    <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                      {c.operators} ops
-                    </span>
-                  </li>
-                ))}
-              </ul>
-
-              {/* Footer */}
-              <div className="mt-4 flex items-center justify-between border-t border-border/60 pt-3 text-[11px] text-muted-foreground">
-                <span>{region.countries.length} pays</span>
-                <span className="inline-flex items-center gap-1 font-semibold">
-                  Live
-                  <span className="relative flex h-1.5 w-1.5">
-                    <span className="absolute inset-0 animate-ping rounded-full bg-emerald-500/60" />
-                    <span className="relative h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                  </span>
-                </span>
-              </div>
+        <motion.div initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }} className="relative mt-4 lg:mt-0 pb-16 sm:pb-20">
+          <div className="rounded-2xl bg-[#050B24] border border-white/10 overflow-hidden shadow-2xl max-w-full">
+            <div className="flex items-center gap-1.5 px-3 sm:px-4 py-2.5 sm:py-3 border-b border-white/10 bg-white/[0.02]">
+              <span className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-red-400/60" />
+              <span className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-yellow-400/60" />
+              <span className="h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-full bg-green-400/60" />
+              <span className="ml-2 sm:ml-3 text-[10px] sm:text-xs text-white/40 font-mono">charge.sh</span>
             </div>
-          );
-        })}
+            <pre className="p-3 sm:p-6 text-[11px] sm:text-[13px] leading-relaxed font-mono text-white/80 overflow-x-auto max-w-full">
+              <code className="block min-w-0">
+                {codeSnippet.split("\n").map((line, i) => {
+                  const escape = (s: string) =>
+                    s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                  const highlight = (l: string) => {
+                    const safe = escape(l);
+                    return safe
+                      .replace(/(#.*)$/g, "<span style='color:#ffffff4d'>$1</span>")
+                      .replace(/\b(curl|POST|GET|Bearer)\b/g, "<span style='color:#7BA7FF'>$1</span>")
+                      .replace(/(-X|-H|-d)\b/g, "<span style='color:#C792EA'>$1</span>")
+                      .replace(/(&quot;[^&]*?&quot;)/g, "<span style='color:#7DFFB3'>$1</span>")
+                      .replace(/\b(\d+)\b/g, "<span style='color:#FFB86C'>$1</span>");
+                  };
+                  return (
+                    <div key={i} className="flex whitespace-pre">
+                      <span className="text-white/20 w-5 sm:w-6 shrink-0 select-none">{i + 1}</span>
+                      <span dangerouslySetInnerHTML={{ __html: highlight(line) || "&nbsp;" }} />
+                    </div>
+                  );
+                })}
+              </code>
+            </pre>
+          </div>
+          <div className="absolute bottom-0 right-2 sm:-bottom-6 sm:-right-6 rounded-2xl bg-white text-navy p-3 sm:p-4 shadow-2xl border border-border flex items-center gap-2.5 sm:gap-3 max-w-[calc(100%-1rem)]">
+            <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-lg bg-emerald-100 flex items-center justify-center shrink-0">
+              <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-600" />
+            </div>
+            <div className="min-w-0">
+              <div className="text-[10px] sm:text-xs text-navy/50">Webhook reçu</div>
+              <div className="text-xs sm:text-sm font-semibold truncate">charge.succeeded · 1,4 s</div>
+            </div>
+          </div>
+        </motion.div>
       </div>
-
-      <p className="mx-auto mt-5 max-w-md text-center text-[11px] leading-relaxed text-muted-foreground sm:max-w-none sm:text-xs">
-        Une seule intégration. Tous les opérateurs Mobile Money, Cartes et virements.
-      </p>
     </div>
-  );
-}
+  </section>
+);
 
-function MapPinIcon({ className = "h-4 w-4" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 1 1 16 0Z" />
-      <circle cx="12" cy="10" r="3" />
-    </svg>
-  );
-}
-
-function TrendUpIcon({ className = "h-4 w-4" }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <polyline points="3 17 9 11 13 15 21 7" />
-      <polyline points="14 7 21 7 21 14" />
-    </svg>
-  );
-}
-
-const FAQS = [
-  { q: "À quelle vitesse arrivent les encaissements ?", a: "Les encaissements sont instantanés par défaut (T+0) sur votre compte bancaire ou wallet. Plus besoin d'attendre plusieurs jours." },
-  { q: "Faut-il un site web pour utiliser DolaPay ?", a: "Pas du tout. Avec les liens de paiement, vous pouvez commencer à encaisser via WhatsApp, SMS ou e-mail en moins de 60 secondes — sans code et sans site." },
-  { q: "Quels pays sont supportés ?", a: "Nous sommes actifs en Côte d'Ivoire, au Sénégal, au Bénin, au Mali, au Togo et au Burkina Faso, avec des déploiements en cours dans le reste de l'Afrique de l'Ouest et centrale." },
-  { q: "DolaPay est-il conforme PCI-DSS ?", a: "Oui. Nous sommes certifiés PCI-DSS Niveau 1, le plus haut standard pour le traitement des cartes, avec chiffrement AES-256 au repos et TLS 1.3 en transit." },
-  { q: "Quels sont vos frais ?", a: "Tarification à l'usage, sans frais d'installation. Mobile Money à partir de 1,4%, cartes à 2,9% + frais locaux. Remises possibles selon le volume." },
-  { q: "Combien de temps prend l'intégration ?", a: "La plupart des équipes mettent en production une intégration fonctionnelle en moins d'une journée grâce à nos SDKs typés et notre sandbox aux scénarios réalistes." },
+/* ---------- Coverage ---------- */
+const countries = [
+  { name: "Côte d'Ivoire", flag: "ci" }, { name: "Sénégal", flag: "sn" },
+  { name: "Mali", flag: "ml" }, { name: "Burkina Faso", flag: "bf" },
+  { name: "Bénin", flag: "bj" }, { name: "Togo", flag: "tg" },
+  { name: "Cameroun", flag: "cm" }, { name: "Gabon", flag: "ga" },
+  { name: "Nigeria", flag: "ng" }, { name: "Ghana", flag: "gh" },
+  { name: "Kenya", flag: "ke" }, { name: "RDC", flag: "cd" },
 ];
+const Coverage = () => (
+  <section className="py-24 md:py-32 bg-white">
+    <div className="mx-auto max-w-7xl px-4 md:px-6">
+      <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+        <motion.div initial={{ opacity: 0, scale: 0.95 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 0.9 }}>
+          <div className="relative rounded-3xl overflow-hidden bg-navy shadow-glow">
+            <img src={africaNetwork} alt="Couverture Afrique" className="w-full h-auto" loading="lazy" />
+          </div>
+        </motion.div>
+        <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }}>
+          <Eyebrow>Couverture</Eyebrow>
+          <h2 className="mt-4 text-4xl md:text-5xl font-semibold text-navy tracking-tight">
+            Déployé sur <span className="text-primary">12 économies</span> africaines.
+          </h2>
+          <p className="mt-5 text-lg text-navy/60">
+            De Dakar à Nairobi, de Lagos à Kinshasa — un seul contrat, une seule intégration, un seul dashboard.
+          </p>
+          <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {countries.map((c, i) => (
+              <motion.div
+                key={c.name}
+                initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: i * 0.04 }}
+                className="flex items-center gap-2 rounded-xl border border-border bg-white px-3 py-2.5 hover:border-primary/40 hover:bg-primary/5 transition-colors"
+              >
+                <Flag code={c.flag} size={16} />
+                <span className="text-sm font-medium text-navy">{c.name}</span>
+              </motion.div>
+            ))}
+          </div>
+          <div className="mt-6">
+            <Link to="/coverage" className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:gap-2 transition-all">
+              Voir tous les opérateurs par pays <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </motion.div>
+      </div>
+    </div>
+  </section>
+);
 
-function FAQ() {
-  const [open, setOpen] = useState<number | null>(0);
-  return (
-    <section className="py-28">
-      <div className="mx-auto max-w-3xl px-4">
-        <SectionHead eyebrow="FAQ" title="Vos questions, nos réponses." sub="Tout ce qu'il faut savoir avant de construire avec DolaPay." />
-        <div className="mt-14 space-y-3">
-          {FAQS.map((item, i) => {
-            const isOpen = open === i;
-            return (
-              <div key={i} className={`overflow-hidden rounded-2xl border bg-card transition-all ${isOpen ? "border-primary/40 shadow-elegant" : "border-border"}`}>
-                <button onClick={() => setOpen(isOpen ? null : i)} className="flex w-full items-center justify-between gap-4 px-6 py-5 text-left">
-                  <span className="font-display text-base font-bold text-foreground sm:text-lg">{item.q}</span>
-                  <div className={`grid h-8 w-8 shrink-0 place-items-center rounded-full transition-all ${isOpen ? "rotate-45 bg-primary text-primary-foreground" : "bg-accent text-foreground"}`}>
-                    <Plus className="h-4 w-4" />
-                  </div>
-                </button>
-                <div className={`grid transition-all duration-300 ${isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}>
-                  <div className="overflow-hidden">
-                    <p className="px-6 pb-6 text-sm leading-relaxed text-muted-foreground sm:text-base">{item.a}</p>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+/* ---------- Pricing preview ---------- */
+const pricing = [
+  { label: "Encaissement Mobile Money", price: "2%", detail: "+ frais opérateur réels", note: "Dégressif à 1,5% au-delà de 50M FCFA/mois", icon: Smartphone, highlight: true },
+  { label: "Décaissement (Pay-out)", price: "1%", detail: "+ frais réseau réels", note: "Bulk illimité, API ou CSV", icon: Zap, highlight: false },
+  { label: "Cartes bancaires", price: "2,5%", detail: "+ 100 FCFA / transaction", note: "Visa, Mastercard, 3DS inclus", icon: CreditCard, highlight: false },
+];
+const Pricing = () => (
+  <section className="py-24 md:py-32 bg-gradient-to-b from-[#F5F8FF] to-white">
+    <div className="mx-auto max-w-7xl px-4 md:px-6">
+      <div className="text-center max-w-3xl mx-auto">
+        <Eyebrow>Tarification transparente · Cost-plus</Eyebrow>
+        <h2 className="mt-4 text-4xl md:text-5xl font-semibold text-navy tracking-tight">Un modèle. Zéro surprise.</h2>
+        <p className="mt-5 text-lg text-navy/60">
+          Aucun frais d'installation. Aucun abonnement. Aucune marge cachée sur les frais opérateurs — nous les répercutons à l'identique.
+        </p>
+      </div>
+      <div className="mt-16 grid md:grid-cols-3 gap-5">
+        {pricing.map((p, i) => (
+          <motion.div
+            key={p.label}
+            initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: i * 0.1 }}
+            whileHover={{ y: -6 }}
+            className={`relative rounded-3xl p-8 border transition-all ${p.highlight ? "bg-navy text-white border-navy shadow-glow" : "bg-white text-navy border-border shadow-soft hover:shadow-card"}`}
+          >
+            {p.highlight && (
+              <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-electric-glow px-3 py-1 text-xs font-semibold text-navy uppercase tracking-wide">
+                Le plus populaire
+              </span>
+            )}
+            <div className={`h-12 w-12 rounded-xl flex items-center justify-center ${p.highlight ? "bg-white/10" : "bg-primary/10"}`}>
+              <p.icon className={`h-6 w-6 ${p.highlight ? "text-electric-glow" : "text-primary"}`} />
+            </div>
+            <div className={`mt-5 text-sm ${p.highlight ? "text-white/60" : "text-navy/60"}`}>{p.label}</div>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="text-5xl font-semibold tracking-tight">{p.price}</span>
+              <span className={`text-sm ${p.highlight ? "text-white/60" : "text-navy/50"}`}>{p.detail}</span>
+            </div>
+            <div className={`mt-4 pt-4 border-t text-sm ${p.highlight ? "border-white/10 text-white/70" : "border-border text-navy/60"}`}>
+              {p.note}
+            </div>
+          </motion.div>
+        ))}
+      </div>
+      <div className="mt-10 flex flex-wrap justify-center gap-3">
+        <Button asChild className="rounded-xl bg-primary hover:bg-primary/90">
+          <Link to="/pricing">Voir la grille complète <ArrowRight className="h-4 w-4 ml-1" /></Link>
+        </Button>
+        <Button asChild variant="outline" className="rounded-xl border-navy/15 text-navy hover:bg-navy/5">
+          <Link to="/contact">Parler à un expert</Link>
+        </Button>
+      </div>
+    </div>
+  </section>
+);
+
+/* ---------- CTA ---------- */
+const CTA = () => (
+  <section className="py-24 md:py-32 bg-white">
+    <div className="mx-auto max-w-7xl px-4 md:px-6">
+      <div className="relative overflow-hidden rounded-[2rem] bg-navy px-8 py-16 md:px-16 md:py-24 text-center">
+        <div className="absolute inset-0 opacity-40">
+          <img src={africaNetwork} alt="" className="w-full h-full object-cover" loading="lazy" />
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-b from-navy/70 to-navy" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 h-64 w-[600px] rounded-full bg-primary/40 blur-3xl" />
+        <div className="relative">
+          <motion.h2
+            initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+            className="text-4xl md:text-6xl font-semibold text-white tracking-tight max-w-3xl mx-auto"
+          >
+            Prêt à encaisser <br />
+            <span className="bg-gradient-to-r from-white to-electric-glow bg-clip-text text-transparent">partout en Afrique ?</span>
+          </motion.h2>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            transition={{ duration: 0.7, delay: 0.1 }}
+            className="mt-6 text-lg text-white/70 max-w-xl mx-auto"
+          >
+            Créez un compte gratuitement en 2 minutes. Aucune carte requise. Passez en production quand vous êtes prêt.
+          </motion.p>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            transition={{ duration: 0.7, delay: 0.2 }}
+            className="mt-10 flex flex-col sm:flex-row gap-3 items-center justify-center"
+          >
+            <Button asChild size="lg" className="h-12 px-8 rounded-xl bg-white text-navy hover:bg-white/90 text-base">
+              <Link to="/auth/sign-up" className="flex items-center gap-2">Créer un compte gratuit <ArrowRight className="h-4 w-4" /></Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="h-12 px-8 rounded-xl bg-transparent border-white/20 text-white hover:bg-white/10 hover:text-white text-base">
+              <Link to="/contact">Parler à un expert</Link>
+            </Button>
+          </motion.div>
         </div>
       </div>
-    </section>
-  );
-}
+    </div>
+  </section>
+);
+
+/* ---------- Page ---------- */
+const Home = () => (
+  <PageShell
+    title="DolaPay — L'infrastructure de paiement qui propulse l'Afrique"
+    description="Mobile Money, cartes bancaires, payouts instantanés et liens no-code unifiés derrière une seule API. Déployé sur 12 économies africaines."
+    canonicalUrl="/"
+  >
+    <div>
+
+      <Hero />
+      <Ticker />
+      <Features />
+      <UseCases />
+      <Compare />
+      <Reliability />
+      <Testimonials />
+      <Developers />
+      <Coverage />
+      <Pricing />
+      <CTA />
+    </div>
+  </PageShell>
+);
+
+
+

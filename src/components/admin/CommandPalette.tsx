@@ -59,7 +59,7 @@ export function AdminCommandPalette({
 
   const go = (path: string) => {
     onOpenChange(false);
-    navigate({ to: path as "/admin" });
+    navigate({ to: path as any });
   };
 
   return (
