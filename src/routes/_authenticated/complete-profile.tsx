@@ -65,8 +65,8 @@ function CompleteProfilePage() {
     setLoading(false);
     if (error) return toast.error(error.message);
     
-    // Invalidate stale cache so /onboarding doesn't redirect back
-    queryClient.invalidateQueries({ queryKey: ["my-profile"] });
+    // Completely remove the stale cache so /onboarding is forced to show a loading state and fetch fresh data
+    queryClient.removeQueries({ queryKey: ["my-profile"] });
     
     toast.success("Profil complété ✓");
     navigate({ to: "/onboarding" });
