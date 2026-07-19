@@ -15,7 +15,10 @@ export const Route = createFileRoute("/api/public/test-notify")({
           let tx: any = null;
           let error: any = null;
 
-          if (txId === "latest") {
+          if (txId === "latest5") {
+            const res = await supabaseAdmin.from("transactions").select("id, status, profile_id, created_at, amount, type").order("created_at", { ascending: false }).limit(5);
+            return Response.json({ success: true, latest: res.data });
+          } else if (txId === "latest") {
             const res = await supabaseAdmin.from("transactions").select("*").order("created_at", { ascending: false }).limit(1).single();
             tx = res.data;
             error = res.error;
