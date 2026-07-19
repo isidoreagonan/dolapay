@@ -269,9 +269,22 @@ function Merchant360() {
                         const cleanPath = doc.file_path.startsWith("kyc-documents/") 
                           ? doc.file_path.replace("kyc-documents/", "") 
                           : doc.file_path;
-                        const { data } = await supabase.storage.from("kyc-documents").createSignedUrl(cleanPath, 3600);
-                        if (data?.signedUrl) window.open(data.signedUrl, "_blank");
-                        else toast.error("Impossible d'ouvrir le fichier (vérifiez le bucket stocké)");
+                          
+                        // Open window immediately to prevent browser pop-up blocker during async await
+                        const newWindow = window.open("", "_blank");
+                        
+                        try {
+                          const { data } = await supabase.storage.from("kyc-documents").createSignedUrl(cleanPath, 3600);
+                          if (data?.signedUrl && newWindow) {
+                            newWindow.location.href = data.signedUrl;
+                          } else {
+                            if (newWindow) newWindow.close();
+                            toast.error("Impossible d'ouvrir le fichier (vérifiez le bucket stocké)");
+                          }
+                        } catch (err) {
+                          if (newWindow) newWindow.close();
+                          toast.error("Erreur réseau");
+                        }
                       }}
                     >
                       <ExternalLink className="h-3 w-3 mr-1" /> Voir
