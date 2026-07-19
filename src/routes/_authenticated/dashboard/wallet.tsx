@@ -235,37 +235,16 @@ function WalletPage() {
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
     queryFn: async (): Promise<Wallet | null> => {
-      const candidates = ["profile_id", "user_id", "merchant_id", "account_id", "owner_id", "id"];
       let data: any = null;
-
-      for (const col of candidates) {
-        const { data: rows, error } = await (supabase.from("wallets") as any)
-          .select("*")
-          .eq(col, profile!.id);
-
-        if (!error && rows && rows.length > 0) {
-          const sorted = rows.sort((a: any, b: any) => Number(b.balance ?? b.amount ?? b.solde ?? 0) - Number(a.balance ?? a.amount ?? a.solde ?? 0));
-          data = sorted[0];
-          data.balance = Number(data.balance ?? data.amount ?? data.solde ?? data.available_balance ?? 0);
-          if (data.balance > 0) break;
-        }
+      const { data: rows, error: wErr } = await supabase.from("wallets").select("*").eq("profile_id", profile!.id);
+      if (!wErr && rows && rows.length > 0) {
+        const sorted = rows.sort((a: any, b: any) => Number(b.balance ?? 0) - Number(a.balance ?? 0));
+        data = sorted[0];
+        data.balance = Number(data.balance ?? 0);
       }
 
-      // 1. Collecter toutes les transactions de l'utilisateur sans erreur SQL (select '*')
-      const txCandidates = ["profile_id", "user_id", "merchant_id", "account_id", "id"];
-      const allTxsMap = new Map<string, any>();
-      for (const col of txCandidates) {
-        const { data: colTxs } = await (supabase.from("transactions") as any)
-          .select("*")
-          .eq(col, profile!.id);
-        if (colTxs) {
-          colTxs.forEach((t: any) => {
-            if (t && t.id) allTxsMap.set(String(t.id), t);
-            else allTxsMap.set(JSON.stringify(t), t);
-          });
-        }
-      }
-      const allTxs = Array.from(allTxsMap.values());
+      // 1. Collecter toutes les transactions de l'utilisateur
+      const { data: allTxs = [] } = await supabase.from("transactions").select("*").eq("profile_id", profile!.id);
 
       // 2. Calculer le solde des paiements Live et des paiements Test
       let livePayin = 0, livePayout = 0;
@@ -301,21 +280,19 @@ function WalletPage() {
       const seenIds = new Set<string>();
       allTxs.forEach((t: any) => { if (t && t.id) seenIds.add(String(t.id)); });
       const rawWrs: any[] = [];
-      for (const col of ["profile_id", "user_id", "merchant_id", "account_id", "owner_id", "id"]) {
-        const { data: wrs } = await (supabase.from("withdrawal_requests") as any).select("*").eq(col, profile!.id);
-        if (wrs) {
-          wrs.forEach((w: any) => {
-            const st = String(w.status || "").toLowerCase();
-            const amt = Number(w.amount || 0);
-            rawWrs.push({ id: w.id, amt, st });
-            if (st === "success" || st === "completed" || st === "validé" || st === "validated" || st === "processing" || st === "pending") {
-              if (!seenIds.has(String(w.id))) {
-                seenIds.add(String(w.id));
-                if (amt > 0 && amt !== 101) livePayout += amt;
-              }
+      const { data: wrs } = await supabase.from("withdrawal_requests").select("*").eq("profile_id", profile!.id);
+      if (wrs) {
+        wrs.forEach((w: any) => {
+          const st = String(w.status || "").toLowerCase();
+          const amt = Number(w.amount || 0);
+          rawWrs.push({ id: w.id, amt, st });
+          if (st === "success" || st === "completed" || st === "validé" || st === "validated" || st === "processing" || st === "pending") {
+            if (!seenIds.has(String(w.id))) {
+              seenIds.add(String(w.id));
+              if (amt > 0 && amt !== 101) livePayout += amt;
             }
-          });
-        }
+          }
+        });
       }
 
       // Ajouter également tous les retraits effectués via payout_batches / payout_batch_items (décaissements réels)
@@ -413,54 +390,46 @@ function WalletPage() {
         body: JSON.stringify({ userId: profile!.id })
       }).catch(() => {});
 
-      const candidates = ["profile_id", "user_id", "merchant_id", "account_id", "owner_id", "id"];
       let results: WithdrawalRequest[] = [];
       const existingIds = new Set<string>();
 
-      // 1. withdrawal_requests across candidates
-      for (const col of candidates) {
-        const res = await (supabase.from("withdrawal_requests") as any)
-          .select("*")
-          .eq(col, profile!.id)
-          .order("created_at", { ascending: false });
+      // 1. withdrawal_requests
+      const { data: wrData } = await supabase
+        .from("withdrawal_requests")
+        .select("*")
+        .eq("profile_id", profile!.id)
+        .order("created_at", { ascending: false });
 
-        if (!res.error && res.data && res.data.length > 0) {
-          for (const r of res.data) {
-            if (!existingIds.has(r.id)) {
-              existingIds.add(r.id);
-              const amt = Number(r.amount || 0);
-              const st = (r.status === "completed" || r.status === "success" || r.status === "validé") ? "success" : (r.status === "failed" || r.status === "rejected" ? "failed" : "pending");
-              results.push({ ...(r as any), status: st } as WithdrawalRequest);
-            }
-          }
-          break;
+      if (wrData) {
+        for (const r of wrData) {
+          existingIds.add(r.id);
+          const st = (r.status === "completed" || r.status === "success" || r.status === "validé") ? "success" : (r.status === "failed" || r.status === "rejected" ? "failed" : "pending");
+          results.push({ ...(r as any), status: st } as WithdrawalRequest);
         }
       }
 
-      // 2. transactions (type: "pay-out") across candidates
-      for (const col of ["profile_id", "user_id", "merchant_id", "account_id"]) {
-        const { data: txPayouts } = await (supabase.from("transactions") as any)
-          .select("*")
-          .eq(col, profile!.id)
-          .eq("type", "pay-out")
-          .order("created_at", { ascending: false });
+      // 2. transactions (type: "pay-out")
+      const { data: txPayouts } = await supabase
+        .from("transactions")
+        .select("*")
+        .eq("profile_id", profile!.id)
+        .eq("type", "pay-out")
+        .order("created_at", { ascending: false });
 
-        if (txPayouts && txPayouts.length > 0) {
-          for (const t of txPayouts) {
-            if (!existingIds.has(t.id)) {
-              existingIds.add(t.id);
-              const amt = Number(t.amount || 0);
-              const st = (t.status === "completed" || t.status === "success" || t.status === "validé") ? "success" : (t.status === "failed" || t.status === "rejected" ? "failed" : "pending");
-              results.push({
-                id: t.id,
-                amount: t.amount,
-                currency: (t.currency || "XOF") as any,
-                method: t.provider || t.description?.replace("Retrait Mobile Money - ", "")?.split(" (")[0] || "Mobile Money",
-                recipient_phone: t.customer_phone || t.description?.split(" (")[1]?.replace(")", "") || "N/A",
-                status: st as any,
-                created_at: t.created_at,
-              });
-            }
+      if (txPayouts) {
+        for (const t of txPayouts) {
+          if (!existingIds.has(t.id)) {
+            existingIds.add(t.id);
+            const st = (t.status === "completed" || t.status === "success" || t.status === "validé") ? "success" : (t.status === "failed" || t.status === "rejected" ? "failed" : "pending");
+            results.push({
+              id: t.id,
+              amount: Number(t.amount || 0),
+              currency: t.currency || "XOF",
+              method: t.description || "Bank/Mobile Transfer",
+              recipient_phone: "---",
+              status: st as any,
+              created_at: t.created_at,
+            });
           }
         }
       }
