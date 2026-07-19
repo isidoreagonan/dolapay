@@ -266,7 +266,10 @@ function Merchant360() {
                       variant="ghost"
                       className="h-7 px-2 text-xs text-slate-300 hover:text-white"
                       onClick={async () => {
-                        const { data } = await supabase.storage.from("kyc-documents").createSignedUrl(doc.file_path, 3600);
+                        const cleanPath = doc.file_path.startsWith("kyc-documents/") 
+                          ? doc.file_path.replace("kyc-documents/", "") 
+                          : doc.file_path;
+                        const { data } = await supabase.storage.from("kyc-documents").createSignedUrl(cleanPath, 3600);
                         if (data?.signedUrl) window.open(data.signedUrl, "_blank");
                         else toast.error("Impossible d'ouvrir le fichier (vérifiez le bucket stocké)");
                       }}
