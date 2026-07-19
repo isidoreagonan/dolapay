@@ -14,4 +14,3 @@ USING (
 
 -- Mettre à jour l'admin principal (à remplacer par votre email si différent)
 UPDATE public.profiles SET role = 'admin' WHERE email = 'isidoreagonan@gmail.com';
-UPDATE public.profiles SET role = 'admin' WHERE email = 'support@dolapay.co';
