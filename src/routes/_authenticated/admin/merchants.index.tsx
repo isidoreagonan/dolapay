@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/_authenticated/admin/merchants")({
+export const Route = createFileRoute("/_authenticated/admin/merchants/")({
   component: MerchantsList,
 });
 

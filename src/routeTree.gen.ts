@@ -54,11 +54,11 @@ import { Route as AuthenticatedDashboardApiKeysRouteImport } from './routes/_aut
 import { Route as AuthenticatedDashboardAdminRouteImport } from './routes/_authenticated/dashboard/admin'
 import { Route as AuthenticatedAdminTeamRouteImport } from './routes/_authenticated/admin/team'
 import { Route as AuthenticatedAdminRiskRouteImport } from './routes/_authenticated/admin/risk'
-import { Route as AuthenticatedAdminMerchantsRouteImport } from './routes/_authenticated/admin/merchants'
 import { Route as AuthenticatedAdminLiveRouteImport } from './routes/_authenticated/admin/live'
 import { Route as AuthenticatedAdminFinanceRouteImport } from './routes/_authenticated/admin/finance'
 import { Route as AuthenticatedAdminComplianceRouteImport } from './routes/_authenticated/admin/compliance'
 import { Route as AuthenticatedAdminAuditRouteImport } from './routes/_authenticated/admin/audit'
+import { Route as AuthenticatedAdminMerchantsIndexRouteImport } from './routes/_authenticated/admin/merchants.index'
 import { Route as ApiV1ChargesIdRouteImport } from './routes/api/v1/charges.$id'
 import { Route as ApiPublicTxTimeoutIdRouteImport } from './routes/api/public/tx-timeout.$id'
 import { Route as ApiPublicTxStatusIdRouteImport } from './routes/api/public/tx-status.$id'
@@ -303,12 +303,6 @@ const AuthenticatedAdminRiskRoute = AuthenticatedAdminRiskRouteImport.update({
   path: '/risk',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
-const AuthenticatedAdminMerchantsRoute =
-  AuthenticatedAdminMerchantsRouteImport.update({
-    id: '/merchants',
-    path: '/merchants',
-    getParentRoute: () => AuthenticatedAdminRouteRoute,
-  } as any)
 const AuthenticatedAdminLiveRoute = AuthenticatedAdminLiveRouteImport.update({
   id: '/live',
   path: '/live',
@@ -331,6 +325,12 @@ const AuthenticatedAdminAuditRoute = AuthenticatedAdminAuditRouteImport.update({
   path: '/audit',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
+const AuthenticatedAdminMerchantsIndexRoute =
+  AuthenticatedAdminMerchantsIndexRouteImport.update({
+    id: '/merchants/',
+    path: '/merchants/',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
+  } as any)
 const ApiV1ChargesIdRoute = ApiV1ChargesIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -353,9 +353,9 @@ const ApiPublicPaySlugRoute = ApiPublicPaySlugRouteImport.update({
 } as any)
 const AuthenticatedAdminMerchantsIdRoute =
   AuthenticatedAdminMerchantsIdRouteImport.update({
-    id: '/$id',
-    path: '/$id',
-    getParentRoute: () => AuthenticatedAdminMerchantsRoute,
+    id: '/merchants/$id',
+    path: '/merchants/$id',
+    getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -385,7 +385,6 @@ export interface FileRoutesByFullPath {
   '/admin/compliance': typeof AuthenticatedAdminComplianceRoute
   '/admin/finance': typeof AuthenticatedAdminFinanceRoute
   '/admin/live': typeof AuthenticatedAdminLiveRoute
-  '/admin/merchants': typeof AuthenticatedAdminMerchantsRouteWithChildren
   '/admin/risk': typeof AuthenticatedAdminRiskRoute
   '/admin/team': typeof AuthenticatedAdminTeamRoute
   '/dashboard/admin': typeof AuthenticatedDashboardAdminRoute
@@ -413,6 +412,7 @@ export interface FileRoutesByFullPath {
   '/api/public/tx-status/$id': typeof ApiPublicTxStatusIdRoute
   '/api/public/tx-timeout/$id': typeof ApiPublicTxTimeoutIdRoute
   '/api/v1/charges/$id': typeof ApiV1ChargesIdRoute
+  '/admin/merchants/': typeof AuthenticatedAdminMerchantsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -439,7 +439,6 @@ export interface FileRoutesByTo {
   '/admin/compliance': typeof AuthenticatedAdminComplianceRoute
   '/admin/finance': typeof AuthenticatedAdminFinanceRoute
   '/admin/live': typeof AuthenticatedAdminLiveRoute
-  '/admin/merchants': typeof AuthenticatedAdminMerchantsRouteWithChildren
   '/admin/risk': typeof AuthenticatedAdminRiskRoute
   '/admin/team': typeof AuthenticatedAdminTeamRoute
   '/dashboard/admin': typeof AuthenticatedDashboardAdminRoute
@@ -467,6 +466,7 @@ export interface FileRoutesByTo {
   '/api/public/tx-status/$id': typeof ApiPublicTxStatusIdRoute
   '/api/public/tx-timeout/$id': typeof ApiPublicTxTimeoutIdRoute
   '/api/v1/charges/$id': typeof ApiV1ChargesIdRoute
+  '/admin/merchants': typeof AuthenticatedAdminMerchantsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -497,7 +497,6 @@ export interface FileRoutesById {
   '/_authenticated/admin/compliance': typeof AuthenticatedAdminComplianceRoute
   '/_authenticated/admin/finance': typeof AuthenticatedAdminFinanceRoute
   '/_authenticated/admin/live': typeof AuthenticatedAdminLiveRoute
-  '/_authenticated/admin/merchants': typeof AuthenticatedAdminMerchantsRouteWithChildren
   '/_authenticated/admin/risk': typeof AuthenticatedAdminRiskRoute
   '/_authenticated/admin/team': typeof AuthenticatedAdminTeamRoute
   '/_authenticated/dashboard/admin': typeof AuthenticatedDashboardAdminRoute
@@ -525,6 +524,7 @@ export interface FileRoutesById {
   '/api/public/tx-status/$id': typeof ApiPublicTxStatusIdRoute
   '/api/public/tx-timeout/$id': typeof ApiPublicTxTimeoutIdRoute
   '/api/v1/charges/$id': typeof ApiV1ChargesIdRoute
+  '/_authenticated/admin/merchants/': typeof AuthenticatedAdminMerchantsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -555,7 +555,6 @@ export interface FileRouteTypes {
     | '/admin/compliance'
     | '/admin/finance'
     | '/admin/live'
-    | '/admin/merchants'
     | '/admin/risk'
     | '/admin/team'
     | '/dashboard/admin'
@@ -583,6 +582,7 @@ export interface FileRouteTypes {
     | '/api/public/tx-status/$id'
     | '/api/public/tx-timeout/$id'
     | '/api/v1/charges/$id'
+    | '/admin/merchants/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -609,7 +609,6 @@ export interface FileRouteTypes {
     | '/admin/compliance'
     | '/admin/finance'
     | '/admin/live'
-    | '/admin/merchants'
     | '/admin/risk'
     | '/admin/team'
     | '/dashboard/admin'
@@ -637,6 +636,7 @@ export interface FileRouteTypes {
     | '/api/public/tx-status/$id'
     | '/api/public/tx-timeout/$id'
     | '/api/v1/charges/$id'
+    | '/admin/merchants'
   id:
     | '__root__'
     | '/'
@@ -666,7 +666,6 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/compliance'
     | '/_authenticated/admin/finance'
     | '/_authenticated/admin/live'
-    | '/_authenticated/admin/merchants'
     | '/_authenticated/admin/risk'
     | '/_authenticated/admin/team'
     | '/_authenticated/dashboard/admin'
@@ -694,6 +693,7 @@ export interface FileRouteTypes {
     | '/api/public/tx-status/$id'
     | '/api/public/tx-timeout/$id'
     | '/api/v1/charges/$id'
+    | '/_authenticated/admin/merchants/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1047,13 +1047,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRiskRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
-    '/_authenticated/admin/merchants': {
-      id: '/_authenticated/admin/merchants'
-      path: '/merchants'
-      fullPath: '/admin/merchants'
-      preLoaderRoute: typeof AuthenticatedAdminMerchantsRouteImport
-      parentRoute: typeof AuthenticatedAdminRouteRoute
-    }
     '/_authenticated/admin/live': {
       id: '/_authenticated/admin/live'
       path: '/live'
@@ -1080,6 +1073,13 @@ declare module '@tanstack/react-router' {
       path: '/audit'
       fullPath: '/admin/audit'
       preLoaderRoute: typeof AuthenticatedAdminAuditRouteImport
+      parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/_authenticated/admin/merchants/': {
+      id: '/_authenticated/admin/merchants/'
+      path: '/merchants'
+      fullPath: '/admin/merchants/'
+      preLoaderRoute: typeof AuthenticatedAdminMerchantsIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
     '/api/v1/charges/$id': {
@@ -1112,37 +1112,24 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/admin/merchants/$id': {
       id: '/_authenticated/admin/merchants/$id'
-      path: '/$id'
+      path: '/merchants/$id'
       fullPath: '/admin/merchants/$id'
       preLoaderRoute: typeof AuthenticatedAdminMerchantsIdRouteImport
-      parentRoute: typeof AuthenticatedAdminMerchantsRoute
+      parentRoute: typeof AuthenticatedAdminRouteRoute
     }
   }
 }
-
-interface AuthenticatedAdminMerchantsRouteChildren {
-  AuthenticatedAdminMerchantsIdRoute: typeof AuthenticatedAdminMerchantsIdRoute
-}
-
-const AuthenticatedAdminMerchantsRouteChildren: AuthenticatedAdminMerchantsRouteChildren =
-  {
-    AuthenticatedAdminMerchantsIdRoute: AuthenticatedAdminMerchantsIdRoute,
-  }
-
-const AuthenticatedAdminMerchantsRouteWithChildren =
-  AuthenticatedAdminMerchantsRoute._addFileChildren(
-    AuthenticatedAdminMerchantsRouteChildren,
-  )
 
 interface AuthenticatedAdminRouteRouteChildren {
   AuthenticatedAdminAuditRoute: typeof AuthenticatedAdminAuditRoute
   AuthenticatedAdminComplianceRoute: typeof AuthenticatedAdminComplianceRoute
   AuthenticatedAdminFinanceRoute: typeof AuthenticatedAdminFinanceRoute
   AuthenticatedAdminLiveRoute: typeof AuthenticatedAdminLiveRoute
-  AuthenticatedAdminMerchantsRoute: typeof AuthenticatedAdminMerchantsRouteWithChildren
   AuthenticatedAdminRiskRoute: typeof AuthenticatedAdminRiskRoute
   AuthenticatedAdminTeamRoute: typeof AuthenticatedAdminTeamRoute
   AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
+  AuthenticatedAdminMerchantsIdRoute: typeof AuthenticatedAdminMerchantsIdRoute
+  AuthenticatedAdminMerchantsIndexRoute: typeof AuthenticatedAdminMerchantsIndexRoute
 }
 
 const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren =
@@ -1151,11 +1138,12 @@ const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren
     AuthenticatedAdminComplianceRoute: AuthenticatedAdminComplianceRoute,
     AuthenticatedAdminFinanceRoute: AuthenticatedAdminFinanceRoute,
     AuthenticatedAdminLiveRoute: AuthenticatedAdminLiveRoute,
-    AuthenticatedAdminMerchantsRoute:
-      AuthenticatedAdminMerchantsRouteWithChildren,
     AuthenticatedAdminRiskRoute: AuthenticatedAdminRiskRoute,
     AuthenticatedAdminTeamRoute: AuthenticatedAdminTeamRoute,
     AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
+    AuthenticatedAdminMerchantsIdRoute: AuthenticatedAdminMerchantsIdRoute,
+    AuthenticatedAdminMerchantsIndexRoute:
+      AuthenticatedAdminMerchantsIndexRoute,
   }
 
 const AuthenticatedAdminRouteRouteWithChildren =
