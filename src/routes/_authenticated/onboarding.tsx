@@ -1,13 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { motion, AnimatePresence } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Loader2, ArrowRight, ArrowLeft, Upload, CheckCircle2, Building2, User, Plus, Trash2, ShieldAlert } from "lucide-react";
+import { Loader2, ArrowRight, ArrowLeft, Upload, CheckCircle2, Building2, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import logoFull from "@/assets/dolapay-logo.png.asset.json";
@@ -19,8 +18,6 @@ export const Route = createFileRoute("/_authenticated/onboarding")({
 });
 
 type AccountType = "standard" | "enterprise";
-type Ubo = { name: string; share: string; nationality: string };
-type Representative = { id: string; full_name: string; title: string; email: string; verified: boolean };
 
 function OnboardingPage() {
   const qc = useQueryClient();
@@ -46,124 +43,101 @@ function OnboardingPage() {
   const [step, setStep] = useState(draft?.step ?? 0);
   const [accountType, setAccountType] = useState<AccountType>(draft?.accountType ?? "standard");
 
-  // Standard
+  // Standard / Enterprise Info
   const [fullName, setFullName] = useState(draft?.fullName ?? "");
-  const [dob, setDob] = useState(draft?.dob ?? "");
   const [country, setCountry] = useState(draft?.country ?? "");
   const [city, setCity] = useState(draft?.city ?? "");
   const [address, setAddress] = useState(draft?.address ?? "");
 
-  // Enterprise
+  // Enterprise Only
   const [companyName, setCompanyName] = useState(draft?.companyName ?? "");
-  const [hqCountry, setHqCountry] = useState(draft?.hqCountry ?? "");
-  const [hqCity, setHqCity] = useState(draft?.hqCity ?? "");
-  const [hqAddress, setHqAddress] = useState(draft?.hqAddress ?? "");
   const [regNum, setRegNum] = useState(draft?.regNum ?? "");
   const [taxId, setTaxId] = useState(draft?.taxId ?? "");
-  const [ubos, setUbos] = useState<Ubo[]>(draft?.ubos ?? [{ name: "", share: "", nationality: "" }]);
-  const [reps, setReps] = useState<Representative[]>(draft?.reps ?? []);
-  const allRepsVerified = reps.length > 0 && reps.every((r) => r.verified);
-  const [enterpriseVerified, setEnterpriseVerified] = useState(draft?.enterpriseVerified ?? false);
 
   // Documents
   const [docs, setDocs] = useState<Record<string, File | null>>({});
 
-  // Bonne mémoire : Sauvegarde automatique en continu dans localStorage
   useEffect(() => {
     try {
       localStorage.setItem("dola_onboard_draft", JSON.stringify({
-        step, accountType, fullName, dob, country, city, address,
-        companyName, hqCountry, hqCity, hqAddress, regNum, taxId, ubos, reps,
-        enterpriseVerified
+        step, accountType, fullName, country, city, address, companyName, regNum, taxId
       }));
     } catch { /* ignore */ }
-  }, [step, accountType, fullName, dob, country, city, address, companyName, hqCountry, hqCity, hqAddress, regNum, taxId, ubos, reps, enterpriseVerified]);
+  }, [step, accountType, fullName, country, city, address, companyName, regNum, taxId]);
 
-  const kybLabels = getKybLabels(hqCountry);
+  const kybLabels = getKybLabels(country);
 
   const submit = useMutation({
     mutationFn: async () => {
       if (!profile) throw new Error("Profil introuvable");
       const uid = profile.id;
 
-      // 1. Upload documents
-      if (accountType === "standard") {
-        const requiredDocs = ["id", "selfie", "proof_of_address"];
-        const bucket = "kyc-documents";
-        for (const t of requiredDocs) {
-          const file = docs[t];
-          if (!file) throw new Error(`Document manquant : ${t}`);
-          if (file.size > 10 * 1024 * 1024) throw new Error(`${t} dépasse 10 Mo`);
-          const ext = file.name.split(".").pop() ?? "bin";
-          const path = `${uid}/${t}-${Date.now()}.${ext}`;
-          const { error: upErr } = await supabase.storage.from(bucket).upload(path, file, { upsert: true });
-          if (upErr) throw upErr;
-          const { error: dbErr } = await supabase.from("kyc_documents").insert({
-            profile_id: uid, document_type: t as "id", file_path: bucket + "/" + path, status: "pending",
-          });
-          if (dbErr) throw dbErr;
-        }
-      }
-      // Verification of company is now manual via back-office
+      const requiredDocs = accountType === "standard" 
+        ? ["id", "selfie"] 
+        : ["id", "selfie", "company_registration", "tax_id"];
 
-      // 2. Update profile — push into compliance review (12–24h SLA)
-      const stdPatch = accountType === "standard"
-        ? { full_name: fullName, date_of_birth: dob || null, address, city, country }
-        : {};
+      const bucket = "kyc-documents";
+
+      for (const t of requiredDocs) {
+        const file = docs[t];
+        if (!file) throw new Error(`Document manquant : ${t}`);
+        if (file.size > 10 * 1024 * 1024) throw new Error(`${t} dépasse 10 Mo`);
+        
+        // Strict verification: Enterprise company_registration and tax_id MUST be PDF
+        if (accountType === "enterprise" && (t === "company_registration" || t === "tax_id")) {
+          if (file.type !== "application/pdf") {
+             throw new Error(`Le document légal/fiscal (${t}) doit obligatoirement être au format PDF.`);
+          }
+        }
+
+        const ext = file.name.split(".").pop() ?? "bin";
+        const path = `${uid}/${t}-${Date.now()}.${ext}`;
+        const { error: upErr } = await supabase.storage.from(bucket).upload(path, file, { upsert: true });
+        if (upErr) throw upErr;
+        const { error: dbErr } = await supabase.from("kyc_documents").insert({
+          profile_id: uid, document_type: t as any, file_path: bucket + "/" + path, status: "pending",
+        });
+        if (dbErr) throw dbErr;
+      }
+
       const { error: pErr } = await supabase
         .from("profiles")
-        .update({ account_type: accountType, onboarding_completed: true, kyc_status: "in_compliance_review", ...stdPatch } as never)
+        .update({ 
+          account_type: accountType, 
+          onboarding_completed: true, 
+          kyc_status: "pending", 
+          full_name: fullName, 
+          address, 
+          city, 
+          country 
+        } as never)
         .eq("id", uid);
       if (pErr) throw pErr;
+
+      if (accountType === "enterprise") {
+        const { error: bErr } = await supabase.from("businesses").upsert({
+          profile_id: uid,
+          company_name: companyName,
+          headquarters_address: address,
+          hq_city: city,
+          hq_country: country,
+          registration_number: regNum,
+          tax_id: taxId,
+        }, { onConflict: "profile_id" });
+        if (bErr) throw bErr;
+      }
+
       try {
         await fetch("/api/public/send-notification", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ type: "welcome", profileId: uid }),
-        }).catch(() => {});
+        });
       } catch {}
-
-      // 3. Enterprise business row
-      if (accountType === "enterprise") {
-        const validUbos = ubos
-          .filter((u) => u.name.trim())
-          .map((u) => ({
-            full_name: u.name,
-            percentage: Number(u.share) || 0,
-            nationality: u.nationality || "Béninoise",
-          }));
-
-        const { data: bizData, error: bErr } = await supabase.from("businesses").upsert({
-          profile_id: uid,
-          company_name: companyName,
-          headquarters_address: hqAddress,
-          hq_city: hqCity,
-          hq_country: hqCountry,
-          registration_number: regNum,
-          tax_id: taxId,
-          ubos: validUbos as any,
-        }, { onConflict: "profile_id" }).select("id").maybeSingle();
-        if (bErr) throw bErr;
-
-        // 4. Persist verified representatives
-        if (reps.length) {
-          const rows = reps.map((r) => ({
-            profile_id: uid,
-            full_name: r.full_name,
-            title: r.title,
-            email: r.email,
-            verified: r.verified,
-            verified_at: r.verified ? new Date().toISOString() : null,
-          }));
-          const { error: rErr } = await supabase.from("business_representatives").insert(rows);
-          if (rErr) throw rErr;
-        }
-      }
-
     },
     onSuccess: () => {
       try { localStorage.removeItem("dola_onboard_draft"); } catch {}
-      toast.success("Dossier soumis ! Vérification en cours.");
+      toast.success("Dossier soumis ! Accès au tableau de bord.");
       qc.invalidateQueries({ queryKey: ["my-profile"] });
       navigate({ to: "/dashboard" });
     },
@@ -196,200 +170,93 @@ function OnboardingPage() {
           {step === 0 && (
             <div className="space-y-4">
               <h2 className="text-xl font-bold">Choisissez votre type de compte</h2>
-              <p className="text-sm text-muted-foreground">Cela détermine les documents à fournir pour la vérification.</p>
               <div className="grid gap-3 sm:grid-cols-2">
-                <TypeCard active={accountType === "standard"} onClick={() => setAccountType("standard")} icon={User} title="Standard (KYC)" desc="Individus, freelances. Pièce d'identité, selfie, justificatif de domicile." />
-                <TypeCard active={accountType === "enterprise"} onClick={() => setAccountType("enterprise")} icon={Building2} title="Entreprise (KYB)" desc="Sociétés enregistrées. RCCM, NIF, identité du dirigeant, UBO." />
+                <TypeCard active={accountType === "standard"} onClick={() => setAccountType("standard")} icon={User} title="Standard" desc="Individu ou Freelance. Juste votre nom et pièce d'identité." />
+                <TypeCard active={accountType === "enterprise"} onClick={() => setAccountType("enterprise")} icon={Building2} title="Entreprise" desc="Société enregistrée. Nom de l'entreprise, RCCM et NIF." />
               </div>
             </div>
           )}
 
-          {step === 1 && accountType === "standard" && (
+          {step === 1 && (
             <div className="space-y-4">
-              <h2 className="text-xl font-bold">Vos informations</h2>
-              <Field label="Nom complet" value={fullName} onChange={setFullName} placeholder="Comme sur votre pièce d'identité" />
-              <Field label="Date de naissance" type="date" value={dob} onChange={setDob} />
-              <AddressBlock label="Résidence" country={country} city={city} address={address} onCountry={setCountry} onCity={setCity} onAddress={setAddress} />
-            </div>
-          )}
+              <h2 className="text-xl font-bold">Informations de base</h2>
+              
+              {accountType === "enterprise" && (
+                <Field label="Nom de l'entreprise" value={companyName} onChange={setCompanyName} placeholder="Raison sociale" />
+              )}
+              
+              <Field label={accountType === "standard" ? "Votre nom complet" : "Nom complet du gérant"} value={fullName} onChange={setFullName} placeholder="Comme sur votre pièce d'identité" />
+              
+              <AddressBlock label={accountType === "standard" ? "Résidence" : "Pays d'enregistrement"} country={country} city={city} address={address} onCountry={setCountry} onCity={setCity} onAddress={setAddress} />
 
-          {step === 1 && accountType === "enterprise" && (
-            <div className="space-y-5">
-              <h2 className="text-xl font-bold">Informations entreprise (KYB)</h2>
-              <div className="space-y-3">
-                <Field label="Raison sociale" value={companyName} onChange={setCompanyName} />
-                <AddressBlock label="Siège social" country={hqCountry} city={hqCity} address={hqAddress} onCountry={setHqCountry} onCity={setHqCity} onAddress={setHqAddress} />
-                {hqCountry && kybLabels.isGeneric && (
-                  <p className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
-                    Ce pays n'est pas encore préconfiguré. Renseignez manuellement le nom du registre du commerce et l'identifiant fiscal applicable localement.
-                  </p>
-                )}
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <Field label={`N° ${kybLabels.registry.short}`} value={regNum} onChange={setRegNum} placeholder={hqCountry ? undefined : "Sélectionnez d'abord le pays du siège"} />
-                  <Field label={kybLabels.tax.label} value={taxId} onChange={setTaxId} placeholder={kybLabels.tax.placeholder} />
+              {accountType === "enterprise" && country && (
+                <div className="grid gap-3 sm:grid-cols-2 mt-4 pt-4 border-t border-border">
+                  <Field label={`N° ${kybLabels.registry.short}`} value={regNum} onChange={setRegNum} />
+                  <Field label={kybLabels.tax.label} value={taxId} onChange={setTaxId} />
                 </div>
-              </div>
-
-              <div className="border-t border-border pt-4">
-                <div className="mb-2 flex items-center justify-between">
-                  <div>
-                    <h3 className="text-sm font-semibold">Représentants légaux & dirigeants</h3>
-                    <p className="text-xs text-muted-foreground">Ajoutez chaque dirigeant.</p>
-                  </div>
-                  <Button type="button" size="sm" variant="outline" onClick={() => setReps([...reps, { id: crypto.randomUUID(), full_name: "", title: "", email: "", verified: false }])}>
-                    <Plus className="h-3 w-3 mr-1" /> Ajouter
-                  </Button>
-                </div>
-                <div className="space-y-3">
-                  <AnimatePresence initial={false}>
-                    {reps.map((r) => (
-                      <motion.div
-                        key={r.id}
-                        layout
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -8 }}
-                        className="rounded-2xl border border-border p-4"
-                      >
-                        <div className="mb-3 flex items-center justify-between gap-2">
-                          <div className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold bg-muted text-muted-foreground">
-                             <ShieldAlert className="h-3 w-3" /> Non vérifié
-                          </div>
-                          <Button
-                            type="button"
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => {
-                              setReps(reps.filter((x) => x.id !== r.id));
-                              toast.info("Représentant supprimé");
-                            }}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                        <div className="grid gap-2 sm:grid-cols-3">
-                          <Input placeholder="Nom complet" value={r.full_name} disabled={r.verified}
-                            onChange={(e) => setReps(reps.map((x) => x.id === r.id ? { ...x, full_name: e.target.value } : x))} />
-                          <Input placeholder="Titre (CEO, CFO…)" value={r.title} disabled={r.verified}
-                            onChange={(e) => setReps(reps.map((x) => x.id === r.id ? { ...x, title: e.target.value } : x))} />
-                          <Input placeholder="Email" type="email" value={r.email} disabled={r.verified}
-                            onChange={(e) => setReps(reps.map((x) => x.id === r.id ? { ...x, email: e.target.value } : x))} />
-                        </div>
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                  {reps.length === 0 && (
-                    <div className="rounded-xl border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
-                      Ajoutez au moins un représentant légal pour continuer.
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="border-t border-border pt-4">
-
-                <div className="mb-2 flex items-center justify-between">
-                  <h3 className="text-sm font-semibold">Bénéficiaires effectifs (UBO &gt; 25%)</h3>
-                  <Button type="button" size="sm" variant="outline" onClick={() => setUbos([...ubos, { name: "", share: "", nationality: "" }])}><Plus className="h-3 w-3 mr-1" />Ajouter</Button>
-                </div>
-                {ubos.map((u, i) => (
-                  <div key={i} className="mb-2 grid gap-2 sm:grid-cols-[1fr_120px_140px_auto]">
-                    <Input placeholder="Nom complet" value={u.name} onChange={(e) => { const c = [...ubos]; c[i] = { ...u, name: e.target.value }; setUbos(c); }} />
-                    <Input placeholder="% parts" value={u.share} onChange={(e) => { const c = [...ubos]; c[i] = { ...u, share: e.target.value }; setUbos(c); }} />
-                    <Input placeholder="Nationalité" value={u.nationality} onChange={(e) => { const c = [...ubos]; c[i] = { ...u, nationality: e.target.value }; setUbos(c); }} />
-                    <Button type="button" size="icon" variant="ghost" onClick={() => setUbos(ubos.filter((_, j) => j !== i))}><Trash2 className="h-3 w-3" /></Button>
-                  </div>
-                ))}
-              </div>
-
+              )}
             </div>
           )}
 
           {step === 2 && (
             <div className="space-y-4">
-              <h2 className="text-xl font-bold">
-                {accountType === "standard" ? "Documents à fournir (KYC)" : "Vérification Légale d'Entreprise (KYB)"}
-              </h2>
-              {accountType === "standard" && getKycIdLabel(country).isGeneric && country && (
-                <p className="rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
-                  Pays non préconfiguré : téléversez la pièce d'identité officielle valide délivrée dans votre pays.
-                </p>
-              )}
-              {accountType === "standard" ? (
-                (() => {
-                  const idLbl = getKycIdLabel(country);
-                  const list = [
-                    { type: "id", label: idLbl.label, hint: idLbl.hint },
-                    { type: "selfie", label: "Selfie de vérification (Liveness)", hint: "Visage clair, sans lunettes ni filtre." },
-                    { type: "proof_of_address", label: "Justificatif de domicile (< 3 mois)", hint: "Facture eau, électricité ou internet à votre nom." },
-                  ];
-                  return list.map((d) => (
-                    <DocSlot key={d.type} {...d} file={docs[d.type] ?? null} onFile={(f) => setDocs({ ...docs, [d.type]: f })} />
-                  ));
-                })()
-              ) : (
-                <div className="space-y-4">
-                  <div className="rounded-xl border border-border bg-card p-5">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <div className="flex items-center gap-2 font-bold text-base">
-                          <Building2 className="h-5 w-5 text-primary" /> Documents Légaux
-                        </div>
-                        <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-                          Validation en temps réel du Registre du Commerce ({kybLabels.registry.label}) et de la conformité fiscale ({kybLabels.tax.label}) pour <span className="font-semibold text-foreground">{companyName || "votre société"}</span>.
-                        </p>
-                      </div>
-                      <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-600 dark:text-amber-300">
-                        En attente
-                      </span>
-                    </div>
+              <h2 className="text-xl font-bold">Téléversement des documents</h2>
+              <p className="text-sm text-muted-foreground">Veuillez fournir des documents clairs et lisibles. Pour les entreprises, les documents légaux doivent être au format PDF.</p>
+              
+              <div className="space-y-3">
+                <DocSlot 
+                  type="id" 
+                  label={getKycIdLabel(country).label} 
+                  hint="Photo ou scan clair." 
+                  accept="image/*"
+                  file={docs["id"] ?? null} 
+                  onFile={(f) => setDocs({ ...docs, id: f })} 
+                />
+                <DocSlot 
+                  type="selfie" 
+                  label={accountType === "standard" ? "Photo de votre visage (Selfie)" : "Photo du visage du gérant (Selfie)"} 
+                  hint="Visage bien visible, sans lunettes." 
+                  accept="image/*"
+                  file={docs["selfie"] ?? null} 
+                  onFile={(f) => setDocs({ ...docs, selfie: f })} 
+                />
 
-                    <div className="mt-4 grid grid-cols-2 gap-3 rounded-lg border border-border/60 bg-muted/30 p-3 text-xs">
-                      <div>
-                        <span className="text-muted-foreground block">Société :</span>
-                        <span className="font-semibold">{companyName || "—"}</span>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground block">Pays HQ :</span>
-                        <span className="font-semibold">{hqCountry || country || "—"}</span>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground block">Registre :</span>
-                        <span className="font-semibold">{regNum || "—"}</span>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground block">N° Fiscal :</span>
-                        <span className="font-semibold">{taxId || "—"}</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
+                {accountType === "enterprise" && (
+                  <>
+                    <DocSlot 
+                      type="company_registration" 
+                      label={`Document d'immatriculation (${kybLabels.registry.short})`} 
+                      hint="Document officiel d'enregistrement. Obligatoirement en PDF." 
+                      accept="application/pdf"
+                      file={docs["company_registration"] ?? null} 
+                      onFile={(f) => setDocs({ ...docs, company_registration: f })} 
+                    />
+                    <DocSlot 
+                      type="tax_id" 
+                      label={`Attestation Fiscale (${kybLabels.tax.label})`} 
+                      hint="Document fiscal officiel. Obligatoirement en PDF." 
+                      accept="application/pdf"
+                      file={docs["tax_id"] ?? null} 
+                      onFile={(f) => setDocs({ ...docs, tax_id: f })} 
+                    />
+                  </>
+                )}
+              </div>
             </div>
           )}
-
 
           {step === 3 && (
             <div className="space-y-4">
               <h2 className="text-xl font-bold">Récapitulatif</h2>
               <div className="space-y-2 rounded-lg border border-border bg-background/50 p-4 text-sm">
-                <Row k="Type de compte" v={accountType === "standard" ? "Standard (KYC)" : "Entreprise (KYB)"} />
-                {accountType === "standard" ? (
-                  <>
-                    <Row k="Nom" v={fullName} />
-                  </>
-                ) : (
-                  <>
-                    <Row k="Société" v={companyName} />
-                    <Row k="Dirigeants vérifiés" v={`${reps.filter((r) => r.verified).length} / ${reps.length}`} />
-                    <Row k="UBO" v={`${ubos.filter((u) => u.name.trim()).length} déclaré(s)`} />
-                  </>
-                )}
-                <Row k="Vérification Légale" v={`${Object.values(docs).filter(Boolean).length} doc(s) envoyé(s)`} />
+                <Row k="Type" v={accountType === "standard" ? "Standard" : "Entreprise"} />
+                {accountType === "enterprise" && <Row k="Entreprise" v={companyName} />}
+                <Row k={accountType === "standard" ? "Nom" : "Gérant"} v={fullName} />
+                <Row k="Pays" v={country} />
+                <Row k="Documents attachés" v={`${Object.values(docs).filter(Boolean).length} documents`} />
               </div>
               <p className="text-xs text-muted-foreground">
-                En soumettant, vous confirmez l'exactitude des informations. Un agent DolaPay vérifiera votre dossier sous 24-48h.
-                Vous accéderez à votre dashboard immédiatement (lecture seule jusqu'à approbation).
+                Dès la soumission, vous accéderez à votre tableau de bord. Vos fonctionnalités seront bloquées (Statut: En attente) jusqu'à ce que notre équipe de conformité valide vos documents.
               </p>
             </div>
           )}
@@ -399,7 +266,7 @@ function OnboardingPage() {
               <ArrowLeft className="h-4 w-4 mr-1" /> Retour
             </Button>
             {step < 3 ? (
-              <Button type="button" onClick={() => setStep(step + 1)} disabled={!canAdvance(step, { accountType, fullName, companyName, docs, hqCountry, regNum, taxId, allRepsVerified, enterpriseVerified })}>
+              <Button type="button" onClick={() => setStep(step + 1)} disabled={!canAdvance(step, { accountType, fullName, companyName, docs, country, regNum, taxId })}>
                 Continuer <ArrowRight className="h-4 w-4 ml-1" />
               </Button>
             ) : (
@@ -411,51 +278,20 @@ function OnboardingPage() {
           </div>
         </Card>
       </div>
-
-      <DiditRepModal
-        rep={reps.find((r) => r.id === verifyingRepId) ?? null}
-        onClose={() => setVerifyingRepId(null)}
-        onVerified={(id, sessionId) => {
-          setReps((cur) => cur.map((r) => r.id === id ? { ...r, verified: true, didit_session_id: sessionId } : r));
-          setVerifyingRepId(null);
-          confetti({ particleCount: 80, spread: 70, origin: { y: 0.4 }, colors: ["#10b981", "#34d399", "#6366f1", "#a78bfa"] });
-          toast.success("Représentant vérifié ✓");
-        }}
-      />
-
-      <DiditBusinessModal
-        open={verifyingBusiness}
-        companyName={companyName}
-        country={hqCountry || country}
-        regNum={regNum}
-        email={profile?.email || "contact@dolapay.com"}
-        onClose={() => setVerifyingBusiness(false)}
-        onVerified={(sessionId) => {
-          setEnterpriseVerified(true);
-          setEnterpriseSessionId(sessionId);
-          setVerifyingBusiness(false);
-          confetti({ particleCount: 100, spread: 80, origin: { y: 0.4 }, colors: ["#10b981", "#34d399", "#6366f1", "#a78bfa"] });
-          toast.success("Entreprise et documents légaux vérifiés avec succès ✓");
-        }}
-      />
     </div>
   );
 }
 
-function canAdvance(step: number, s: { accountType: AccountType; fullName: string; companyName: string; docs: Record<string, File | null>; hqCountry: string; regNum: string; taxId: string; allRepsVerified: boolean; enterpriseVerified: boolean }) {
+function canAdvance(step: number, s: { accountType: AccountType; fullName: string; companyName: string; docs: Record<string, File | null>; country: string; regNum: string; taxId: string }) {
   if (step === 0) return true;
   if (step === 1) {
-    if (s.accountType === "standard") return !!s.fullName;
-    return !!(s.companyName && s.hqCountry && s.regNum.trim() && s.taxId.trim());
+    if (!s.fullName || !s.country) return false;
+    if (s.accountType === "enterprise") return !!(s.companyName && s.regNum.trim() && s.taxId.trim());
+    return true;
   }
   if (step === 2) {
-    if (s.accountType === "standard") {
-      const need = ["id", "selfie", "proof_of_address"];
-      return need.every((t) => s.docs[t]);
-    } else {
-      if (!s.taxId.trim() || !s.regNum.trim()) return false;
-      return s.enterpriseVerified;
-    }
+    if (s.accountType === "standard") return !!(s.docs["id"] && s.docs["selfie"]);
+    return !!(s.docs["id"] && s.docs["selfie"] && s.docs["company_registration"] && s.docs["tax_id"]);
   }
   return true;
 }
@@ -493,8 +329,7 @@ function Field({ label, value, onChange, placeholder, type = "text" }: { label: 
   );
 }
 
-
-function DocSlot({ type, label, hint, file, onFile }: { type: string; label: string; hint: string; file: File | null; onFile: (f: File | null) => void }) {
+function DocSlot({ type, label, hint, accept, file, onFile }: { type: string; label: string; hint: string; accept: string; file: File | null; onFile: (f: File | null) => void }) {
   return (
     <Card className="flex items-center justify-between p-4">
       <div className="min-w-0">
@@ -502,325 +337,14 @@ function DocSlot({ type, label, hint, file, onFile }: { type: string; label: str
         <div className="text-xs text-muted-foreground">{hint}</div>
         {file && <div className="mt-1 text-xs text-emerald-600 dark:text-emerald-300 truncate">✓ {file.name}</div>}
       </div>
-      <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-xs font-semibold hover:bg-accent">
-        <Upload className="h-3 w-3" /> {file ? "Changer" : "Téléverser"}
-        <input type="file" accept="image/*,application/pdf" className="hidden" onChange={(e) => onFile(e.target.files?.[0] ?? null)} data-doc-type={type} />
+      <label className="inline-flex cursor-pointer shrink-0 items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-xs font-semibold hover:bg-accent ml-4">
+        <Upload className="h-3 w-3" /> {file ? "Changer" : "Uploader"}
+        <input type="file" accept={accept} className="hidden" onChange={(e) => onFile(e.target.files?.[0] ?? null)} data-doc-type={type} />
       </label>
     </Card>
   );
 }
 
 function Row({ k, v }: { k: string; v: string }) {
-  return <div className="flex justify-between"><span className="text-muted-foreground">{k}</span><span className="font-medium">{v}</span></div>;
+  return <div className="flex justify-between"><span className="text-muted-foreground">{k}</span><span className="font-medium text-right">{v}</span></div>;
 }
-
-function DiditRepModal({ rep, onClose, onVerified }: { rep: Representative | null; onClose: () => void; onVerified: (id: string, sessionId?: string) => void }) {
-  const open = !!rep;
-  const [phase, setPhase] = useState(0);
-  const [session, setSession] = useState<{ simulated: boolean; verification_url: string | null; session_id: string } | null>(null);
-  const [creating, setCreating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const createSession = useServerFn(createDiditSession);
-
-  const steps = [
-    { icon: ScanLine, label: "Scan du document d'identité", detail: "Lecture MRZ et validation cryptographique" },
-    { icon: ScanFace, label: "Liveness & Face Match", detail: "Détection anti-spoofing en temps réel" },
-    { icon: Sparkles, label: "Vérification sanctions & registre", detail: "Croisement OFAC, UE, ONU" },
-  ];
-
-  // Reset on open + request a session (real or simulated)
-  useEffect(() => {
-    if (!open || !rep) return;
-    setPhase(0);
-    setError(null);
-    setSession(null);
-    setCreating(true);
-    createSession({
-      data: { full_name: rep.full_name, email: rep.email, representative_local_id: rep.id },
-    })
-      .then((s) => setSession(s))
-      .catch((e: Error) => setError(e.message))
-      .finally(() => setCreating(false));
-  }, [open, rep, createSession]);
-
-  const onVerifiedRef = useRef(onVerified);
-  const repIdRef = useRef(rep?.id);
-  const sessionIdRef = useRef(session?.session_id);
-  useEffect(() => {
-    onVerifiedRef.current = onVerified;
-    repIdRef.current = rep?.id;
-    sessionIdRef.current = session?.session_id;
-  });
-
-  // Exécution de l'animation de simulation uniquement en mode simulation
-  useEffect(() => {
-    if (!open || !session?.session_id || !session.simulated) return;
-    const t1 = setTimeout(() => setPhase(1), 1400);
-    const t2 = setTimeout(() => setPhase(2), 2800);
-    const t3 = setTimeout(() => setPhase(3), 4200);
-    const t4 = setTimeout(() => {
-      if (repIdRef.current) onVerifiedRef.current(repIdRef.current, sessionIdRef.current);
-    }, 5000);
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
-  }, [open, session?.session_id, session?.simulated]);
-
-  // Écouteur postMessage pour la fin de vérification réelle dans l'iFrame Didit
-  useEffect(() => {
-    const handleMessage = (e: MessageEvent) => {
-      if (e.data && (e.data.type === "DIDIT_SUCCESS" || e.data === "DIDIT_SUCCESS")) {
-        if (repIdRef.current) onVerifiedRef.current(repIdRef.current, sessionIdRef.current);
-      }
-    };
-    window.addEventListener("message", handleMessage);
-    return () => window.removeEventListener("message", handleMessage);
-  }, []);
-
-  return (
-    <Dialog open={open} onOpenChange={(o) => { if (!o) { onClose(); setPhase(0); } }}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2"><ScanFace className="h-5 w-5 text-primary" /> Vérification Didit AI (Arrière-plan)</DialogTitle>
-          <DialogDescription>
-            Audit biométrique et screening AML/PEP en arrière-plan pour {rep?.full_name || "—"}.
-          </DialogDescription>
-        </DialogHeader>
-
-        {creating && (
-          <div className="flex items-center gap-2 rounded-lg border border-border bg-background/50 p-3 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" /> Connexion sécurisée à Didit AI en arrière-plan…
-          </div>
-        )}
-
-        {error && (
-          <div className="rounded-lg border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-700 dark:text-red-300">
-            {error}
-          </div>
-        )}
-
-        {session && session.simulated && (
-          <div className="space-y-3 py-2">
-            {steps.map((s, i) => {
-              const done = i < phase;
-              const active = i === phase;
-              const Icon = s.icon;
-              return (
-                <motion.div
-                  key={s.label}
-                  initial={{ opacity: 0.4 }}
-                  animate={{ opacity: active ? 1 : 0.4 }}
-                  className={cn(
-                    "flex items-center gap-3 rounded-xl border p-3",
-                    done ? "border-emerald-500/40 bg-emerald-500/5" : active ? "border-primary/40 bg-primary/5" : "border-border"
-                  )}
-                >
-                  <div className={cn("grid h-9 w-9 place-items-center rounded-full", done ? "bg-emerald-500/15 text-emerald-600" : "bg-primary/10 text-primary")}>
-                    {done ? <CheckCircle2 className="h-5 w-5" /> : active ? <Loader2 className="h-5 w-5 animate-spin" /> : <Icon className="h-5 w-5" />}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="text-sm font-semibold">{s.label}</div>
-                    <div className="text-xs text-muted-foreground">{s.detail}</div>
-                  </div>
-                </motion.div>
-              );
-            })}
-            <p className="text-[11px] text-center text-muted-foreground pt-1">
-              ✓ Screening exécuté en arrière-plan via Didit API (<span className="font-mono">{session.session_id.slice(0, 16)}…</span>)
-            </p>
-          </div>
-        )}
-
-        {session && !session.simulated && session.verification_url && (
-          <div className="space-y-3 py-2">
-            <div className="overflow-hidden rounded-xl border border-border bg-background shadow-inner">
-              <iframe
-                src={session.verification_url}
-                className="w-full h-[500px] border-0"
-                allow="camera; microphone; geolocation"
-                title="Didit Biometric & Document Verification"
-              />
-            </div>
-            <div className="flex items-center justify-between text-xs text-muted-foreground pt-1 px-1">
-              <span className="flex items-center gap-1"><Sparkles className="h-3.5 w-3.5 text-primary" /> Scanner officiel Didit AI (CNI & Liveness)</span>
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                className="h-7 text-xs bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 border-emerald-500/30"
-                onClick={() => {
-                  if (repIdRef.current) onVerifiedRef.current(repIdRef.current, sessionIdRef.current);
-                }}
-              >
-                <CheckCircle2 className="h-3 w-3 mr-1" /> Terminer la vérification
-              </Button>
-            </div>
-            <p className="text-[11px] text-center text-muted-foreground">
-              Session sécurisée : <span className="font-mono">{session.session_id.slice(0, 20)}…</span>
-            </p>
-          </div>
-        )}
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-function DiditBusinessModal({
-  open,
-  companyName,
-  country,
-  regNum,
-  email,
-  onClose,
-  onVerified,
-}: {
-  open: boolean;
-  companyName: string;
-  country: string;
-  regNum?: string;
-  email: string;
-  onClose: () => void;
-  onVerified: (sessionId: string) => void;
-}) {
-  const [phase, setPhase] = useState(0);
-  const [session, setSession] = useState<{ simulated: boolean; verification_url: string | null; session_id: string } | null>(null);
-  const [creating, setCreating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const createSession = useServerFn(createDiditBusinessSession);
-
-  const steps = [
-    { icon: Building2, label: "Scan du Registre du Commerce (RCCM / Kbis)", detail: "Vérification officielle de l'immatriculation et statut légal" },
-    { icon: ScanLine, label: "Audit de l'Immatriculation Fiscale (IFU / NIF)", detail: "Contrôle d'activité et de conformité fiscale" },
-    { icon: Sparkles, label: "Screening Sanctions AML & UBOs", detail: "Croisement des registres de bénéficiaires effectifs (OFAC, UE)" },
-  ];
-
-  useEffect(() => {
-    if (!open) return;
-    setPhase(0);
-    setError(null);
-    setSession(null);
-    setCreating(true);
-    createSession({
-      data: { company_name: companyName || "Société", country: country || "CI", registration_number: regNum, email: email || "contact@dolapay.com" },
-    })
-      .then((s) => setSession(s))
-      .catch((e: Error) => setError(e.message))
-      .finally(() => setCreating(false));
-  }, [open, companyName, country, regNum, email, createSession]);
-
-  const onVerifiedRef = useRef(onVerified);
-  const sessionIdRef = useRef(session?.session_id);
-  useEffect(() => {
-    onVerifiedRef.current = onVerified;
-    sessionIdRef.current = session?.session_id;
-  });
-
-  useEffect(() => {
-    if (!open || !session?.session_id || !session.simulated) return;
-    const t1 = setTimeout(() => setPhase(1), 1400);
-    const t2 = setTimeout(() => setPhase(2), 2800);
-    const t3 = setTimeout(() => setPhase(3), 4200);
-    const t4 = setTimeout(() => {
-      if (sessionIdRef.current) onVerifiedRef.current(sessionIdRef.current);
-    }, 5000);
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
-  }, [open, session?.session_id, session?.simulated]);
-
-  useEffect(() => {
-    const handleMessage = (e: MessageEvent) => {
-      if (e.data && (e.data.type === "DIDIT_SUCCESS" || e.data === "DIDIT_SUCCESS")) {
-        if (sessionIdRef.current) onVerifiedRef.current(sessionIdRef.current);
-      }
-    };
-    window.addEventListener("message", handleMessage);
-    return () => window.removeEventListener("message", handleMessage);
-  }, []);
-
-  return (
-    <Dialog open={open} onOpenChange={(o) => { if (!o) { onClose(); setPhase(0); } }}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2"><Building2 className="h-5 w-5 text-primary" /> Vérification KYB Didit AI</DialogTitle>
-          <DialogDescription>
-            Audit automatisé en temps réel du registre de commerce et de la fiscalité pour {companyName || "votre société"}.
-          </DialogDescription>
-        </DialogHeader>
-
-        {creating && (
-          <div className="flex items-center gap-2 rounded-lg border border-border bg-background/50 p-3 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" /> Connexion sécurisée au registre Didit KYB…
-          </div>
-        )}
-
-        {error && (
-          <div className="rounded-lg border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-700 dark:text-red-300">
-            {error}
-          </div>
-        )}
-
-        {session && session.simulated && (
-          <div className="space-y-3 py-2">
-            {steps.map((s, i) => {
-              const done = i < phase;
-              const active = i === phase;
-              const Icon = s.icon;
-              return (
-                <motion.div
-                  key={s.label}
-                  initial={{ opacity: 0.4 }}
-                  animate={{ opacity: active ? 1 : 0.4 }}
-                  className={cn(
-                    "flex items-center gap-3 rounded-xl border p-3",
-                    done ? "border-emerald-500/40 bg-emerald-500/5" : active ? "border-primary/40 bg-primary/5" : "border-border"
-                  )}
-                >
-                  <div className={cn("grid h-9 w-9 place-items-center rounded-full", done ? "bg-emerald-500/15 text-emerald-600" : "bg-primary/10 text-primary")}>
-                    {done ? <CheckCircle2 className="h-5 w-5" /> : active ? <Loader2 className="h-5 w-5 animate-spin" /> : <Icon className="h-5 w-5" />}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="text-sm font-semibold">{s.label}</div>
-                    <div className="text-xs text-muted-foreground">{s.detail}</div>
-                  </div>
-                </motion.div>
-              );
-            })}
-            <p className="text-[11px] text-center text-muted-foreground pt-1">
-              ✓ Audit KYB exécuté en arrière-plan via Didit API (<span className="font-mono">{session.session_id.slice(0, 16)}…</span>)
-            </p>
-            <div className="flex justify-end pt-2">
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                className="h-7 text-xs bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 border-emerald-500/30"
-                onClick={() => {
-                  if (sessionIdRef.current) onVerifiedRef.current(sessionIdRef.current);
-                }}
-              >
-                <CheckCircle2 className="h-3 w-3 mr-1" /> Terminer la vérification KYB
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {session && !session.simulated && session.verification_url && (
-          <div className="space-y-3 py-2">
-            <div className="overflow-hidden rounded-xl border border-border bg-black/5 dark:bg-white/5">
-              <iframe
-                src={session.verification_url}
-                title="Didit KYB Verification"
-                className="h-[420px] w-full border-0"
-                allow="camera; microphone; geolocation"
-              />
-            </div>
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>Session : <span className="font-mono">{session.session_id.slice(0, 12)}…</span></span>
-              <a href={session.verification_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-primary hover:underline font-medium">
-                Ouvrir dans un nouvel onglet <ExternalLink className="h-3 w-3" />
-              </a>
-            </div>
-          </div>
-        )}
-      </DialogContent>
-    </Dialog>
-  );
-}
-

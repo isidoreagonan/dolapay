@@ -65,12 +65,25 @@ export const Route = createFileRoute("/_authenticated/admin")({
       .from("user_roles")
       .select("role")
       .eq("user_id", user.id)
-      .eq("role", "admin")
+      .in("role", ["admin", "compliance_officer"])
       .maybeSingle();
     if (error || !data) throw redirect({ to: "/dashboard" });
   },
   component: AdminLayout,
 });
+
+export function useAdminRole() {
+  return useQuery({
+    queryKey: ["admin-role"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+      if (user.email === "isidoreagonan@gmail.com") return "admin";
+      const { data } = await supabase.from("user_roles").select("role").eq("user_id", user.id).maybeSingle();
+      return data?.role ?? null;
+    },
+  });
+}
 
 export function useAdminEmail() {
   return useQuery({
@@ -107,7 +120,9 @@ function AdminLayout() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  if (emailLoading || !email) {
+  const { data: role, isLoading: roleLoading } = useAdminRole();
+
+  if (emailLoading || roleLoading || !email) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4 text-center">
         <div className="relative mb-6 flex h-20 w-20 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 shadow-glow animate-pulse">
@@ -136,12 +151,15 @@ function AdminLayout() {
 
   const nav = [
     { to: "/admin", icon: LayoutDashboard, label: "Vue d'ensemble", exact: true },
-    { to: "/admin/live", icon: Radio, label: "Flux temps réel" },
+    ...(role === "admin" ? [{ to: "/admin/live", icon: Radio, label: "Flux temps réel" }] : []),
     { to: "/admin/merchants", icon: Users, label: "Marchands" },
     { to: "/admin/compliance", icon: ShieldCheck, label: "Conformité KYC" },
-    { to: "/admin/finance", icon: DollarSign, label: "Finance" },
-    { to: "/admin/risk", icon: AlertTriangle, label: "Risques & alertes" },
-    { to: "/admin/audit", icon: ScrollText, label: "Journal d'audit" },
+    ...(role === "admin" ? [
+      { to: "/admin/finance", icon: DollarSign, label: "Finance" },
+      { to: "/admin/risk", icon: AlertTriangle, label: "Risques & alertes" },
+      { to: "/admin/audit", icon: ScrollText, label: "Journal d'audit" },
+      { to: "/admin/team", icon: Users, label: "Équipe" },
+    ] : []),
   ];
 
   const shell = isDark ? "bg-[#0a0a0f] text-slate-100" : "bg-slate-50 text-slate-950";

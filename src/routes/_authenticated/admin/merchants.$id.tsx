@@ -179,15 +179,15 @@ function Merchant360() {
         </div>
       </header>
 
-      {/* DOSSIER KYB & CONFORMITÉ DIDIT AI */}
+      {/* DOSSIER KYC / KYB */}
       <div className="rounded-xl border border-white/10 bg-white/[0.03] p-5 space-y-6">
         <div className="flex items-center justify-between border-b border-white/10 pb-4">
           <div>
             <h2 className="text-base font-bold text-white flex items-center gap-2">
-              <ShieldAlert className="h-5 w-5 text-violet-400" /> Dossier KYB & Conformité Didit AI (Audit 24h)
+              <ShieldAlert className="h-5 w-5 text-violet-400" /> Dossier de Conformité (KYC/KYB)
             </h2>
             <p className="text-xs text-slate-400 mt-0.5">
-              Vérification automatisée des statuts, RCCM, IFU et filtrage AML/PEP des dirigeants et bénéficiaires effectifs.
+              Vérification manuelle des documents (Identité, RCCM, IFU) téléversés par l'utilisateur.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -202,119 +202,40 @@ function Merchant360() {
         </div>
 
         {/* 1. Infos Société & Registre Officiel */}
-        <div>
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">1. Informations Société & Registre d'État</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-white/[0.02] p-4 rounded-lg border border-white/5 text-xs">
-            <div>
-              <span className="text-slate-500 block">Raison Sociale</span>
-              <span className="text-white font-medium">{business?.company_name || "—"}</span>
-            </div>
-            <div>
-              <span className="text-slate-500 block">N° RCCM / Registre</span>
-              <span className="text-white font-mono">{business?.registration_number || "—"}</span>
-            </div>
-            <div>
-              <span className="text-slate-500 block">N° IFU / Tax ID</span>
-              <span className="text-white font-mono">{business?.tax_id || "—"}</span>
-            </div>
-            <div>
-              <span className="text-slate-500 block">Siège Social</span>
-              <span className="text-white">
-                {business?.headquarters_address 
-                  ? `${business.headquarters_address}${business.hq_city ? `, ${business.hq_city}` : ""}${business.hq_country ? ` (${business.hq_country})` : ""}`
-                  : "—"}
-              </span>
+        {profile?.account_type === "enterprise" && (
+          <div>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">1. Informations Société & Registre d'État</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-white/[0.02] p-4 rounded-lg border border-white/5 text-xs">
+              <div>
+                <span className="text-slate-500 block">Raison Sociale</span>
+                <span className="text-white font-medium">{business?.company_name || "—"}</span>
+              </div>
+              <div>
+                <span className="text-slate-500 block">N° RCCM / Registre</span>
+                <span className="text-white font-mono">{business?.registration_number || "—"}</span>
+              </div>
+              <div>
+                <span className="text-slate-500 block">N° IFU / Tax ID</span>
+                <span className="text-white font-mono">{business?.tax_id || "—"}</span>
+              </div>
+              <div>
+                <span className="text-slate-500 block">Siège Social</span>
+                <span className="text-white">
+                  {business?.headquarters_address 
+                    ? `${business.headquarters_address}${business.hq_city ? `, ${business.hq_city}` : ""}${business.hq_country ? ` (${business.hq_country})` : ""}`
+                    : profile?.address
+                      ? `${profile.address}, ${profile.city} (${profile.country})`
+                      : "—"}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* 2. Dirigeants & Représentants */}
-        <div>
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">2. Dirigeants & Représentants LÉGAUX</h3>
-          {reps.length === 0 ? (
-            <p className="text-xs text-slate-500 italic">Aucun représentant enregistré.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs text-left">
-                <thead className="text-slate-500 border-b border-white/10">
-                  <tr>
-                    <th className="pb-2">Nom & Prénoms</th>
-                    <th className="pb-2">Fonction</th>
-                    <th className="pb-2">Email / Téléphone</th>
-                    <th className="pb-2">Liveness / Biométrie</th>
-                    <th className="pb-2">Sanctions AML / PEP</th>
-                    <th className="pb-2 text-right">Score Didit</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                  {reps.map((r: any) => (
-                    <tr key={r.id}>
-                      <td className="py-2.5 font-medium text-white">{r.first_name} {r.last_name}</td>
-                      <td className="py-2.5 text-slate-300">{r.job_title || "Dirigeant"}</td>
-                      <td className="py-2.5 text-slate-400">{r.email}</td>
-                      <td className="py-2.5">
-                        <span className="inline-flex items-center gap-1 text-emerald-400 font-medium">
-                          <CheckCircle2 className="h-3 w-3" /> {r.didit_liveness_status || "Passed"}
-                        </span>
-                      </td>
-                      <td className="py-2.5">
-                        <span className="inline-flex items-center gap-1 text-emerald-400 font-medium">
-                          <CheckCircle2 className="h-3 w-3" /> {r.didit_aml_status || "Clear"}
-                        </span>
-                      </td>
-                      <td className="py-2.5 text-right font-mono font-bold text-violet-300">
-                        {r.didit_score ? `${r.didit_score}%` : "98%"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
 
-        {/* 3. Bénéficiaires Effectifs (UBOs > 25%) */}
+        {/* Documents justificatifs */}
         <div>
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">3. Bénéficiaires Effectifs (UBOs &gt; 25 %)</h3>
-          {ubos.length === 0 ? (
-            <p className="text-xs text-slate-500 italic">Aucun bénéficiaire effectif (&gt; 25%) déclaré.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs text-left">
-                <thead className="text-slate-500 border-b border-white/10">
-                  <tr>
-                    <th className="pb-2">Nom Complet</th>
-                    <th className="pb-2">Part du Capital (%)</th>
-                    <th className="pb-2">Nationalité</th>
-                    <th className="pb-2">Sanctions AML / PEP</th>
-                    <th className="pb-2 text-right">Statut IA</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                  {ubos.map((u: any) => (
-                    <tr key={u.id}>
-                      <td className="py-2.5 font-medium text-white">{u.full_name}</td>
-                      <td className="py-2.5 font-mono text-violet-300 font-bold">{u.percentage}%</td>
-                      <td className="py-2.5 text-slate-300">{u.nationality || "Béninoise"}</td>
-                      <td className="py-2.5">
-                        <span className="inline-flex items-center gap-1 text-emerald-400 font-medium">
-                          <CheckCircle2 className="h-3 w-3" /> {u.didit_aml_status || "Clear"}
-                        </span>
-                      </td>
-                      <td className="py-2.5 text-right">
-                        <span className="text-emerald-400 font-mono">{u.didit_status || "Verified"}</span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-
-        {/* 4. Documents justificatifs (RCCM, IFU, Statuts, etc.) */}
-        <div>
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">4. Documents Justificatifs Téléversés</h3>
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Documents Justificatifs Téléversés</h3>
           {kycDocs.length === 0 ? (
             <p className="text-xs text-slate-500 italic">Aucun document téléversé.</p>
           ) : (
