@@ -73,12 +73,19 @@ function Merchant360() {
   const ubos = (business?.ubos as any[]) || [];
 
   const { data: kycDocs = [] } = useQuery({
-    queryKey: ["admin-merchant-docs", id],
+    queryKey: ["admin-merchant-kycdocs", id],
     queryFn: async () => {
       const { data } = await supabase.from("kyc_documents").select("*").eq("profile_id", id);
-      return data ?? [];
+      return data || [];
     },
+    enabled: !!id,
   });
+
+  // Merge the ones stored in the JSON field with any existing ones in the DB
+  const allDocs = [
+    ...kycDocs,
+    ...(Array.isArray(profile?.ai_verification_log) ? profile.ai_verification_log : [])
+  ];
 
   const action = useMutation({
     mutationFn: async (patch: Record<string, unknown>) => {
@@ -233,14 +240,13 @@ function Merchant360() {
         )}
 
 
-        {/* Documents justificatifs */}
-        <div>
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Documents Justificatifs Téléversés</h3>
-          {kycDocs.length === 0 ? (
+        <div className="bg-slate-900/50 rounded-xl border border-white/5 p-4">
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-4">Pièces Justificatives</h3>
+          {allDocs.length === 0 ? (
             <p className="text-xs text-slate-500 italic">Aucun document téléversé.</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-              {kycDocs.map((doc: any) => {
+              {allDocs.map((doc: any) => {
                 // Parse real document type from file_path: "kyc-documents/UID/rccm-123456.pdf" -> "rccm"
                 const parts = doc.file_path.split("/");
                 const filename = parts[parts.length - 1] || "";

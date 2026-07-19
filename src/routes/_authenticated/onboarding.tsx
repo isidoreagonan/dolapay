@@ -78,6 +78,8 @@ function OnboardingPage() {
 
       const bucket = "kyc-documents";
 
+      const uploadedDocs = [];
+
       for (const t of requiredDocs) {
         const file = docs[t];
         if (!file) throw new Error(`Document manquant : ${t}`);
@@ -96,12 +98,14 @@ function OnboardingPage() {
         const { error: upErr } = await supabase.storage.from(bucket).upload(path, file, { upsert: true });
         if (upErr) throw upErr;
         
-        // We use "id" as the document_type to bypass any strict DB check constraints
-        // We will infer the real type from the file path in the admin UI.
-        const { error: dbErr } = await supabase.from("kyc_documents").insert({
-          profile_id: uid, document_type: "id", file_path: bucket + "/" + path, status: "pending",
+        // Add to our JSON array instead of inserting into the problematic kyc_documents table
+        uploadedDocs.push({
+          id: `doc_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          profile_id: uid,
+          document_type: t,
+          file_path: bucket + "/" + path,
+          status: "pending"
         });
-        if (dbErr) throw dbErr;
       }
 
       const { error: pErr } = await supabase
@@ -109,7 +113,8 @@ function OnboardingPage() {
         .update({ 
           account_type: accountType, 
           onboarding_completed: true, 
-          kyc_status: "pending", 
+          kyc_status: "in_compliance_review", 
+          ai_verification_log: uploadedDocs as any,
           full_name: fullName, 
           address, 
           city, 
