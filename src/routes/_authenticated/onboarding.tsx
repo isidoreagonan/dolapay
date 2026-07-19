@@ -127,9 +127,6 @@ function OnboardingPage() {
         const { error: bErr } = await supabase.from("businesses").upsert({
           profile_id: uid,
           company_name: companyName,
-          headquarters_address: address,
-          hq_city: city,
-          hq_country: country,
           registration_number: regNum,
           tax_id: taxId,
         }, { onConflict: "profile_id" });

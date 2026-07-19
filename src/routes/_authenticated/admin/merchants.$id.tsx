@@ -231,7 +231,7 @@ function Merchant360() {
                   {business?.headquarters_address 
                     ? `${business.headquarters_address}${business.hq_city ? `, ${business.hq_city}` : ""}${business.hq_country ? ` (${business.hq_country})` : ""}`
                     : profile?.address
-                      ? `${profile.address}, ${profile.city} (${profile.country})`
+                      ? `${profile.address}, ${profile.city || ""} (${profile.country || ""})`
                       : "—"}
                 </span>
               </div>
