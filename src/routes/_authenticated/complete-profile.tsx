@@ -1,4 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ArrowRight, Loader2, ShieldCheck } from "lucide-react";
@@ -40,6 +41,8 @@ function CompleteProfilePage() {
     })();
   }, [navigate]);
 
+  const queryClient = useQueryClient();
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const country = findCountryByCode(countryCode);
@@ -58,8 +61,13 @@ function CompleteProfilePage() {
       country: country.name,
       phone: `${country.dialCode}${phone}`,
     }).eq("id", u.user.id);
+    
     setLoading(false);
     if (error) return toast.error(error.message);
+    
+    // Invalidate stale cache so /onboarding doesn't redirect back
+    queryClient.invalidateQueries({ queryKey: ["my-profile"] });
+    
     toast.success("Profil complété ✓");
     navigate({ to: "/onboarding" });
   }
