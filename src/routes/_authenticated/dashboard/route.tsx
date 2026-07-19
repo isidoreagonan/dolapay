@@ -225,16 +225,8 @@ function DashboardLayout() {
 
   if (profileLoading || adminLoading || !profile) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-background p-4 text-center">
-        <div className="relative mb-6 flex h-20 w-20 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 shadow-glow animate-pulse">
-          <img src={logoFull.url} alt="DolaPay" className="h-10 w-auto object-contain" />
-        </div>
-        <h2 className="font-display text-lg font-bold text-foreground">Chargement sécurisé de votre espace...</h2>
-        <p className="mt-1 text-xs text-muted-foreground">Vérification chiffrée de votre profil, de vos permissions et de votre niveau de compte.</p>
-        <div className="mt-6 flex items-center gap-2 text-xs font-semibold text-primary">
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-          <span>Synchronisation des données...</span>
-        </div>
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-primary/20 border-t-primary" />
       </div>
     );
   }
