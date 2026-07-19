@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ShieldAlert, Building2, CheckCircle2, Clock, AlertTriangle, ArrowRight, ExternalLink, Search } from "lucide-react";
@@ -12,6 +12,7 @@ export const Route = createFileRoute("/_authenticated/admin/compliance")({
 
 function ComplianceDashboard() {
   const [search, setSearch] = useState("");
+  const navigate = useNavigate();
 
   const { data: profiles = [], isLoading } = useQuery({
     queryKey: ["admin-compliance-list"],
@@ -95,7 +96,11 @@ function ComplianceDashboard() {
                   const status = p.kyc_status || "pending";
 
                   return (
-                    <tr key={p.id} className="hover:bg-white/[0.03] transition-colors">
+                    <tr 
+                      key={p.id} 
+                      onClick={() => navigate({ to: "/admin/merchants/$id", params: { id: p.id } })}
+                      className="hover:bg-white/[0.03] transition-colors cursor-pointer"
+                    >
                       <td className="py-3.5 px-4">
                         <div className="font-bold text-white text-sm">
                           {biz?.company_name || p.full_name || "Sans Nom"}
@@ -137,13 +142,11 @@ function ComplianceDashboard() {
                         </span>
                       </td>
                       <td className="py-3.5 px-4 text-right">
-                        <Link
-                          to="/admin/merchants/$id"
-                          params={{ id: p.id }}
+                        <div
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-500 text-white font-semibold text-xs transition-colors"
                         >
                           Ouvrir Dossier <ArrowRight className="h-3.5 w-3.5" />
-                        </Link>
+                        </div>
                       </td>
                     </tr>
                   );
