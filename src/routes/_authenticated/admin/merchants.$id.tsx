@@ -240,29 +240,36 @@ function Merchant360() {
             <p className="text-xs text-slate-500 italic">Aucun document téléversé.</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-              {kycDocs.map((doc: any) => (
-                <div key={doc.id} className="flex items-center justify-between p-3 rounded-lg border border-white/10 bg-white/[0.02]">
-                  <div className="flex items-center gap-2.5 overflow-hidden">
-                    <FileText className="h-4 w-4 text-violet-400 shrink-0" />
-                    <div className="overflow-hidden">
-                      <span className="text-xs font-medium text-white block truncate uppercase">{doc.document_type}</span>
-                      <span className="text-[10px] text-slate-500 font-mono">{doc.status}</span>
+              {kycDocs.map((doc: any) => {
+                // Parse real document type from file_path: "kyc-documents/UID/rccm-123456.pdf" -> "rccm"
+                const parts = doc.file_path.split("/");
+                const filename = parts[parts.length - 1] || "";
+                const realType = filename.split("-")[0] || doc.document_type;
+                
+                return (
+                  <div key={doc.id} className="flex items-center justify-between p-3 rounded-lg border border-white/10 bg-white/[0.02]">
+                    <div className="flex items-center gap-2.5 overflow-hidden">
+                      <FileText className="h-4 w-4 text-violet-400 shrink-0" />
+                      <div className="overflow-hidden">
+                        <span className="text-xs font-medium text-white block truncate uppercase">{realType}</span>
+                        <span className="text-[10px] text-slate-500 font-mono">{doc.status}</span>
+                      </div>
                     </div>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 px-2 text-xs text-slate-300 hover:text-white"
+                      onClick={async () => {
+                        const { data } = await supabase.storage.from("kyc-documents").createSignedUrl(doc.file_path, 3600);
+                        if (data?.signedUrl) window.open(data.signedUrl, "_blank");
+                        else toast.error("Impossible d'ouvrir le fichier (vérifiez le bucket stocké)");
+                      }}
+                    >
+                      <ExternalLink className="h-3 w-3 mr-1" /> Voir
+                    </Button>
                   </div>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-7 px-2 text-xs text-slate-300 hover:text-white"
-                    onClick={async () => {
-                      const { data } = await supabase.storage.from("kyc-documents").createSignedUrl(doc.file_path, 3600);
-                      if (data?.signedUrl) window.open(data.signedUrl, "_blank");
-                      else toast.error("Impossible d'ouvrir le fichier (vérifiez le bucket stocké)");
-                    }}
-                  >
-                    <ExternalLink className="h-3 w-3 mr-1" /> Voir
-                  </Button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
