@@ -328,13 +328,11 @@ function WalletPage() {
       const metaPin = authData?.user?.user_metadata?.wallet_pin;
 
       let bestBalance = 0;
-      const baseDeposit = livePayin > 0 ? livePayin : 300;
       
       if (testMode) {
-        bestBalance = computedTestBalance > 0 ? computedTestBalance : (testPayin > 0 ? testPayin : 100);
+        bestBalance = Math.max(0, testPayin - testPayout);
       } else {
-        // En Mode Live (Réel): avec 300 FCFA de base et 2 retraits réussis de 100 FCFA (total 200 FCFA), le solde réel exact est 100 FCFA
-        bestBalance = Math.max(0, baseDeposit - livePayout);
+        bestBalance = Math.max(0, livePayin - livePayout);
       }
 
       if (!data) {
@@ -347,7 +345,7 @@ function WalletPage() {
             hashed_pin: metaPin,
             _livePayin: livePayin,
             _livePayout: livePayout,
-            _baseDeposit: testMode ? 0 : baseDeposit,
+            _baseDeposit: 0,
             _rawPayouts: rawPayouts,
             _rawWrs: rawWrs,
             _testPayin: testPayin,
@@ -360,7 +358,7 @@ function WalletPage() {
       data.balance = bestBalance;
       (data as any)._livePayin = livePayin;
       (data as any)._livePayout = livePayout;
-      (data as any)._baseDeposit = testMode ? 0 : baseDeposit;
+      (data as any)._baseDeposit = 0;
       (data as any)._rawPayouts = rawPayouts;
       (data as any)._rawWrs = rawWrs;
       (data as any)._testPayin = testPayin;
