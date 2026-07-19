@@ -85,7 +85,7 @@ function SignUp() {
         })
         .eq("id", data.user.id);
       try {
-        fetch("/api/public/send-notification", {
+        await fetch("/api/public/send-notification", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ type: "welcome", email, name: fullName }),
@@ -96,7 +96,7 @@ function SignUp() {
       navigate({ to: "/dashboard" });
     } else {
       try {
-        fetch("/api/public/send-notification", {
+        await fetch("/api/public/send-notification", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ type: "welcome", email, name: fullName }),
