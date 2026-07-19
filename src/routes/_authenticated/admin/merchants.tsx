@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,6 +22,7 @@ type Row = {
 function MerchantsList() {
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<"all" | "approved" | "pending" | "frozen" | "rejected">("all");
+  const navigate = useNavigate();
 
   const { data: rows = [], isLoading } = useQuery({
     queryKey: ["admin-merchants-list"],
@@ -94,12 +95,16 @@ function MerchantsList() {
             </thead>
             <tbody>
               {filtered.map((r) => (
-                <tr key={r.id} className="border-b border-white/[0.04] transition-colors hover:bg-white/[0.04]">
+                <tr 
+                  key={r.id} 
+                  onClick={() => navigate({ to: "/admin/merchants/$id", params: { id: r.id } })}
+                  className="border-b border-white/[0.04] transition-colors hover:bg-white/[0.04] cursor-pointer"
+                >
                   <td className="px-3 py-2">
-                    <Link to="/admin/merchants/$id" params={{ id: r.id }} className="block">
+                    <div className="block">
                       <div className="font-semibold text-white">{r.full_name || "—"}</div>
                       <div className="text-[10px] text-slate-500">{r.email}</div>
-                    </Link>
+                    </div>
                   </td>
                   <td className="px-3 py-2 font-mono text-[10px] text-slate-400">acc_{r.id.replace(/-/g, "").slice(0, 12)}</td>
                   <td className="px-3 py-2 text-slate-400">{r.country ?? "—"}</td>
