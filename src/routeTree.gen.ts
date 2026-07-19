@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as AdminRouteImport } from './routes/_admin'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductsPaymentLinksRouteImport } from './routes/products.payment-links'
@@ -31,9 +32,8 @@ import { Route as AuthSignInRouteImport } from './routes/auth.sign-in'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedCompleteProfileRouteImport } from './routes/_authenticated/complete-profile'
 import { Route as AuthenticatedDashboardRouteRouteImport } from './routes/_authenticated/dashboard/route'
-import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard/index'
-import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
+import { Route as AdminAdminIndexRouteImport } from './routes/_admin/admin/index'
 import { Route as ApiV1PayoutsRouteImport } from './routes/api/v1/payouts'
 import { Route as ApiV1ChargesRouteImport } from './routes/api/v1/charges'
 import { Route as ApiPublicWithdrawRouteImport } from './routes/api/public/withdraw'
@@ -52,21 +52,20 @@ import { Route as AuthenticatedDashboardPayoutsRouteImport } from './routes/_aut
 import { Route as AuthenticatedDashboardPaymentLinksRouteImport } from './routes/_authenticated/dashboard/payment-links'
 import { Route as AuthenticatedDashboardApiKeysRouteImport } from './routes/_authenticated/dashboard/api-keys'
 import { Route as AuthenticatedDashboardAdminRouteImport } from './routes/_authenticated/dashboard/admin'
-import { Route as AuthenticatedAdminRiskRouteImport } from './routes/_authenticated/admin/risk'
-import { Route as AuthenticatedAdminMerchantsRouteImport } from './routes/_authenticated/admin/merchants'
-import { Route as AuthenticatedAdminLiveRouteImport } from './routes/_authenticated/admin/live'
-import { Route as AuthenticatedAdminFinanceRouteImport } from './routes/_authenticated/admin/finance'
-import { Route as AuthenticatedAdminComplianceRouteImport } from './routes/_authenticated/admin/compliance'
-import { Route as AuthenticatedAdminAuditRouteImport } from './routes/_authenticated/admin/audit'
+import { Route as AdminAdminTeamRouteImport } from './routes/_admin/admin/team'
+import { Route as AdminAdminKycRouteImport } from './routes/_admin/admin/kyc'
 import { Route as ApiV1ChargesIdRouteImport } from './routes/api/v1/charges.$id'
 import { Route as ApiPublicTxTimeoutIdRouteImport } from './routes/api/public/tx-timeout.$id'
 import { Route as ApiPublicTxStatusIdRouteImport } from './routes/api/public/tx-status.$id'
 import { Route as ApiPublicPaySlugRouteImport } from './routes/api/public/pay.$slug'
-import { Route as AuthenticatedAdminMerchantsIdRouteImport } from './routes/_authenticated/admin/merchants.$id'
 
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/_admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
@@ -175,21 +174,16 @@ const AuthenticatedDashboardRouteRoute =
     path: '/dashboard',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedAdminRouteRoute = AuthenticatedAdminRouteRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedDashboardIndexRoute =
   AuthenticatedDashboardIndexRouteImport.update({
     id: '/',
     path: '/',
     getParentRoute: () => AuthenticatedDashboardRouteRoute,
   } as any)
-const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => AuthenticatedAdminRouteRoute,
+const AdminAdminIndexRoute = AdminAdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => AdminRoute,
 } as any)
 const ApiV1PayoutsRoute = ApiV1PayoutsRouteImport.update({
   id: '/api/v1/payouts',
@@ -292,38 +286,15 @@ const AuthenticatedDashboardAdminRoute =
     path: '/admin',
     getParentRoute: () => AuthenticatedDashboardRouteRoute,
   } as any)
-const AuthenticatedAdminRiskRoute = AuthenticatedAdminRiskRouteImport.update({
-  id: '/risk',
-  path: '/risk',
-  getParentRoute: () => AuthenticatedAdminRouteRoute,
+const AdminAdminTeamRoute = AdminAdminTeamRouteImport.update({
+  id: '/admin/team',
+  path: '/admin/team',
+  getParentRoute: () => AdminRoute,
 } as any)
-const AuthenticatedAdminMerchantsRoute =
-  AuthenticatedAdminMerchantsRouteImport.update({
-    id: '/merchants',
-    path: '/merchants',
-    getParentRoute: () => AuthenticatedAdminRouteRoute,
-  } as any)
-const AuthenticatedAdminLiveRoute = AuthenticatedAdminLiveRouteImport.update({
-  id: '/live',
-  path: '/live',
-  getParentRoute: () => AuthenticatedAdminRouteRoute,
-} as any)
-const AuthenticatedAdminFinanceRoute =
-  AuthenticatedAdminFinanceRouteImport.update({
-    id: '/finance',
-    path: '/finance',
-    getParentRoute: () => AuthenticatedAdminRouteRoute,
-  } as any)
-const AuthenticatedAdminComplianceRoute =
-  AuthenticatedAdminComplianceRouteImport.update({
-    id: '/compliance',
-    path: '/compliance',
-    getParentRoute: () => AuthenticatedAdminRouteRoute,
-  } as any)
-const AuthenticatedAdminAuditRoute = AuthenticatedAdminAuditRouteImport.update({
-  id: '/audit',
-  path: '/audit',
-  getParentRoute: () => AuthenticatedAdminRouteRoute,
+const AdminAdminKycRoute = AdminAdminKycRouteImport.update({
+  id: '/admin/kyc',
+  path: '/admin/kyc',
+  getParentRoute: () => AdminRoute,
 } as any)
 const ApiV1ChargesIdRoute = ApiV1ChargesIdRouteImport.update({
   id: '/$id',
@@ -345,17 +316,10 @@ const ApiPublicPaySlugRoute = ApiPublicPaySlugRouteImport.update({
   path: '/api/public/pay/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedAdminMerchantsIdRoute =
-  AuthenticatedAdminMerchantsIdRouteImport.update({
-    id: '/$id',
-    path: '/$id',
-    getParentRoute: () => AuthenticatedAdminMerchantsRoute,
-  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/settings': typeof SettingsRoute
-  '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRouteRouteWithChildren
   '/complete-profile': typeof AuthenticatedCompleteProfileRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
@@ -375,12 +339,8 @@ export interface FileRoutesByFullPath {
   '/products/pay-in': typeof ProductsPayInRoute
   '/products/pay-out': typeof ProductsPayOutRoute
   '/products/payment-links': typeof ProductsPaymentLinksRoute
-  '/admin/audit': typeof AuthenticatedAdminAuditRoute
-  '/admin/compliance': typeof AuthenticatedAdminComplianceRoute
-  '/admin/finance': typeof AuthenticatedAdminFinanceRoute
-  '/admin/live': typeof AuthenticatedAdminLiveRoute
-  '/admin/merchants': typeof AuthenticatedAdminMerchantsRouteWithChildren
-  '/admin/risk': typeof AuthenticatedAdminRiskRoute
+  '/admin/kyc': typeof AdminAdminKycRoute
+  '/admin/team': typeof AdminAdminTeamRoute
   '/dashboard/admin': typeof AuthenticatedDashboardAdminRoute
   '/dashboard/api-keys': typeof AuthenticatedDashboardApiKeysRoute
   '/dashboard/payment-links': typeof AuthenticatedDashboardPaymentLinksRoute
@@ -399,9 +359,8 @@ export interface FileRoutesByFullPath {
   '/api/public/withdraw': typeof ApiPublicWithdrawRoute
   '/api/v1/charges': typeof ApiV1ChargesRouteWithChildren
   '/api/v1/payouts': typeof ApiV1PayoutsRoute
-  '/admin/': typeof AuthenticatedAdminIndexRoute
+  '/admin/': typeof AdminAdminIndexRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
-  '/admin/merchants/$id': typeof AuthenticatedAdminMerchantsIdRoute
   '/api/public/pay/$slug': typeof ApiPublicPaySlugRoute
   '/api/public/tx-status/$id': typeof ApiPublicTxStatusIdRoute
   '/api/public/tx-timeout/$id': typeof ApiPublicTxTimeoutIdRoute
@@ -428,12 +387,8 @@ export interface FileRoutesByTo {
   '/products/pay-in': typeof ProductsPayInRoute
   '/products/pay-out': typeof ProductsPayOutRoute
   '/products/payment-links': typeof ProductsPaymentLinksRoute
-  '/admin/audit': typeof AuthenticatedAdminAuditRoute
-  '/admin/compliance': typeof AuthenticatedAdminComplianceRoute
-  '/admin/finance': typeof AuthenticatedAdminFinanceRoute
-  '/admin/live': typeof AuthenticatedAdminLiveRoute
-  '/admin/merchants': typeof AuthenticatedAdminMerchantsRouteWithChildren
-  '/admin/risk': typeof AuthenticatedAdminRiskRoute
+  '/admin/kyc': typeof AdminAdminKycRoute
+  '/admin/team': typeof AdminAdminTeamRoute
   '/dashboard/admin': typeof AuthenticatedDashboardAdminRoute
   '/dashboard/api-keys': typeof AuthenticatedDashboardApiKeysRoute
   '/dashboard/payment-links': typeof AuthenticatedDashboardPaymentLinksRoute
@@ -452,9 +407,8 @@ export interface FileRoutesByTo {
   '/api/public/withdraw': typeof ApiPublicWithdrawRoute
   '/api/v1/charges': typeof ApiV1ChargesRouteWithChildren
   '/api/v1/payouts': typeof ApiV1PayoutsRoute
-  '/admin': typeof AuthenticatedAdminIndexRoute
+  '/admin': typeof AdminAdminIndexRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
-  '/admin/merchants/$id': typeof AuthenticatedAdminMerchantsIdRoute
   '/api/public/pay/$slug': typeof ApiPublicPaySlugRoute
   '/api/public/tx-status/$id': typeof ApiPublicTxStatusIdRoute
   '/api/public/tx-timeout/$id': typeof ApiPublicTxTimeoutIdRoute
@@ -464,8 +418,8 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/_admin': typeof AdminRouteWithChildren
   '/settings': typeof SettingsRoute
-  '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteRouteWithChildren
   '/_authenticated/complete-profile': typeof AuthenticatedCompleteProfileRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
@@ -485,12 +439,8 @@ export interface FileRoutesById {
   '/products/pay-in': typeof ProductsPayInRoute
   '/products/pay-out': typeof ProductsPayOutRoute
   '/products/payment-links': typeof ProductsPaymentLinksRoute
-  '/_authenticated/admin/audit': typeof AuthenticatedAdminAuditRoute
-  '/_authenticated/admin/compliance': typeof AuthenticatedAdminComplianceRoute
-  '/_authenticated/admin/finance': typeof AuthenticatedAdminFinanceRoute
-  '/_authenticated/admin/live': typeof AuthenticatedAdminLiveRoute
-  '/_authenticated/admin/merchants': typeof AuthenticatedAdminMerchantsRouteWithChildren
-  '/_authenticated/admin/risk': typeof AuthenticatedAdminRiskRoute
+  '/_admin/admin/kyc': typeof AdminAdminKycRoute
+  '/_admin/admin/team': typeof AdminAdminTeamRoute
   '/_authenticated/dashboard/admin': typeof AuthenticatedDashboardAdminRoute
   '/_authenticated/dashboard/api-keys': typeof AuthenticatedDashboardApiKeysRoute
   '/_authenticated/dashboard/payment-links': typeof AuthenticatedDashboardPaymentLinksRoute
@@ -509,9 +459,8 @@ export interface FileRoutesById {
   '/api/public/withdraw': typeof ApiPublicWithdrawRoute
   '/api/v1/charges': typeof ApiV1ChargesRouteWithChildren
   '/api/v1/payouts': typeof ApiV1PayoutsRoute
-  '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
+  '/_admin/admin/': typeof AdminAdminIndexRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
-  '/_authenticated/admin/merchants/$id': typeof AuthenticatedAdminMerchantsIdRoute
   '/api/public/pay/$slug': typeof ApiPublicPaySlugRoute
   '/api/public/tx-status/$id': typeof ApiPublicTxStatusIdRoute
   '/api/public/tx-timeout/$id': typeof ApiPublicTxTimeoutIdRoute
@@ -522,7 +471,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/settings'
-    | '/admin'
     | '/dashboard'
     | '/complete-profile'
     | '/onboarding'
@@ -542,12 +490,8 @@ export interface FileRouteTypes {
     | '/products/pay-in'
     | '/products/pay-out'
     | '/products/payment-links'
-    | '/admin/audit'
-    | '/admin/compliance'
-    | '/admin/finance'
-    | '/admin/live'
-    | '/admin/merchants'
-    | '/admin/risk'
+    | '/admin/kyc'
+    | '/admin/team'
     | '/dashboard/admin'
     | '/dashboard/api-keys'
     | '/dashboard/payment-links'
@@ -568,7 +512,6 @@ export interface FileRouteTypes {
     | '/api/v1/payouts'
     | '/admin/'
     | '/dashboard/'
-    | '/admin/merchants/$id'
     | '/api/public/pay/$slug'
     | '/api/public/tx-status/$id'
     | '/api/public/tx-timeout/$id'
@@ -595,12 +538,8 @@ export interface FileRouteTypes {
     | '/products/pay-in'
     | '/products/pay-out'
     | '/products/payment-links'
-    | '/admin/audit'
-    | '/admin/compliance'
-    | '/admin/finance'
-    | '/admin/live'
-    | '/admin/merchants'
-    | '/admin/risk'
+    | '/admin/kyc'
+    | '/admin/team'
     | '/dashboard/admin'
     | '/dashboard/api-keys'
     | '/dashboard/payment-links'
@@ -621,7 +560,6 @@ export interface FileRouteTypes {
     | '/api/v1/payouts'
     | '/admin'
     | '/dashboard'
-    | '/admin/merchants/$id'
     | '/api/public/pay/$slug'
     | '/api/public/tx-status/$id'
     | '/api/public/tx-timeout/$id'
@@ -630,8 +568,8 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/_admin'
     | '/settings'
-    | '/_authenticated/admin'
     | '/_authenticated/dashboard'
     | '/_authenticated/complete-profile'
     | '/_authenticated/onboarding'
@@ -651,12 +589,8 @@ export interface FileRouteTypes {
     | '/products/pay-in'
     | '/products/pay-out'
     | '/products/payment-links'
-    | '/_authenticated/admin/audit'
-    | '/_authenticated/admin/compliance'
-    | '/_authenticated/admin/finance'
-    | '/_authenticated/admin/live'
-    | '/_authenticated/admin/merchants'
-    | '/_authenticated/admin/risk'
+    | '/_admin/admin/kyc'
+    | '/_admin/admin/team'
     | '/_authenticated/dashboard/admin'
     | '/_authenticated/dashboard/api-keys'
     | '/_authenticated/dashboard/payment-links'
@@ -675,9 +609,8 @@ export interface FileRouteTypes {
     | '/api/public/withdraw'
     | '/api/v1/charges'
     | '/api/v1/payouts'
-    | '/_authenticated/admin/'
+    | '/_admin/admin/'
     | '/_authenticated/dashboard/'
-    | '/_authenticated/admin/merchants/$id'
     | '/api/public/pay/$slug'
     | '/api/public/tx-status/$id'
     | '/api/public/tx-timeout/$id'
@@ -687,6 +620,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AdminRoute: typeof AdminRouteWithChildren
   SettingsRoute: typeof SettingsRoute
   AuthSignInRoute: typeof AuthSignInRoute
   AuthSignUpRoute: typeof AuthSignUpRoute
@@ -725,6 +659,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_admin': {
+      id: '/_admin'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -874,13 +815,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/admin': {
-      id: '/_authenticated/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AuthenticatedAdminRouteRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/dashboard/': {
       id: '/_authenticated/dashboard/'
       path: '/'
@@ -888,12 +822,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardIndexRouteImport
       parentRoute: typeof AuthenticatedDashboardRouteRoute
     }
-    '/_authenticated/admin/': {
-      id: '/_authenticated/admin/'
-      path: '/'
+    '/_admin/admin/': {
+      id: '/_admin/admin/'
+      path: '/admin'
       fullPath: '/admin/'
-      preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
-      parentRoute: typeof AuthenticatedAdminRouteRoute
+      preLoaderRoute: typeof AdminAdminIndexRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/api/v1/payouts': {
       id: '/api/v1/payouts'
@@ -1021,47 +955,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardAdminRouteImport
       parentRoute: typeof AuthenticatedDashboardRouteRoute
     }
-    '/_authenticated/admin/risk': {
-      id: '/_authenticated/admin/risk'
-      path: '/risk'
-      fullPath: '/admin/risk'
-      preLoaderRoute: typeof AuthenticatedAdminRiskRouteImport
-      parentRoute: typeof AuthenticatedAdminRouteRoute
+    '/_admin/admin/team': {
+      id: '/_admin/admin/team'
+      path: '/admin/team'
+      fullPath: '/admin/team'
+      preLoaderRoute: typeof AdminAdminTeamRouteImport
+      parentRoute: typeof AdminRoute
     }
-    '/_authenticated/admin/merchants': {
-      id: '/_authenticated/admin/merchants'
-      path: '/merchants'
-      fullPath: '/admin/merchants'
-      preLoaderRoute: typeof AuthenticatedAdminMerchantsRouteImport
-      parentRoute: typeof AuthenticatedAdminRouteRoute
-    }
-    '/_authenticated/admin/live': {
-      id: '/_authenticated/admin/live'
-      path: '/live'
-      fullPath: '/admin/live'
-      preLoaderRoute: typeof AuthenticatedAdminLiveRouteImport
-      parentRoute: typeof AuthenticatedAdminRouteRoute
-    }
-    '/_authenticated/admin/finance': {
-      id: '/_authenticated/admin/finance'
-      path: '/finance'
-      fullPath: '/admin/finance'
-      preLoaderRoute: typeof AuthenticatedAdminFinanceRouteImport
-      parentRoute: typeof AuthenticatedAdminRouteRoute
-    }
-    '/_authenticated/admin/compliance': {
-      id: '/_authenticated/admin/compliance'
-      path: '/compliance'
-      fullPath: '/admin/compliance'
-      preLoaderRoute: typeof AuthenticatedAdminComplianceRouteImport
-      parentRoute: typeof AuthenticatedAdminRouteRoute
-    }
-    '/_authenticated/admin/audit': {
-      id: '/_authenticated/admin/audit'
-      path: '/audit'
-      fullPath: '/admin/audit'
-      preLoaderRoute: typeof AuthenticatedAdminAuditRouteImport
-      parentRoute: typeof AuthenticatedAdminRouteRoute
+    '/_admin/admin/kyc': {
+      id: '/_admin/admin/kyc'
+      path: '/admin/kyc'
+      fullPath: '/admin/kyc'
+      preLoaderRoute: typeof AdminAdminKycRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/api/v1/charges/$id': {
       id: '/api/v1/charges/$id'
@@ -1091,56 +997,8 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPaySlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/admin/merchants/$id': {
-      id: '/_authenticated/admin/merchants/$id'
-      path: '/$id'
-      fullPath: '/admin/merchants/$id'
-      preLoaderRoute: typeof AuthenticatedAdminMerchantsIdRouteImport
-      parentRoute: typeof AuthenticatedAdminMerchantsRoute
-    }
   }
 }
-
-interface AuthenticatedAdminMerchantsRouteChildren {
-  AuthenticatedAdminMerchantsIdRoute: typeof AuthenticatedAdminMerchantsIdRoute
-}
-
-const AuthenticatedAdminMerchantsRouteChildren: AuthenticatedAdminMerchantsRouteChildren =
-  {
-    AuthenticatedAdminMerchantsIdRoute: AuthenticatedAdminMerchantsIdRoute,
-  }
-
-const AuthenticatedAdminMerchantsRouteWithChildren =
-  AuthenticatedAdminMerchantsRoute._addFileChildren(
-    AuthenticatedAdminMerchantsRouteChildren,
-  )
-
-interface AuthenticatedAdminRouteRouteChildren {
-  AuthenticatedAdminAuditRoute: typeof AuthenticatedAdminAuditRoute
-  AuthenticatedAdminComplianceRoute: typeof AuthenticatedAdminComplianceRoute
-  AuthenticatedAdminFinanceRoute: typeof AuthenticatedAdminFinanceRoute
-  AuthenticatedAdminLiveRoute: typeof AuthenticatedAdminLiveRoute
-  AuthenticatedAdminMerchantsRoute: typeof AuthenticatedAdminMerchantsRouteWithChildren
-  AuthenticatedAdminRiskRoute: typeof AuthenticatedAdminRiskRoute
-  AuthenticatedAdminIndexRoute: typeof AuthenticatedAdminIndexRoute
-}
-
-const AuthenticatedAdminRouteRouteChildren: AuthenticatedAdminRouteRouteChildren =
-  {
-    AuthenticatedAdminAuditRoute: AuthenticatedAdminAuditRoute,
-    AuthenticatedAdminComplianceRoute: AuthenticatedAdminComplianceRoute,
-    AuthenticatedAdminFinanceRoute: AuthenticatedAdminFinanceRoute,
-    AuthenticatedAdminLiveRoute: AuthenticatedAdminLiveRoute,
-    AuthenticatedAdminMerchantsRoute:
-      AuthenticatedAdminMerchantsRouteWithChildren,
-    AuthenticatedAdminRiskRoute: AuthenticatedAdminRiskRoute,
-    AuthenticatedAdminIndexRoute: AuthenticatedAdminIndexRoute,
-  }
-
-const AuthenticatedAdminRouteRouteWithChildren =
-  AuthenticatedAdminRouteRoute._addFileChildren(
-    AuthenticatedAdminRouteRouteChildren,
-  )
 
 interface AuthenticatedDashboardRouteRouteChildren {
   AuthenticatedDashboardAdminRoute: typeof AuthenticatedDashboardAdminRoute
@@ -1177,14 +1035,12 @@ const AuthenticatedDashboardRouteRouteWithChildren =
   )
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedAdminRouteRoute: typeof AuthenticatedAdminRouteRouteWithChildren
   AuthenticatedDashboardRouteRoute: typeof AuthenticatedDashboardRouteRouteWithChildren
   AuthenticatedCompleteProfileRoute: typeof AuthenticatedCompleteProfileRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedAdminRouteRoute: AuthenticatedAdminRouteRouteWithChildren,
   AuthenticatedDashboardRouteRoute:
     AuthenticatedDashboardRouteRouteWithChildren,
   AuthenticatedCompleteProfileRoute: AuthenticatedCompleteProfileRoute,
@@ -1193,6 +1049,20 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
+interface AdminRouteChildren {
+  AdminAdminKycRoute: typeof AdminAdminKycRoute
+  AdminAdminTeamRoute: typeof AdminAdminTeamRoute
+  AdminAdminIndexRoute: typeof AdminAdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminAdminKycRoute: AdminAdminKycRoute,
+  AdminAdminTeamRoute: AdminAdminTeamRoute,
+  AdminAdminIndexRoute: AdminAdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface ApiV1ChargesRouteChildren {
   ApiV1ChargesIdRoute: typeof ApiV1ChargesIdRoute
@@ -1209,6 +1079,7 @@ const ApiV1ChargesRouteWithChildren = ApiV1ChargesRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AdminRoute: AdminRouteWithChildren,
   SettingsRoute: SettingsRoute,
   AuthSignInRoute: AuthSignInRoute,
   AuthSignUpRoute: AuthSignUpRoute,
