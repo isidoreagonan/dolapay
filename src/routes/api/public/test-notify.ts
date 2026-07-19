@@ -21,17 +21,23 @@ export const Route = createFileRoute("/api/public/test-notify")({
 
           // Capture les logs console
           const originalError = console.error;
+          const originalLog = console.log;
           const logs: any[] = [];
           console.error = (...args) => {
-            logs.push(args);
+            logs.push(["ERROR", ...args]);
             originalError(...args);
+          };
+          console.log = (...args) => {
+            logs.push(["LOG", ...args]);
+            originalLog(...args);
           };
 
           await notifyDepositSuccess(supabaseAdmin, txId);
           
           console.error = originalError;
+          console.log = originalLog;
 
-          return Response.json({ success: true, message: "notifyDepositSuccess executed", logs });
+          return Response.json({ success: true, message: "notifyDepositSuccess executed", logs, tx });
         } catch (e: any) {
           return Response.json({ error: e.message || "Erreur" });
         }
