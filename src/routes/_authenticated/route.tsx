@@ -46,8 +46,9 @@ export const Route = createFileRoute("/_authenticated")({
       }
     }
 
-    // 3. Boucle de secours robuste (attente résolution asynchrone Supabase JS)
-    if (!user && (window.location.hash.includes("access_token") || window.location.search.includes("code") || window.location.hash.includes("error"))) {
+    // 3. Boucle de secours robuste : on attend si un token est dans l'URL OU dans le localStorage
+    const hasLocalToken = Object.keys(localStorage).some(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
+    if (!user && (window.location.hash.includes("access_token") || window.location.search.includes("code") || window.location.hash.includes("error") || hasLocalToken)) {
       for (let i = 0; i < 35; i++) {
         await new Promise((r) => setTimeout(r, 150));
         const res = await supabase.auth.getSession();
