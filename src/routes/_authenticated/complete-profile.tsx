@@ -69,7 +69,14 @@ function CompleteProfilePage() {
     queryClient.removeQueries({ queryKey: ["my-profile"] });
     
     toast.success("Profil complété ✓");
-    navigate({ to: "/onboarding" });
+    
+    // Check if they are already onboarded (e.g. forced admin bypass)
+    const { data: p2 } = await supabase.from("profiles").select("onboarding_completed").eq("id", u.user.id).maybeSingle();
+    if (p2?.onboarding_completed) {
+      navigate({ to: "/dashboard" });
+    } else {
+      navigate({ to: "/onboarding" });
+    }
   }
 
   if (checking) {
