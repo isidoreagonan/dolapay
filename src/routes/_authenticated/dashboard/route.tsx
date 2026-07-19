@@ -93,24 +93,35 @@ export function useProfile() {
         };
 
         try {
-          if (!data) {
-            supabase.from("profiles").upsert({
-              id: pendingProfile.id,
-              email: pendingProfile.email,
-              full_name: pendingProfile.full_name,
-              account_type: "standard",
-              kyc_status: "pending",
-              volume_limit_xof: 2000000,
-              onboarding_completed: false,
-            }).then(async () => {
-              try {
+          const isNewUser = new Date().getTime() - new Date(u.user.created_at).getTime() < 15000; // Created less than 15 seconds ago
+          if (!data || isNewUser) {
+            // For new users (even if trigger created profile), ensure we send the welcome email
+            const doUpsert = !data;
+            if (doUpsert) {
+              await supabase.from("profiles").upsert({
+                id: pendingProfile.id,
+                email: pendingProfile.email,
+                full_name: pendingProfile.full_name,
+                account_type: "standard",
+                kyc_status: "pending",
+                volume_limit_xof: 2000000,
+                onboarding_completed: false,
+              });
+            }
+            
+            // Try sending welcome email once
+            try {
+              // We only want to send it once. We can use a localStorage flag to prevent duplicates if they reload quickly
+              const emailSentFlag = `welcome_email_sent_${u.user.id}`;
+              if (!localStorage.getItem(emailSentFlag)) {
+                localStorage.setItem(emailSentFlag, "true");
                 await fetch("/api/public/send-notification", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({ type: "welcome", email: pendingProfile.email, name: pendingProfile.full_name }),
                 }).catch(() => {});
-              } catch {}
-            });
+              }
+            } catch {}
           }
         } catch (_) {}
 
