@@ -441,6 +441,7 @@ export type Database = {
           mobile_money_provider: string | null
           onboarding_completed: boolean
           phone: string | null
+          role: string | null
           updated_at: string
           verification_mode: Database["public"]["Enums"]["verification_mode"]
           volume_limit_xof: number

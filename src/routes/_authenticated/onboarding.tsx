@@ -2,21 +2,17 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
-import confetti from "canvas-confetti";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { ArrowRight, ArrowLeft, Upload, CheckCircle2, Building2, User, Plus, Trash2, Loader2, ShieldAlert, ScanFace, ScanLine, Sparkles, ExternalLink } from "lucide-react";
-import { useServerFn } from "@tanstack/react-start";
+import { Loader2, ArrowRight, ArrowLeft, Upload, CheckCircle2, Building2, User, Plus, Trash2, ShieldAlert } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import logoFull from "@/assets/dolapay-logo.png.asset.json";
 import { AddressBlock } from "@/components/onboarding/AddressBlock";
 import { getKybLabels, getKycIdLabel } from "@/lib/kyb-documents";
-import { createDiditSession, createDiditBusinessSession, deleteDiditSessionFn } from "@/lib/didit.functions";
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
   component: OnboardingPage,
@@ -24,10 +20,7 @@ export const Route = createFileRoute("/_authenticated/onboarding")({
 
 type AccountType = "standard" | "enterprise";
 type Ubo = { name: string; share: string; nationality: string };
-type Representative = { id: string; full_name: string; title: string; email: string; verified: boolean; didit_session_id?: string };
-
-
-
+type Representative = { id: string; full_name: string; title: string; email: string; verified: boolean };
 
 function OnboardingPage() {
   const qc = useQueryClient();
@@ -69,11 +62,8 @@ function OnboardingPage() {
   const [taxId, setTaxId] = useState(draft?.taxId ?? "");
   const [ubos, setUbos] = useState<Ubo[]>(draft?.ubos ?? [{ name: "", share: "", nationality: "" }]);
   const [reps, setReps] = useState<Representative[]>(draft?.reps ?? []);
-  const [verifyingRepId, setVerifyingRepId] = useState<string | null>(null);
   const allRepsVerified = reps.length > 0 && reps.every((r) => r.verified);
   const [enterpriseVerified, setEnterpriseVerified] = useState(draft?.enterpriseVerified ?? false);
-  const [enterpriseSessionId, setEnterpriseSessionId] = useState<string | null>(draft?.enterpriseSessionId ?? null);
-  const [verifyingBusiness, setVerifyingBusiness] = useState(false);
 
   // Documents
   const [docs, setDocs] = useState<Record<string, File | null>>({});
@@ -84,10 +74,10 @@ function OnboardingPage() {
       localStorage.setItem("dola_onboard_draft", JSON.stringify({
         step, accountType, fullName, dob, country, city, address,
         companyName, hqCountry, hqCity, hqAddress, regNum, taxId, ubos, reps,
-        enterpriseVerified, enterpriseSessionId
+        enterpriseVerified
       }));
     } catch { /* ignore */ }
-  }, [step, accountType, fullName, dob, country, city, address, companyName, hqCountry, hqCity, hqAddress, regNum, taxId, ubos, reps, enterpriseVerified, enterpriseSessionId]);
+  }, [step, accountType, fullName, dob, country, city, address, companyName, hqCountry, hqCity, hqAddress, regNum, taxId, ubos, reps, enterpriseVerified]);
 
   const kybLabels = getKybLabels(hqCountry);
 
@@ -96,7 +86,7 @@ function OnboardingPage() {
       if (!profile) throw new Error("Profil introuvable");
       const uid = profile.id;
 
-      // 1. Upload documents ou vérification Didit KYB
+      // 1. Upload documents
       if (accountType === "standard") {
         const requiredDocs = ["id", "selfie", "proof_of_address"];
         const bucket = "kyc-documents";
@@ -113,11 +103,8 @@ function OnboardingPage() {
           });
           if (dbErr) throw dbErr;
         }
-      } else {
-        if (!enterpriseVerified) {
-          throw new Error("Veuillez valider la vérification légale de votre entreprise via Didit AI avant de soumettre.");
-        }
       }
+      // Verification of company is now manual via back-office
 
       // 2. Update profile — push into compliance review (12–24h SLA)
       const stdPatch = accountType === "standard"
@@ -138,15 +125,12 @@ function OnboardingPage() {
 
       // 3. Enterprise business row
       if (accountType === "enterprise") {
-        // Format UBOs as JSON
         const validUbos = ubos
           .filter((u) => u.name.trim())
           .map((u) => ({
             full_name: u.name,
             percentage: Number(u.share) || 0,
             nationality: u.nationality || "Béninoise",
-            didit_status: "unverified",
-            didit_aml_status: "clear"
           }));
 
         const { data: bizData, error: bErr } = await supabase.from("businesses").upsert({
@@ -170,7 +154,6 @@ function OnboardingPage() {
             email: r.email,
             verified: r.verified,
             verified_at: r.verified ? new Date().toISOString() : null,
-            didit_status: r.verified ? "Approved" : "unverified",
           }));
           const { error: rErr } = await supabase.from("business_representatives").insert(rows);
           if (rErr) throw rErr;
@@ -192,7 +175,6 @@ function OnboardingPage() {
     navigate({ to: "/dashboard", replace: true });
     return null;
   }
-  // Gatekeeping: Google OAuth users land here without country/phone.
   if (profile && (!profile.country || !profile.phone)) {
     navigate({ to: "/complete-profile", replace: true });
     return null;
@@ -252,7 +234,7 @@ function OnboardingPage() {
                 <div className="mb-2 flex items-center justify-between">
                   <div>
                     <h3 className="text-sm font-semibold">Représentants légaux & dirigeants</h3>
-                    <p className="text-xs text-muted-foreground">Ajoutez chaque dirigeant. Chacun est vérifié individuellement via Didit AI — son identité, son adresse et ses fonctions sont déduites automatiquement du document scanné.</p>
+                    <p className="text-xs text-muted-foreground">Ajoutez chaque dirigeant.</p>
                   </div>
                   <Button type="button" size="sm" variant="outline" onClick={() => setReps([...reps, { id: crypto.randomUUID(), full_name: "", title: "", email: "", verified: false }])}>
                     <Plus className="h-3 w-3 mr-1" /> Ajouter
@@ -267,40 +249,19 @@ function OnboardingPage() {
                         initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -8 }}
-                        className={cn(
-                          "rounded-2xl border p-4 transition-colors",
-                          r.verified
-                            ? "border-emerald-500/40 bg-emerald-500/5 shadow-[0_0_0_1px_rgba(16,185,129,0.15),0_8px_30px_-12px_rgba(16,185,129,0.45)]"
-                            : "border-red-500/40 bg-red-500/[0.03]"
-                        )}
+                        className="rounded-2xl border border-border p-4"
                       >
                         <div className="mb-3 flex items-center justify-between gap-2">
-                          <motion.div layout className={cn(
-                            "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold",
-                            r.verified ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300" : "bg-red-500/15 text-red-700 dark:text-red-300"
-                          )}>
-                            <AnimatePresence mode="wait">
-                              {r.verified ? (
-                                <motion.span key="v" initial={{ scale: 0 }} animate={{ scale: 1 }} className="inline-flex items-center gap-1">
-                                  <CheckCircle2 className="h-3 w-3" /> Représentant vérifié
-                                </motion.span>
-                              ) : (
-                                <motion.span key="u" initial={{ scale: 0 }} animate={{ scale: 1 }} className="inline-flex items-center gap-1">
-                                  <ShieldAlert className="h-3 w-3" /> Non vérifié
-                                </motion.span>
-                              )}
-                            </AnimatePresence>
-                          </motion.div>
+                          <div className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold bg-muted text-muted-foreground">
+                             <ShieldAlert className="h-3 w-3" /> Non vérifié
+                          </div>
                           <Button
                             type="button"
                             size="icon"
                             variant="ghost"
                             onClick={() => {
-                              if (r.didit_session_id) {
-                                deleteDiditSessionFn({ data: { session_id: r.didit_session_id } }).catch(() => {});
-                              }
                               setReps(reps.filter((x) => x.id !== r.id));
-                              toast.info("Représentant supprimé (session Didit effacée)");
+                              toast.info("Représentant supprimé");
                             }}
                           >
                             <Trash2 className="h-3 w-3" />
@@ -314,16 +275,6 @@ function OnboardingPage() {
                           <Input placeholder="Email" type="email" value={r.email} disabled={r.verified}
                             onChange={(e) => setReps(reps.map((x) => x.id === r.id ? { ...x, email: e.target.value } : x))} />
                         </div>
-                        {!r.verified && (
-                          <Button
-                            type="button"
-                            className="mt-3 w-full sm:w-auto bg-primary text-primary-foreground shadow-glow hover:bg-primary-glow"
-                            disabled={!r.full_name || !r.title || !r.email}
-                            onClick={() => setVerifyingRepId(r.id)}
-                          >
-                            <ScanFace className="h-4 w-4 mr-2" /> Vérifier via Didit AI
-                          </Button>
-                        )}
                       </motion.div>
                     ))}
                   </AnimatePresence>
@@ -364,11 +315,6 @@ function OnboardingPage() {
                   Pays non préconfiguré : téléversez la pièce d'identité officielle valide délivrée dans votre pays.
                 </p>
               )}
-              {accountType === "enterprise" && (
-                <p className="rounded-md border border-emerald-500/40 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-700 dark:text-emerald-300">
-                  ✓ Les pièces d'identité des dirigeants et UBO ont été contrôlées par Didit AI à l'étape précédente.
-                </p>
-              )}
               {accountType === "standard" ? (
                 (() => {
                   const idLbl = getKycIdLabel(country);
@@ -387,21 +333,15 @@ function OnboardingPage() {
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <div className="flex items-center gap-2 font-bold text-base">
-                          <Building2 className="h-5 w-5 text-primary" /> Audit Automatisé Didit AI (KYB)
+                          <Building2 className="h-5 w-5 text-primary" /> Documents Légaux
                         </div>
                         <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
                           Validation en temps réel du Registre du Commerce ({kybLabels.registry.label}) et de la conformité fiscale ({kybLabels.tax.label}) pour <span className="font-semibold text-foreground">{companyName || "votre société"}</span>.
                         </p>
                       </div>
-                      {enterpriseVerified ? (
-                        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-300">
-                          <CheckCircle2 className="h-3.5 w-3.5" /> Société Vérifiée
-                        </span>
-                      ) : (
-                        <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-600 dark:text-amber-300">
-                          En attente
-                        </span>
-                      )}
+                      <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-600 dark:text-amber-300">
+                        En attente
+                      </span>
                     </div>
 
                     <div className="mt-4 grid grid-cols-2 gap-3 rounded-lg border border-border/60 bg-muted/30 p-3 text-xs">
@@ -421,41 +361,6 @@ function OnboardingPage() {
                         <span className="text-muted-foreground block">N° Fiscal :</span>
                         <span className="font-semibold">{taxId || "—"}</span>
                       </div>
-                    </div>
-
-                    <div className="mt-5 flex items-center justify-between pt-3 border-t border-border">
-                      {enterpriseVerified ? (
-                        <div className="flex items-center justify-between w-full">
-                          <span className="text-xs text-muted-foreground font-mono">
-                            Réf KYB : {enterpriseSessionId?.slice(0, 16) || "didit_kyb_valide"}…
-                          </span>
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950/20"
-                            onClick={() => {
-                              if (enterpriseSessionId) {
-                                deleteDiditSessionFn({ data: { session_id: enterpriseSessionId } }).catch(() => {});
-                              }
-                              setEnterpriseVerified(false);
-                              setEnterpriseSessionId(null);
-                              toast.info("Vérification réinitialisée.");
-                            }}
-                          >
-                            <Trash2 className="h-3.5 w-3.5 mr-1.5" /> Réinitialiser
-                          </Button>
-                        </div>
-                      ) : (
-                        <Button
-                          type="button"
-                          className="w-full sm:w-auto font-semibold shadow-glow"
-                          onClick={() => setVerifyingBusiness(true)}
-                          disabled={!companyName || !regNum || !taxId}
-                        >
-                          <ScanFace className="h-4 w-4 mr-2" /> Lancer la vérification légale Didit KYB
-                        </Button>
-                      )}
                     </div>
                   </div>
                 </div>
@@ -480,7 +385,7 @@ function OnboardingPage() {
                     <Row k="UBO" v={`${ubos.filter((u) => u.name.trim()).length} déclaré(s)`} />
                   </>
                 )}
-                <Row k="Vérification Légale" v={accountType === "standard" ? `${Object.values(docs).filter(Boolean).length} doc(s) envoyé(s)` : (enterpriseVerified ? "Didit KYB Validé ✓" : "Non vérifié")} />
+                <Row k="Vérification Légale" v={`${Object.values(docs).filter(Boolean).length} doc(s) envoyé(s)`} />
               </div>
               <p className="text-xs text-muted-foreground">
                 En soumettant, vous confirmez l'exactitude des informations. Un agent DolaPay vérifiera votre dossier sous 24-48h.
@@ -541,7 +446,7 @@ function canAdvance(step: number, s: { accountType: AccountType; fullName: strin
   if (step === 0) return true;
   if (step === 1) {
     if (s.accountType === "standard") return !!s.fullName;
-    return !!(s.companyName && s.hqCountry && s.regNum.trim() && s.taxId.trim() && s.allRepsVerified);
+    return !!(s.companyName && s.hqCountry && s.regNum.trim() && s.taxId.trim());
   }
   if (step === 2) {
     if (s.accountType === "standard") {

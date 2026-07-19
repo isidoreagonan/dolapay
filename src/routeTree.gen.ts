@@ -34,16 +34,15 @@ import { Route as AuthenticatedDashboardRouteRouteImport } from './routes/_authe
 import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard/index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
-import { Route as ApiWebhooksDiditRouteImport } from './routes/api/webhooks/didit'
 import { Route as ApiV1PayoutsRouteImport } from './routes/api/v1/payouts'
 import { Route as ApiV1ChargesRouteImport } from './routes/api/v1/charges'
 import { Route as ApiPublicWithdrawRouteImport } from './routes/api/public/withdraw'
+import { Route as ApiPublicTestNotifyRouteImport } from './routes/api/public/test-notify'
 import { Route as ApiPublicTestEmailRouteImport } from './routes/api/public/test-email'
 import { Route as ApiPublicSyncWalletRouteImport } from './routes/api/public/sync-wallet'
 import { Route as ApiPublicSendNotificationRouteImport } from './routes/api/public/send-notification'
 import { Route as ApiPublicPawapayWebhookRouteImport } from './routes/api/public/pawapay-webhook'
 import { Route as ApiPublicLigdicashWebhookRouteImport } from './routes/api/public/ligdicash-webhook'
-import { Route as ApiPublicDiditWebhookRouteImport } from './routes/api/public/didit-webhook'
 import { Route as AuthenticatedDashboardWalletRouteImport } from './routes/_authenticated/dashboard/wallet'
 import { Route as AuthenticatedDashboardVerifyRouteImport } from './routes/_authenticated/dashboard/verify'
 import { Route as AuthenticatedDashboardTransactionsRouteImport } from './routes/_authenticated/dashboard/transactions'
@@ -192,11 +191,6 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
 } as any)
-const ApiWebhooksDiditRoute = ApiWebhooksDiditRouteImport.update({
-  id: '/api/webhooks/didit',
-  path: '/api/webhooks/didit',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiV1PayoutsRoute = ApiV1PayoutsRouteImport.update({
   id: '/api/v1/payouts',
   path: '/api/v1/payouts',
@@ -210,6 +204,11 @@ const ApiV1ChargesRoute = ApiV1ChargesRouteImport.update({
 const ApiPublicWithdrawRoute = ApiPublicWithdrawRouteImport.update({
   id: '/api/public/withdraw',
   path: '/api/public/withdraw',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicTestNotifyRoute = ApiPublicTestNotifyRouteImport.update({
+  id: '/api/public/test-notify',
+  path: '/api/public/test-notify',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicTestEmailRoute = ApiPublicTestEmailRouteImport.update({
@@ -239,11 +238,6 @@ const ApiPublicLigdicashWebhookRoute =
     path: '/api/public/ligdicash-webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicDiditWebhookRoute = ApiPublicDiditWebhookRouteImport.update({
-  id: '/api/public/didit-webhook',
-  path: '/api/public/didit-webhook',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthenticatedDashboardWalletRoute =
   AuthenticatedDashboardWalletRouteImport.update({
     id: '/wallet',
@@ -396,16 +390,15 @@ export interface FileRoutesByFullPath {
   '/dashboard/transactions': typeof AuthenticatedDashboardTransactionsRoute
   '/dashboard/verify': typeof AuthenticatedDashboardVerifyRoute
   '/dashboard/wallet': typeof AuthenticatedDashboardWalletRoute
-  '/api/public/didit-webhook': typeof ApiPublicDiditWebhookRoute
   '/api/public/ligdicash-webhook': typeof ApiPublicLigdicashWebhookRoute
   '/api/public/pawapay-webhook': typeof ApiPublicPawapayWebhookRoute
   '/api/public/send-notification': typeof ApiPublicSendNotificationRoute
   '/api/public/sync-wallet': typeof ApiPublicSyncWalletRoute
   '/api/public/test-email': typeof ApiPublicTestEmailRoute
+  '/api/public/test-notify': typeof ApiPublicTestNotifyRoute
   '/api/public/withdraw': typeof ApiPublicWithdrawRoute
   '/api/v1/charges': typeof ApiV1ChargesRouteWithChildren
   '/api/v1/payouts': typeof ApiV1PayoutsRoute
-  '/api/webhooks/didit': typeof ApiWebhooksDiditRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/admin/merchants/$id': typeof AuthenticatedAdminMerchantsIdRoute
@@ -450,16 +443,15 @@ export interface FileRoutesByTo {
   '/dashboard/transactions': typeof AuthenticatedDashboardTransactionsRoute
   '/dashboard/verify': typeof AuthenticatedDashboardVerifyRoute
   '/dashboard/wallet': typeof AuthenticatedDashboardWalletRoute
-  '/api/public/didit-webhook': typeof ApiPublicDiditWebhookRoute
   '/api/public/ligdicash-webhook': typeof ApiPublicLigdicashWebhookRoute
   '/api/public/pawapay-webhook': typeof ApiPublicPawapayWebhookRoute
   '/api/public/send-notification': typeof ApiPublicSendNotificationRoute
   '/api/public/sync-wallet': typeof ApiPublicSyncWalletRoute
   '/api/public/test-email': typeof ApiPublicTestEmailRoute
+  '/api/public/test-notify': typeof ApiPublicTestNotifyRoute
   '/api/public/withdraw': typeof ApiPublicWithdrawRoute
   '/api/v1/charges': typeof ApiV1ChargesRouteWithChildren
   '/api/v1/payouts': typeof ApiV1PayoutsRoute
-  '/api/webhooks/didit': typeof ApiWebhooksDiditRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/admin/merchants/$id': typeof AuthenticatedAdminMerchantsIdRoute
@@ -508,16 +500,15 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/transactions': typeof AuthenticatedDashboardTransactionsRoute
   '/_authenticated/dashboard/verify': typeof AuthenticatedDashboardVerifyRoute
   '/_authenticated/dashboard/wallet': typeof AuthenticatedDashboardWalletRoute
-  '/api/public/didit-webhook': typeof ApiPublicDiditWebhookRoute
   '/api/public/ligdicash-webhook': typeof ApiPublicLigdicashWebhookRoute
   '/api/public/pawapay-webhook': typeof ApiPublicPawapayWebhookRoute
   '/api/public/send-notification': typeof ApiPublicSendNotificationRoute
   '/api/public/sync-wallet': typeof ApiPublicSyncWalletRoute
   '/api/public/test-email': typeof ApiPublicTestEmailRoute
+  '/api/public/test-notify': typeof ApiPublicTestNotifyRoute
   '/api/public/withdraw': typeof ApiPublicWithdrawRoute
   '/api/v1/charges': typeof ApiV1ChargesRouteWithChildren
   '/api/v1/payouts': typeof ApiV1PayoutsRoute
-  '/api/webhooks/didit': typeof ApiWebhooksDiditRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/_authenticated/admin/merchants/$id': typeof AuthenticatedAdminMerchantsIdRoute
@@ -566,16 +557,15 @@ export interface FileRouteTypes {
     | '/dashboard/transactions'
     | '/dashboard/verify'
     | '/dashboard/wallet'
-    | '/api/public/didit-webhook'
     | '/api/public/ligdicash-webhook'
     | '/api/public/pawapay-webhook'
     | '/api/public/send-notification'
     | '/api/public/sync-wallet'
     | '/api/public/test-email'
+    | '/api/public/test-notify'
     | '/api/public/withdraw'
     | '/api/v1/charges'
     | '/api/v1/payouts'
-    | '/api/webhooks/didit'
     | '/admin/'
     | '/dashboard/'
     | '/admin/merchants/$id'
@@ -620,16 +610,15 @@ export interface FileRouteTypes {
     | '/dashboard/transactions'
     | '/dashboard/verify'
     | '/dashboard/wallet'
-    | '/api/public/didit-webhook'
     | '/api/public/ligdicash-webhook'
     | '/api/public/pawapay-webhook'
     | '/api/public/send-notification'
     | '/api/public/sync-wallet'
     | '/api/public/test-email'
+    | '/api/public/test-notify'
     | '/api/public/withdraw'
     | '/api/v1/charges'
     | '/api/v1/payouts'
-    | '/api/webhooks/didit'
     | '/admin'
     | '/dashboard'
     | '/admin/merchants/$id'
@@ -677,16 +666,15 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/transactions'
     | '/_authenticated/dashboard/verify'
     | '/_authenticated/dashboard/wallet'
-    | '/api/public/didit-webhook'
     | '/api/public/ligdicash-webhook'
     | '/api/public/pawapay-webhook'
     | '/api/public/send-notification'
     | '/api/public/sync-wallet'
     | '/api/public/test-email'
+    | '/api/public/test-notify'
     | '/api/public/withdraw'
     | '/api/v1/charges'
     | '/api/v1/payouts'
-    | '/api/webhooks/didit'
     | '/_authenticated/admin/'
     | '/_authenticated/dashboard/'
     | '/_authenticated/admin/merchants/$id'
@@ -716,16 +704,15 @@ export interface RootRouteChildren {
   ProductsPayInRoute: typeof ProductsPayInRoute
   ProductsPayOutRoute: typeof ProductsPayOutRoute
   ProductsPaymentLinksRoute: typeof ProductsPaymentLinksRoute
-  ApiPublicDiditWebhookRoute: typeof ApiPublicDiditWebhookRoute
   ApiPublicLigdicashWebhookRoute: typeof ApiPublicLigdicashWebhookRoute
   ApiPublicPawapayWebhookRoute: typeof ApiPublicPawapayWebhookRoute
   ApiPublicSendNotificationRoute: typeof ApiPublicSendNotificationRoute
   ApiPublicSyncWalletRoute: typeof ApiPublicSyncWalletRoute
   ApiPublicTestEmailRoute: typeof ApiPublicTestEmailRoute
+  ApiPublicTestNotifyRoute: typeof ApiPublicTestNotifyRoute
   ApiPublicWithdrawRoute: typeof ApiPublicWithdrawRoute
   ApiV1ChargesRoute: typeof ApiV1ChargesRouteWithChildren
   ApiV1PayoutsRoute: typeof ApiV1PayoutsRoute
-  ApiWebhooksDiditRoute: typeof ApiWebhooksDiditRoute
   ApiPublicPaySlugRoute: typeof ApiPublicPaySlugRoute
   ApiPublicTxStatusIdRoute: typeof ApiPublicTxStatusIdRoute
   ApiPublicTxTimeoutIdRoute: typeof ApiPublicTxTimeoutIdRoute
@@ -908,13 +895,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
-    '/api/webhooks/didit': {
-      id: '/api/webhooks/didit'
-      path: '/api/webhooks/didit'
-      fullPath: '/api/webhooks/didit'
-      preLoaderRoute: typeof ApiWebhooksDiditRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/v1/payouts': {
       id: '/api/v1/payouts'
       path: '/api/v1/payouts'
@@ -934,6 +914,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/withdraw'
       fullPath: '/api/public/withdraw'
       preLoaderRoute: typeof ApiPublicWithdrawRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/test-notify': {
+      id: '/api/public/test-notify'
+      path: '/api/public/test-notify'
+      fullPath: '/api/public/test-notify'
+      preLoaderRoute: typeof ApiPublicTestNotifyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/test-email': {
@@ -969,13 +956,6 @@ declare module '@tanstack/react-router' {
       path: '/api/public/ligdicash-webhook'
       fullPath: '/api/public/ligdicash-webhook'
       preLoaderRoute: typeof ApiPublicLigdicashWebhookRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/didit-webhook': {
-      id: '/api/public/didit-webhook'
-      path: '/api/public/didit-webhook'
-      fullPath: '/api/public/didit-webhook'
-      preLoaderRoute: typeof ApiPublicDiditWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/dashboard/wallet': {
@@ -1246,16 +1226,15 @@ const rootRouteChildren: RootRouteChildren = {
   ProductsPayInRoute: ProductsPayInRoute,
   ProductsPayOutRoute: ProductsPayOutRoute,
   ProductsPaymentLinksRoute: ProductsPaymentLinksRoute,
-  ApiPublicDiditWebhookRoute: ApiPublicDiditWebhookRoute,
   ApiPublicLigdicashWebhookRoute: ApiPublicLigdicashWebhookRoute,
   ApiPublicPawapayWebhookRoute: ApiPublicPawapayWebhookRoute,
   ApiPublicSendNotificationRoute: ApiPublicSendNotificationRoute,
   ApiPublicSyncWalletRoute: ApiPublicSyncWalletRoute,
   ApiPublicTestEmailRoute: ApiPublicTestEmailRoute,
+  ApiPublicTestNotifyRoute: ApiPublicTestNotifyRoute,
   ApiPublicWithdrawRoute: ApiPublicWithdrawRoute,
   ApiV1ChargesRoute: ApiV1ChargesRouteWithChildren,
   ApiV1PayoutsRoute: ApiV1PayoutsRoute,
-  ApiWebhooksDiditRoute: ApiWebhooksDiditRoute,
   ApiPublicPaySlugRoute: ApiPublicPaySlugRoute,
   ApiPublicTxStatusIdRoute: ApiPublicTxStatusIdRoute,
   ApiPublicTxTimeoutIdRoute: ApiPublicTxTimeoutIdRoute,
