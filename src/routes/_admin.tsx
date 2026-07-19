@@ -38,10 +38,7 @@ function AdminLayout() {
 
         <nav className="flex-1 space-y-1">
           <a href="/admin" className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent text-foreground">
-            <CheckSquare className="h-4 w-4" /> Vue d'ensemble
-          </a>
-          <a href="/admin/kyc" className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent text-foreground">
-            <UserCircle className="h-4 w-4" /> Validations KYC
+            <CheckSquare className="h-4 w-4" /> Validations KYC & Marchands
           </a>
           {role === "admin" && (
             <a href="/admin/team" className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium hover:bg-accent text-foreground">
