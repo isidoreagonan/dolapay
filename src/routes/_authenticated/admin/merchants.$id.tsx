@@ -82,10 +82,26 @@ function Merchant360() {
   });
 
   // Merge the ones stored in the JSON field with any existing ones in the DB
-  const allDocs = [
+  const rawDocs = [
     ...kycDocs,
     ...(Array.isArray(profile?.ai_verification_log) ? profile.ai_verification_log : [])
   ];
+
+  const { data: allDocs = [] } = useQuery({
+    queryKey: ["admin-merchant-docs-signed", rawDocs],
+    queryFn: async () => {
+      const processed = [];
+      for (const doc of rawDocs) {
+        const cleanPath = doc.file_path.startsWith("kyc-documents/") 
+          ? doc.file_path.replace("kyc-documents/", "") 
+          : doc.file_path;
+        const { data } = await supabase.storage.from("kyc-documents").createSignedUrl(cleanPath, 3600);
+        processed.push({ ...doc, signedUrl: data?.signedUrl || null });
+      }
+      return processed;
+    },
+    enabled: rawDocs.length > 0,
+  });
 
   const action = useMutation({
     mutationFn: async (patch: Record<string, unknown>) => {
@@ -261,34 +277,18 @@ function Merchant360() {
                         <span className="text-[10px] text-slate-500 font-mono">{doc.status}</span>
                       </div>
                     </div>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="h-7 px-2 text-xs text-slate-300 hover:text-white"
-                      onClick={async () => {
-                        const cleanPath = doc.file_path.startsWith("kyc-documents/") 
-                          ? doc.file_path.replace("kyc-documents/", "") 
-                          : doc.file_path;
-                          
-                        // Open window immediately to prevent browser pop-up blocker during async await
-                        const newWindow = window.open("", "_blank");
-                        
-                        try {
-                          const { data } = await supabase.storage.from("kyc-documents").createSignedUrl(cleanPath, 3600);
-                          if (data?.signedUrl && newWindow) {
-                            newWindow.location.href = data.signedUrl;
-                          } else {
-                            if (newWindow) newWindow.close();
-                            toast.error("Impossible d'ouvrir le fichier (vérifiez le bucket stocké)");
-                          }
-                        } catch (err) {
-                          if (newWindow) newWindow.close();
-                          toast.error("Erreur réseau");
-                        }
-                      }}
-                    >
-                      <ExternalLink className="h-3 w-3 mr-1" /> Voir
-                    </Button>
+                    {doc.signedUrl ? (
+                      <a
+                        href={doc.signedUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex h-7 items-center justify-center rounded-md px-2 text-xs font-medium text-slate-300 hover:bg-white/10 hover:text-white transition-colors"
+                      >
+                        <ExternalLink className="h-3 w-3 mr-1" /> Voir
+                      </a>
+                    ) : (
+                      <span className="text-[10px] text-slate-500 italic px-2">Lien expiré</span>
+                    )}
                   </div>
                 );
               })}
