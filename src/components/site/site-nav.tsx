@@ -135,6 +135,26 @@ const SiteNav = () => {
   const toggle = (k: string) => setOpenSection((cur) => (cur === k ? null : k));
   const close = () => setMobile(false);
 
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    import("@/integrations/supabase/client").then(({ supabase }) => {
+      supabase.auth.getSession().then(({ data }) => {
+        if (mounted) setIsLoggedIn(!!data.session);
+      });
+      const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (mounted) setIsLoggedIn(!!session);
+      });
+      return () => {
+        sub.subscription.unsubscribe();
+      };
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   return (
     <header className="fixed top-0 inset-x-0 z-50">
       <div className="mx-auto max-w-7xl px-4 md:px-6 pt-4">
@@ -161,14 +181,24 @@ const SiteNav = () => {
           </nav>
 
           <div className="flex items-center gap-2">
-            <Link to="/auth/sign-in" className="hidden sm:inline-flex text-sm text-navy/70 hover:text-primary px-3 py-2">
-              Se connecter
-            </Link>
-            <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl hidden sm:inline-flex">
-              <Link to="/auth/sign-up" className="flex items-center gap-1">
-                Créer un compte <ArrowUpRight className="h-4 w-4" />
-              </Link>
-            </Button>
+            {isLoggedIn ? (
+              <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl hidden sm:inline-flex">
+                <Link to="/dashboard" className="flex items-center gap-1">
+                  Tableau de Bord <ArrowUpRight className="h-4 w-4" />
+                </Link>
+              </Button>
+            ) : (
+              <>
+                <Link to="/auth/sign-in" className="hidden sm:inline-flex text-sm text-navy/70 hover:text-primary px-3 py-2">
+                  Se connecter
+                </Link>
+                <Button asChild className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl hidden sm:inline-flex">
+                  <Link to="/auth/sign-up" className="flex items-center gap-1">
+                    Créer un compte <ArrowUpRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+              </>
+            )}
             <button
               aria-label={mobile ? "Fermer" : "Menu"}
               onClick={() => setMobile((v) => !v)}
@@ -204,20 +234,32 @@ const SiteNav = () => {
                   <MobileLink label="Tarifs" to="/pricing" close={close} />
                 </div>
                 <div className="border-t border-border px-5 py-4 grid grid-cols-2 gap-3 bg-white">
-                  <Link
-                    to="/auth/sign-in"
-                    onClick={close}
-                    className="flex items-center justify-center h-11 rounded-xl border border-border text-[14px] font-semibold text-navy active:bg-navy/5"
-                  >
-                    Se connecter
-                  </Link>
-                  <Link
-                    to="/auth/sign-up"
-                    onClick={close}
-                    className="flex items-center justify-center h-11 rounded-xl bg-primary text-white text-[14px] font-semibold active:bg-primary/90"
-                  >
-                    Créer un compte
-                  </Link>
+                  {isLoggedIn ? (
+                    <Link
+                      to="/dashboard"
+                      onClick={close}
+                      className="col-span-2 flex items-center justify-center h-11 rounded-xl bg-primary text-white text-[14px] font-semibold active:bg-primary/90"
+                    >
+                      Tableau de Bord
+                    </Link>
+                  ) : (
+                    <>
+                      <Link
+                        to="/auth/sign-in"
+                        onClick={close}
+                        className="flex items-center justify-center h-11 rounded-xl border border-border text-[14px] font-semibold text-navy active:bg-navy/5"
+                      >
+                        Se connecter
+                      </Link>
+                      <Link
+                        to="/auth/sign-up"
+                        onClick={close}
+                        className="flex items-center justify-center h-11 rounded-xl bg-primary text-white text-[14px] font-semibold active:bg-primary/90"
+                      >
+                        Créer un compte
+                      </Link>
+                    </>
+                  )}
                 </div>
               </div>
             </motion.div>
