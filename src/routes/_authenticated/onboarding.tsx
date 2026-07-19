@@ -74,7 +74,7 @@ function OnboardingPage() {
 
       const requiredDocs = accountType === "standard" 
         ? ["id", "selfie"] 
-        : ["id", "selfie", "company_registration", "tax_id"];
+        : ["id", "selfie", "rccm", "tax_doc"];
 
       const bucket = "kyc-documents";
 
@@ -83,8 +83,8 @@ function OnboardingPage() {
         if (!file) throw new Error(`Document manquant : ${t}`);
         if (file.size > 10 * 1024 * 1024) throw new Error(`${t} dépasse 10 Mo`);
         
-        // Strict verification: Enterprise company_registration and tax_id MUST be PDF
-        if (accountType === "enterprise" && (t === "company_registration" || t === "tax_id")) {
+        // Strict verification: Enterprise rccm and tax_doc MUST be PDF
+        if (accountType === "enterprise" && (t === "rccm" || t === "tax_doc")) {
           if (file.type !== "application/pdf") {
              throw new Error(`Le document légal/fiscal (${t}) doit obligatoirement être au format PDF.`);
           }
@@ -224,20 +224,20 @@ function OnboardingPage() {
                 {accountType === "enterprise" && (
                   <>
                     <DocSlot 
-                      type="company_registration" 
+                      type="rccm" 
                       label={`Document d'immatriculation (${kybLabels.registry.short})`} 
                       hint="Document officiel d'enregistrement. Obligatoirement en PDF." 
                       accept="application/pdf"
-                      file={docs["company_registration"] ?? null} 
-                      onFile={(f) => setDocs({ ...docs, company_registration: f })} 
+                      file={docs["rccm"] ?? null} 
+                      onFile={(f) => setDocs({ ...docs, rccm: f })} 
                     />
                     <DocSlot 
-                      type="tax_id" 
+                      type="tax_doc" 
                       label={`Attestation Fiscale (${kybLabels.tax.label})`} 
                       hint="Document fiscal officiel. Obligatoirement en PDF." 
                       accept="application/pdf"
-                      file={docs["tax_id"] ?? null} 
-                      onFile={(f) => setDocs({ ...docs, tax_id: f })} 
+                      file={docs["tax_doc"] ?? null} 
+                      onFile={(f) => setDocs({ ...docs, tax_doc: f })} 
                     />
                   </>
                 )}
@@ -291,7 +291,7 @@ function canAdvance(step: number, s: { accountType: AccountType; fullName: strin
   }
   if (step === 2) {
     if (s.accountType === "standard") return !!(s.docs["id"] && s.docs["selfie"]);
-    return !!(s.docs["id"] && s.docs["selfie"] && s.docs["company_registration"] && s.docs["tax_id"]);
+    return !!(s.docs["id"] && s.docs["selfie"] && s.docs["rccm"] && s.docs["tax_doc"]);
   }
   return true;
 }
