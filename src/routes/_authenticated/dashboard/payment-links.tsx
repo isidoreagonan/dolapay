@@ -81,6 +81,7 @@ function PaymentLinksPage() {
           const { data, error } = await supabase
             .from("payment_links")
             .select("*")
+            .eq("profile_id", profile!.id)
             .order("created_at", { ascending: false });
           if (error) throw error;
           rawLinks = data ?? [];
@@ -97,6 +98,7 @@ function PaymentLinksPage() {
           const { data, error: txsErr } = await supabase
             .from("transactions")
             .select("amount, status, description")
+            .eq("profile_id", profile!.id)
             .eq("type", "payment_link")
             .eq("status", "success");
           if (txsErr) throw txsErr;
