@@ -129,7 +129,7 @@ function OnboardingPage() {
         .eq("id", uid);
       if (pErr) throw pErr;
       try {
-        fetch("/api/public/send-notification", {
+        await fetch("/api/public/send-notification", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ type: "welcome", profileId: uid }),
