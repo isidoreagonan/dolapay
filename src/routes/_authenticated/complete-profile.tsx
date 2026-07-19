@@ -23,21 +23,29 @@ function CompleteProfilePage() {
 
   useEffect(() => {
     (async () => {
-      const { data: u } = await supabase.auth.getUser();
-      if (!u.user) return;
-      const { data: p } = await supabase.from("profiles").select("first_name,last_name,full_name,country,phone").eq("id", u.user.id).maybeSingle();
-      if (p?.country && p?.phone) {
-        navigate({ to: "/onboarding", replace: true });
-        return;
+      try {
+        const { data: u } = await supabase.auth.getUser();
+        if (!u.user) return;
+        const { data: p } = await supabase.from("profiles").select("first_name,last_name,full_name,country,phone").eq("id", u.user.id).maybeSingle();
+        if (p?.country && p?.phone) {
+          navigate({ to: "/onboarding", replace: true });
+          return;
+        }
+        const meta = u.user.user_metadata ?? {};
+        
+        const safeSplit = p?.full_name ? p.full_name.split(" ") : [];
+        setFirstName(p?.first_name ?? meta.given_name ?? (safeSplit[0] ?? ""));
+        setLastName(p?.last_name ?? meta.family_name ?? (safeSplit.slice(1).join(" ") ?? ""));
+        
+        if (p?.country) {
+          const c = findCountryByName(p.country);
+          if (c) setCountryCode(c.code);
+        }
+      } catch (err) {
+        console.error("Error loading complete-profile:", err);
+      } finally {
+        setChecking(false);
       }
-      const meta = u.user.user_metadata ?? {};
-      setFirstName(p?.first_name ?? meta.given_name ?? (p?.full_name?.split(" ")[0] ?? ""));
-      setLastName(p?.last_name ?? meta.family_name ?? (p?.full_name?.split(" ").slice(1).join(" ") ?? ""));
-      if (p?.country) {
-        const c = findCountryByName(p.country);
-        if (c) setCountryCode(c.code);
-      }
-      setChecking(false);
     })();
   }, [navigate]);
 
