@@ -12,8 +12,19 @@ export const Route = createFileRoute("/api/public/test-notify")({
         try {
           const trace: any[] = [];
           
-          const { data: tx, error } = await supabaseAdmin.from("transactions").select("*").eq("id", txId).maybeSingle();
-          trace.push({ step: "1. fetch tx", tx_exists: !!tx, error, status: tx?.status });
+          let tx: any = null;
+          let error: any = null;
+
+          if (txId === "latest") {
+            const res = await supabaseAdmin.from("transactions").select("*").order("created_at", { ascending: false }).limit(1).single();
+            tx = res.data;
+            error = res.error;
+          } else {
+            const res = await supabaseAdmin.from("transactions").select("*").eq("id", txId).maybeSingle();
+            tx = res.data;
+            error = res.error;
+          }
+          trace.push({ step: "1. fetch tx", tx_exists: !!tx, error, status: tx?.status, txId: tx?.id });
 
           if (error || !tx || tx.status !== "success") {
              return Response.json({ trace, reason: "Tx introuvable ou pas success" });
