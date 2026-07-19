@@ -90,27 +90,28 @@ function Overview() {
       const existingIds = new Set(results.map((t) => t.id));
 
       if (profile?.id) {
-        for (const col of ["profile_id", "user_id", "merchant_id", "account_id", "owner_id"]) {
-          const { data: wrs } = await (supabase.from("withdrawal_requests") as any)
-            .select("*")
-            .eq(col, profile.id)
-            .gte("created_at", since.toISOString());
-          if (wrs && wrs.length > 0) {
-            for (const w of wrs) {
-              if (!existingIds.has(w.id)) {
-                existingIds.add(w.id);
-                const amt = Number(w.amount || 0);
-                const st = amt === 101 ? "failed" : ((w.status === "completed" || w.status === "success" || w.status === "validé") ? "success" : (w.status === "failed" || w.status === "rejected" ? "failed" : "pending"));
-                results.push({
-                  id: w.id,
-                  amount: amt,
-                  currency: "XOF",
-                  status: st as any,
-                  type: "pay-out",
-                  created_at: w.created_at,
-                  description: `Retrait Mobile Money - ${w.method || "MOMO"} (${w.recipient_phone || "N/A"})`,
-                } as any);
-              }
+        // Optimisation : requête directe et propre sur `withdrawals` et `merchant_id`
+        const { data: wrs } = await supabase
+          .from("withdrawals")
+          .select("*")
+          .eq("merchant_id", profile.id)
+          .gte("created_at", since.toISOString());
+          
+        if (wrs && wrs.length > 0) {
+          for (const w of wrs) {
+            if (!existingIds.has(w.id)) {
+              existingIds.add(w.id);
+              const amt = Number(w.amount || 0);
+              const st = amt === 101 ? "failed" : ((w.status === "completed" || w.status === "success" || w.status === "validé") ? "success" : (w.status === "failed" || w.status === "rejected" ? "failed" : "pending"));
+              results.push({
+                id: w.id,
+                amount: amt,
+                currency: "XOF",
+                status: st as any,
+                type: "pay-out",
+                created_at: w.created_at,
+                description: `Retrait vers banque ou Momo`,
+              } as any);
             }
           }
         }
@@ -145,6 +146,7 @@ function Overview() {
 
       return results.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     },
+    refetchInterval: 5000,
   });
 
   const txs = rawTxs.filter((t) => 
