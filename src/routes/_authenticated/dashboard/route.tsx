@@ -35,6 +35,10 @@ export type Profile = {
   id: string;
   email: string;
   full_name: string | null;
+  phone_number: string | null;
+  company_name: string | null;
+  company_website: string | null;
+  company_registration_number: string | null;
   account_type: "standard" | "enterprise";
   kyc_status: KycStatus;
   kyc_rejection_reason: string | null;
