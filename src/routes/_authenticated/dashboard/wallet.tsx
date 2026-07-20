@@ -950,7 +950,7 @@ function WalletPage() {
                         {providerDef?.logoUrl ? (
                           <img src={providerDef.logoUrl} alt={m.provider} className="w-8 h-8 rounded-lg object-contain bg-white dark:bg-slate-900 p-0.5 shadow-xs border shrink-0" />
                         ) : (
-                          <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary font-extrabold flex items-center justify-center text-xs shrink-0">{m.provider?.substring(0, 2).toUpperCase()}</div>
+                          <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary font-extrabold flex items-center justify-center text-xs shrink-0">{String(m.provider || "").substring(0, 2).toUpperCase()}</div>
                         )}
                         <div>
                           <div className="font-bold text-xs flex items-center gap-2">
@@ -1040,7 +1040,7 @@ function WalletPage() {
                         {m.logoUrl ? (
                           <img src={m.logoUrl} alt={m.name} className="w-8 h-8 rounded-lg object-contain bg-white dark:bg-slate-900 p-0.5 border shrink-0" />
                         ) : (
-                          <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary font-extrabold flex items-center justify-center text-xs shrink-0">{m.name.substring(0, 2).toUpperCase()}</div>
+                          <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary font-extrabold flex items-center justify-center text-xs shrink-0">{String(m.name || "").substring(0, 2).toUpperCase()}</div>
                         )}
                         <div className="flex-1 min-w-0">
                           <div className="font-bold text-xs truncate">{m.name}</div>
@@ -1213,7 +1213,7 @@ function WalletPage() {
                           {providerDef?.logoUrl ? (
                             <img src={providerDef.logoUrl} alt={m.provider} className="w-6 h-6 rounded-md object-contain bg-white dark:bg-slate-900 p-0.5 border shrink-0" />
                           ) : (
-                            <div className="w-6 h-6 rounded-md bg-primary/10 text-primary font-extrabold flex items-center justify-center text-[10px] shrink-0">{m.provider?.substring(0, 2).toUpperCase()}</div>
+                            <div className="w-6 h-6 rounded-md bg-primary/10 text-primary font-extrabold flex items-center justify-center text-[10px] shrink-0">{String(m.provider || "").substring(0, 2).toUpperCase()}</div>
                           )}
                           <div>
                             <div className="text-[10px] font-bold">{m.provider}</div>
