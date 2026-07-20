@@ -65,7 +65,6 @@ const PERIOD_DAYS = 30;
 
 function Overview() {
   const { data: profile } = useProfile();
-  const [testMode, setTestMode] = useState(false);
 
   // Compliance state gating
   if (profile?.kyc_status === "in_compliance_review" || (profile?.kyc_status === "pending" && profile?.onboarding_completed)) {
@@ -75,7 +74,7 @@ function Overview() {
     return <RejectedScreen reason={profile.kyc_rejection_reason} />;
   }
 
-  const { data: rawTxs = [] } = useQuery({
+  const { data: txs = [] } = useQuery({
     queryKey: ["my-tx-30", profile?.id],
     queryFn: async (): Promise<Tx[]> => {
       const since = new Date();
@@ -148,10 +147,6 @@ function Overview() {
     },
     refetchInterval: 5000,
   });
-
-  const txs = rawTxs.filter((t) => 
-    testMode ? t.description?.includes('_TEST') : !t.description?.includes('_TEST')
-  );
 
   const now = new Date();
   const startCurrent = new Date(now); startCurrent.setDate(now.getDate() - PERIOD_DAYS);
@@ -227,18 +222,6 @@ function Overview() {
           <p className="text-sm text-muted-foreground">Aperçu des 30 derniers jours.</p>
         </div>
         <div className="flex items-center gap-4">
-          <button
-            onClick={() => setTestMode(!testMode)}
-            className={cn(
-              "inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors border",
-              testMode
-                ? "border-amber-500/30 bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 dark:text-amber-400"
-                : "border-border bg-background text-muted-foreground hover:bg-muted"
-            )}
-          >
-            <div className={cn("h-2 w-2 rounded-full", testMode ? "bg-amber-500" : "bg-muted-foreground/50")} />
-            {testMode ? "Mode Test" : "Mode Live"}
-          </button>
           <Badge className={cn("gap-1.5 px-3 py-1 text-xs hidden sm:inline-flex", tier.badgeClass)}>
             <span className="text-sm leading-none">{tier.icon}</span> {tier.label}
           </Badge>

@@ -216,7 +216,6 @@ function WalletPage() {
   const [showPin, setShowPin] = useState(false);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [pinModalOpen, setPinModalOpen] = useState(false);
-  const [testMode, setTestMode] = useState(false);
   const [tableSearch, setTableSearch] = useState("");
 
   // Form State for Withdrawal
@@ -280,7 +279,7 @@ function WalletPage() {
   });
 
   const { data: wallet, isLoading: walletLoading } = useQuery({
-    queryKey: ["my-wallet", profile?.id, testMode],
+    queryKey: ["my-wallet", profile?.id],
     enabled: !!profile?.id,
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
@@ -378,12 +377,7 @@ function WalletPage() {
       const metaPin = authData?.user?.user_metadata?.wallet_pin;
 
       let bestBalance = 0;
-      
-      if (testMode) {
-        bestBalance = Math.max(0, testPayin - testPayout);
-      } else {
-        bestBalance = Math.max(0, livePayin - livePayout);
-      }
+      bestBalance = Math.max(0, livePayin - livePayout);
 
       if (!data) {
         if (bestBalance > 0 || authData?.user?.user_metadata?.wallet_created || metaPin) {
@@ -557,9 +551,8 @@ function WalletPage() {
           action: "withdraw",
           amount: Number(withdrawAmount),
           method: `${withdrawMethod} (${activeCountry.name})`,
-          phone: `+${activeCountry.prefix}${withdrawPhone}`,
-          pin: withdrawPin,
-          testMode: Boolean(testMode),
+          phone: withdrawPhone,
+          testMode: false,
         }),
       });
       const body = await response.json();
@@ -690,21 +683,7 @@ function WalletPage() {
           <h1 className="text-2xl font-black tracking-tight">Gestion du Portefeuille</h1>
           <p className="text-sm text-muted-foreground">Suivez vos soldes et gérez vos moyens de retrait.</p>
         </div>
-        <div className="flex flex-wrap items-center gap-2.5">
-          <button
-            onClick={() => setTestMode(!testMode)}
-            className={cn(
-              "inline-flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold transition-colors border shadow-sm justify-center h-10",
-              testMode
-                ? "bg-amber-500/15 text-amber-600 border-amber-500/30 hover:bg-amber-500/25 dark:text-amber-400"
-                : "bg-emerald-500/15 text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/25 dark:text-emerald-400"
-            )}
-          >
-            <div className={cn("h-2 w-2 rounded-full", testMode ? "bg-amber-500" : "bg-emerald-500")} />
-            {testMode ? "Mode Test (Sandbox)" : "Mode Live (Réel)"}
-          </button>
-
-          <Button
+        <div className="flex flex-wrap items-center gap-2.5">          <Button
             variant="outline"
             size="sm"
             onClick={() => setPinModalOpen(true)}

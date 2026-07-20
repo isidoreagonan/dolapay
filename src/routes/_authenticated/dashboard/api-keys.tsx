@@ -19,7 +19,6 @@ function ApiKeysPage() {
   const qc = useQueryClient();
   const { data: profile } = useProfile();
   const [label, setLabel] = useState("");
-  const [mode, setMode] = useState<"live" | "test">("live");
   const [newKey, setNewKey] = useState<string | null>(null);
 
   const { data: keys = [] } = useQuery({
@@ -38,7 +37,7 @@ function ApiKeysPage() {
     mutationFn: async () => {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) throw new Error("Non connecté");
-      const prefixStr = mode === "test" ? "dp_test_" : "dp_live_";
+      const prefixStr = "dp_live_";
       const raw = prefixStr + crypto.randomUUID().replace(/-/g, "");
       const prefix = raw.slice(0, 12);
       // Simple hash via Web Crypto SHA-256
@@ -82,25 +81,31 @@ function ApiKeysPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Clés API</h1>
-        <p className="text-sm text-muted-foreground">Créez des clés pour intégrer DolaPay à vos applications.</p>
+        <h1 className="text-2xl font-bold tracking-tight">Développement API</h1>
+        <p className="text-sm text-muted-foreground">Utilisez ces clés pour intégrer les paiements DolaPay dans vos propres applications.</p>
       </div>
+      
+      <Card className="p-6 border-dashed border-amber-200 bg-amber-50/50 dark:border-amber-900/30 dark:bg-amber-900/5">
+        <h2 className="flex items-center gap-2 font-semibold text-amber-800 dark:text-amber-400">
+          <KeyRound className="h-4 w-4" /> Environnement Sandbox
+        </h2>
+        <p className="mt-2 text-sm text-amber-700/80 dark:text-amber-500/80">
+          Le sandbox est une plateforme distincte. Configurez l'URL dans votre app <code>(NEXT_PUBLIC_SANDBOX_URL)</code> pour y accéder directement et effectuer vos tests en toute sécurité sans impacter vos vraies données.
+        </p>
+      </Card>
 
-      <Card className="p-6">
+      <Card className="p-6 border-emerald-100 dark:border-emerald-900/30">
+        <div className="mb-4 flex items-center gap-2">
+          <h2 className="font-semibold text-emerald-800 dark:text-emerald-400">Environnement Réel (Live)</h2>
+          <span className="rounded-full bg-emerald-500 px-2 py-0.5 text-[10px] font-bold text-white uppercase tracking-wider">Production</span>
+        </div>
+        <p className="mb-4 text-sm text-muted-foreground">Utilisez ces clés pour accepter de vrais paiements de vos clients.</p>
         <form
           onSubmit={(e) => { e.preventDefault(); create.mutate(); }}
-          className="grid gap-3 sm:grid-cols-[1fr_auto_auto]"
+          className="grid gap-3 sm:grid-cols-[1fr_auto]"
         >
-          <Input placeholder="Libellé (ex: serveur-test)" value={label} onChange={(e) => setLabel(e.target.value)} required />
-          <select
-            className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-            value={mode}
-            onChange={(e) => setMode(e.target.value as "live" | "test")}
-          >
-            <option value="live">Clé Live (Production)</option>
-            <option value="test">Clé de Test (Sandbox)</option>
-          </select>
-          <Button type="submit" disabled={create.isPending}><KeyRound className="h-4 w-4 mr-2" />Générer</Button>
+          <Input placeholder="Libellé (ex: Mon Site Web)" value={label} onChange={(e) => setLabel(e.target.value)} required />
+          <Button type="submit" disabled={create.isPending} className="bg-emerald-600 hover:bg-emerald-700 text-white"><KeyRound className="h-4 w-4 mr-2" />Générer une clé Live</Button>
         </form>
 
         {newKey && (

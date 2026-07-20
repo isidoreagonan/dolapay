@@ -41,7 +41,6 @@ function TransactionsPage() {
   const [typeFilter, setTypeFilter] = useState("ALL");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [selectedTx, setSelectedTx] = useState<Tx | null>(null);
-  const [testMode, setTestMode] = useState(false);
 
   const { data: rawTxs = [], isLoading, refetch, isRefetching } = useQuery({
     queryKey: ["my-tx-all", profile?.id],
@@ -111,10 +110,8 @@ function TransactionsPage() {
   });
 
   const txs = useMemo(() => {
-    return rawTxs.filter((t) => 
-      testMode ? t.description?.includes('_TEST') : !t.description?.includes('_TEST')
-    );
-  }, [rawTxs, testMode]);
+    return rawTxs.filter((t) => !t.description?.includes('_TEST') && !t.description?.includes('sandbox'));
+  }, [rawTxs]);
 
   const getDerivedType = (t: Tx) => {
     if (t.type === "pay-in" && t.description?.includes("[API_CHARGE")) return "api_charge";
@@ -172,7 +169,7 @@ function TransactionsPage() {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `dolapay_transactions_${testMode ? 'test_' : ''}${new Date().toISOString().slice(0, 10)}.csv`);
+    link.setAttribute("download", `dolapay_transactions_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -192,18 +189,6 @@ function TransactionsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => setTestMode(!testMode)}
-            className={cn(
-              "inline-flex items-center gap-2 rounded-full px-3 h-9 text-xs font-semibold transition-colors border",
-              testMode
-                ? "border-amber-500/30 bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 dark:text-amber-400"
-                : "border-border bg-background text-muted-foreground hover:bg-muted"
-            )}
-          >
-            <div className={cn("h-2 w-2 rounded-full", testMode ? "bg-amber-500" : "bg-muted-foreground/50")} />
-            {testMode ? "Mode Test" : "Mode Live"}
-          </button>
           <Button
             variant="outline"
             size="sm"

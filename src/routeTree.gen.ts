@@ -34,6 +34,7 @@ import { Route as AuthenticatedDashboardRouteRouteImport } from './routes/_authe
 import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard/index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
+import { Route as ApiV1WipeDbRouteImport } from './routes/api/v1/wipe-db'
 import { Route as ApiV1PayoutsRouteImport } from './routes/api/v1/payouts'
 import { Route as ApiV1ChargesRouteImport } from './routes/api/v1/charges'
 import { Route as ApiPublicWithdrawRouteImport } from './routes/api/public/withdraw'
@@ -191,6 +192,11 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthenticatedAdminRouteRoute,
+} as any)
+const ApiV1WipeDbRoute = ApiV1WipeDbRouteImport.update({
+  id: '/api/v1/wipe-db',
+  path: '/api/v1/wipe-db',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiV1PayoutsRoute = ApiV1PayoutsRouteImport.update({
   id: '/api/v1/payouts',
@@ -405,6 +411,7 @@ export interface FileRoutesByFullPath {
   '/api/public/withdraw': typeof ApiPublicWithdrawRoute
   '/api/v1/charges': typeof ApiV1ChargesRouteWithChildren
   '/api/v1/payouts': typeof ApiV1PayoutsRoute
+  '/api/v1/wipe-db': typeof ApiV1WipeDbRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/admin/merchants/$id': typeof AuthenticatedAdminMerchantsIdRoute
@@ -459,6 +466,7 @@ export interface FileRoutesByTo {
   '/api/public/withdraw': typeof ApiPublicWithdrawRoute
   '/api/v1/charges': typeof ApiV1ChargesRouteWithChildren
   '/api/v1/payouts': typeof ApiV1PayoutsRoute
+  '/api/v1/wipe-db': typeof ApiV1WipeDbRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/admin/merchants/$id': typeof AuthenticatedAdminMerchantsIdRoute
@@ -517,6 +525,7 @@ export interface FileRoutesById {
   '/api/public/withdraw': typeof ApiPublicWithdrawRoute
   '/api/v1/charges': typeof ApiV1ChargesRouteWithChildren
   '/api/v1/payouts': typeof ApiV1PayoutsRoute
+  '/api/v1/wipe-db': typeof ApiV1WipeDbRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/_authenticated/admin/merchants/$id': typeof AuthenticatedAdminMerchantsIdRoute
@@ -575,6 +584,7 @@ export interface FileRouteTypes {
     | '/api/public/withdraw'
     | '/api/v1/charges'
     | '/api/v1/payouts'
+    | '/api/v1/wipe-db'
     | '/admin/'
     | '/dashboard/'
     | '/admin/merchants/$id'
@@ -629,6 +639,7 @@ export interface FileRouteTypes {
     | '/api/public/withdraw'
     | '/api/v1/charges'
     | '/api/v1/payouts'
+    | '/api/v1/wipe-db'
     | '/admin'
     | '/dashboard'
     | '/admin/merchants/$id'
@@ -686,6 +697,7 @@ export interface FileRouteTypes {
     | '/api/public/withdraw'
     | '/api/v1/charges'
     | '/api/v1/payouts'
+    | '/api/v1/wipe-db'
     | '/_authenticated/admin/'
     | '/_authenticated/dashboard/'
     | '/_authenticated/admin/merchants/$id'
@@ -725,6 +737,7 @@ export interface RootRouteChildren {
   ApiPublicWithdrawRoute: typeof ApiPublicWithdrawRoute
   ApiV1ChargesRoute: typeof ApiV1ChargesRouteWithChildren
   ApiV1PayoutsRoute: typeof ApiV1PayoutsRoute
+  ApiV1WipeDbRoute: typeof ApiV1WipeDbRoute
   ApiPublicPaySlugRoute: typeof ApiPublicPaySlugRoute
   ApiPublicTxStatusIdRoute: typeof ApiPublicTxStatusIdRoute
   ApiPublicTxTimeoutIdRoute: typeof ApiPublicTxTimeoutIdRoute
@@ -906,6 +919,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/api/v1/wipe-db': {
+      id: '/api/v1/wipe-db'
+      path: '/api/v1/wipe-db'
+      fullPath: '/api/v1/wipe-db'
+      preLoaderRoute: typeof ApiV1WipeDbRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/v1/payouts': {
       id: '/api/v1/payouts'
@@ -1244,6 +1264,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicWithdrawRoute: ApiPublicWithdrawRoute,
   ApiV1ChargesRoute: ApiV1ChargesRouteWithChildren,
   ApiV1PayoutsRoute: ApiV1PayoutsRoute,
+  ApiV1WipeDbRoute: ApiV1WipeDbRoute,
   ApiPublicPaySlugRoute: ApiPublicPaySlugRoute,
   ApiPublicTxStatusIdRoute: ApiPublicTxStatusIdRoute,
   ApiPublicTxTimeoutIdRoute: ApiPublicTxTimeoutIdRoute,
