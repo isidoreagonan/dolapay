@@ -14,17 +14,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import logoFull from "@/assets/dolapay-logo.png.asset.json";
 
-// Import operator assets
-import pmOrange from "@/assets/pm-orange.png.asset.json";
-import pmMtn from "@/assets/pm-mtn.png.asset.json";
-import pmMoov from "@/assets/pm-moov.png.asset.json";
-import pmAirtel from "@/assets/pm-airtel.webp.asset.json";
-import pmCeltiis from "@/assets/pm-celtiis.png.asset.json";
-import pmFreeMoney from "@/assets/pm-freemoney.png.asset.json";
-import pmMpesa from "@/assets/pm-mpesa.png.asset.json";
-import pmVodacom from "@/assets/pm-vodacom.png.asset.json";
-import pmZamtel from "@/assets/pm-zamtel.png.asset.json";
-
+// Using static payment icons from /methods/
 import { z } from "zod";
 
 const paySearchSchema = z.object({
@@ -68,114 +58,96 @@ type CountryConfig = {
 
 const COUNTRIES: CountryConfig[] = [
   {
-    code: "BFA",
-    name: "Burkina Faso",
-    flag: "🇧🇫",
-    prefix: "226",
+    code: "BFA", name: "Burkina Faso", flag: "🇧🇫", prefix: "226",
     operators: [
-      { id: "Orange", name: "Orange Money", logoUrl: pmOrange.url, color: "bg-[#FF6600]" },
-      { id: "MOOV", name: "Moov Money", logoUrl: pmMoov.url, color: "bg-[#005B94]" },
-      { id: "Telecel", name: "Telecel", logoUrl: pmZamtel.url, color: "bg-[#E60000]" },
-      { id: "CARD", name: "Carte Bancaire", logoUrl: null, color: "bg-[#0F172A] text-white" },
+      { id: "Orange", name: "Orange Money", logoUrl: "/methods/orange.png", color: "bg-[#FF6600]" },
+      { id: "MOOV", name: "Moov Africa", logoUrl: "/methods/moov.png", color: "bg-[#005B94]" },
     ]
   },
   {
-    code: "CIV",
-    name: "Côte d'Ivoire",
-    flag: "🇨🇮",
-    prefix: "225",
+    code: "CIV", name: "Côte d'Ivoire", flag: "🇨🇮", prefix: "225",
     operators: [
-      { id: "Orange", name: "Orange Money", logoUrl: pmOrange.url, color: "bg-[#FF6600]" },
-      { id: "MTN", name: "MTN MoMo", logoUrl: pmMtn.url, color: "bg-[#FFCC00]" },
-      { id: "MOOV", name: "Moov Money", logoUrl: pmMoov.url, color: "bg-[#005B94]" },
-      { id: "Wave", name: "Wave", logoUrl: null, color: "bg-[#4AAFF7]" },
+      { id: "Orange", name: "Orange Money", logoUrl: "/methods/orange.png", color: "bg-[#FF6600]" },
+      { id: "MTN", name: "MTN MoMo", logoUrl: "/methods/mtn.png", color: "bg-[#FFCC00]" },
+      { id: "MOOV", name: "Moov Africa", logoUrl: "/methods/moov.png", color: "bg-[#005B94]" },
     ]
   },
   {
-    code: "BEN",
-    name: "Bénin",
-    flag: "🇧🇯",
-    prefix: "229",
+    code: "BEN", name: "Bénin", flag: "🇧🇯", prefix: "229",
     operators: [
-      { id: "MTN", name: "MTN MoMo", logoUrl: pmMtn.url, color: "bg-[#FFCC00]" },
-      { id: "MOOV", name: "Moov Money", logoUrl: pmMoov.url, color: "bg-[#005B94]" },
-      { id: "Celtiis", name: "Celtiis Cash", logoUrl: pmCeltiis.url, color: "bg-[#E6007E]" },
+      { id: "MTN", name: "MTN MoMo", logoUrl: "/methods/mtn.png", color: "bg-[#FFCC00]" },
+      { id: "MOOV", name: "Moov Africa", logoUrl: "/methods/moov.png", color: "bg-[#005B94]" },
     ]
   },
   {
-    code: "SEN",
-    name: "Sénégal",
-    flag: "🇸🇳",
-    prefix: "221",
+    code: "SEN", name: "Sénégal", flag: "🇸🇳", prefix: "221",
     operators: [
-      { id: "Orange", name: "Orange Money", logoUrl: pmOrange.url, color: "bg-[#FF6600]" },
-      { id: "Wave", name: "Wave", logoUrl: null, color: "bg-[#4AAFF7]" },
-      { id: "Free", name: "Free Money", logoUrl: pmFreeMoney.url, color: "bg-[#E30613]" },
+      { id: "Orange", name: "Orange Money", logoUrl: "/methods/orange.png", color: "bg-[#FF6600]" },
+      { id: "Free", name: "Free Money", logoUrl: "/methods/free.png", color: "bg-[#E30613]" },
     ]
   },
   {
-    code: "CMR",
-    name: "Cameroun",
-    flag: "🇨🇲",
-    prefix: "237",
+    code: "CMR", name: "Cameroun", flag: "🇨🇲", prefix: "237",
     operators: [
-      { id: "MTN", name: "MTN MoMo", logoUrl: pmMtn.url, color: "bg-[#FFCC00]" },
-      { id: "Orange", name: "Orange Money", logoUrl: pmOrange.url, color: "bg-[#FF6600]" },
+      { id: "MTN", name: "MTN MoMo", logoUrl: "/methods/mtn.png", color: "bg-[#FFCC00]" },
+      { id: "Orange", name: "Orange Money", logoUrl: "/methods/orange.png", color: "bg-[#FF6600]" },
     ]
   },
   {
-    code: "TGO",
-    name: "Togo",
-    flag: "🇹🇬",
-    prefix: "228",
+    code: "COD", name: "RDC (Congo)", flag: "🇨🇩", prefix: "243",
     operators: [
-      { id: "MOOV", name: "Moov Money", logoUrl: pmMoov.url, color: "bg-[#005B94]" },
+      { id: "Airtel", name: "Airtel Money", logoUrl: "/methods/airtel.webp", color: "bg-[#FF0000]" },
+      { id: "Orange", name: "Orange Money", logoUrl: "/methods/orange.png", color: "bg-[#FF6600]" },
+      { id: "Vodacom", name: "Vodacom M-Pesa", logoUrl: "/methods/vodacom.png", color: "bg-[#E60000]" },
     ]
   },
   {
-    code: "GHA",
-    name: "Ghana",
-    flag: "🇬🇭",
-    prefix: "233",
+    code: "GAB", name: "Gabon", flag: "🇬🇦", prefix: "241",
     operators: [
-      { id: "MTN", name: "MTN MoMo", logoUrl: pmMtn.url, color: "bg-[#FFCC00]" },
+      { id: "Airtel", name: "Airtel Money", logoUrl: "/methods/airtel.webp", color: "bg-[#FF0000]" },
+      { id: "MOOV", name: "Moov Africa", logoUrl: "/methods/moov.png", color: "bg-[#005B94]" },
     ]
   },
   {
-    code: "COD",
-    name: "RDC (Congo)",
-    flag: "🇨🇩",
-    prefix: "243",
+    code: "KEN", name: "Kenya", flag: "🇰🇪", prefix: "254",
     operators: [
-      { id: "Airtel", name: "Airtel Money", logoUrl: pmAirtel.url, color: "bg-[#FF0000]" },
+      { id: "M-PESA", name: "M-PESA", logoUrl: "/methods/m-pesa.png", color: "bg-[#4CAF50]" },
     ]
   },
   {
-    code: "ZMB",
-    name: "Zambie",
-    flag: "🇿🇲",
-    prefix: "260",
+    code: "COG", name: "Congo-Brazzaville", flag: "🇨🇬", prefix: "242",
     operators: [
-      { id: "Airtel", name: "Airtel Money", logoUrl: pmAirtel.url, color: "bg-[#FF0000]" },
-      { id: "Zamtel", name: "Zamtel", logoUrl: pmZamtel.url, color: "bg-[#009639]" },
+      { id: "Airtel", name: "Airtel Money", logoUrl: "/methods/airtel.webp", color: "bg-[#FF0000]" },
+      { id: "MTN", name: "MTN MoMo", logoUrl: "/methods/mtn.png", color: "bg-[#FFCC00]" },
     ]
   },
   {
-    code: "TZA",
-    name: "Tanzanie",
-    flag: "🇹🇿",
-    prefix: "255",
+    code: "RWA", name: "Rwanda", flag: "🇷🇼", prefix: "250",
     operators: [
-      { id: "M-Pesa", name: "M-Pesa (Vodacom)", logoUrl: pmVodacom.url, color: "bg-[#E60000]" },
+      { id: "Airtel", name: "Airtel Money", logoUrl: "/methods/airtel.webp", color: "bg-[#FF0000]" },
+      { id: "MTN", name: "MTN MoMo", logoUrl: "/methods/mtn.png", color: "bg-[#FFCC00]" },
     ]
   },
   {
-    code: "KEN",
-    name: "Kenya",
-    flag: "🇰🇪",
-    prefix: "254",
+    code: "SLE", name: "Sierra Leone", flag: "🇸🇱", prefix: "232",
     operators: [
-      { id: "M-Pesa", name: "M-Pesa (Safaricom)", logoUrl: pmMpesa.url, color: "bg-[#4B9443]" },
+      { id: "Orange", name: "Orange Money", logoUrl: "/methods/orange.png", color: "bg-[#FF6600]" },
+      { id: "Afrimoney", name: "Afrimoney", logoUrl: null, color: "bg-[#E60000] text-white" },
+    ]
+  },
+  {
+    code: "UGA", name: "Ouganda", flag: "🇺🇬", prefix: "256",
+    operators: [
+      { id: "Airtel", name: "Airtel Money", logoUrl: "/methods/airtel.webp", color: "bg-[#FF0000]" },
+      { id: "MTN", name: "MTN MoMo", logoUrl: "/methods/mtn.png", color: "bg-[#FFCC00]" },
+    ]
+  },
+  {
+    code: "ZMB", name: "Zambie", flag: "🇿🇲", prefix: "260",
+    operators: [
+      { id: "Airtel", name: "Airtel Money", logoUrl: "/methods/airtel.webp", color: "bg-[#FF0000]" },
+      { id: "MTN", name: "MTN MoMo", logoUrl: "/methods/mtn.png", color: "bg-[#FFCC00]" },
+      { id: "Zamtel", name: "Zamtel", logoUrl: "/methods/zamtel.png", color: "bg-[#009639]" },
     ]
   }
 ];

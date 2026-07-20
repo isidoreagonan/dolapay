@@ -3,6 +3,19 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowDownToLine, ArrowUpFromLine, Info, Search } from "lucide-react";
 import { FlagIcon as Flag } from "@/components/ui/flag-icon";
 
+function getOperatorIcon(operatorName: string) {
+  const n = operatorName.toLowerCase();
+  if (n.includes("airtel")) return "/methods/airtel.webp";
+  if (n.includes("free")) return "/methods/free.png";
+  if (n.includes("m-pesa")) return "/methods/m-pesa.png";
+  if (n.includes("mtn")) return "/methods/mtn.png";
+  if (n.includes("moov")) return "/methods/moov.png";
+  if (n.includes("orange")) return "/methods/orange.png";
+  if (n.includes("vodacom")) return "/methods/vodacom.png";
+  if (n.includes("zamtel")) return "/methods/zamtel.png";
+  return null;
+}
+
 export type OperatorRate = {
   operator: string;
   payin: number | string; // percent or string expression
@@ -297,7 +310,12 @@ const PricingMatrix = ({
                         {oi === 0 ? c.name : ""}
                       </span>
                     </div>
-                    <div className="col-span-3 text-navy/80 font-medium">{op.operator}</div>
+                    <div className="col-span-3 text-navy/80 font-medium flex items-center gap-2">
+                      {getOperatorIcon(op.operator) && (
+                        <img src={getOperatorIcon(op.operator)!} alt={op.operator} className="h-5 w-auto object-contain rounded-[2px]" />
+                      )}
+                      {op.operator}
+                    </div>
                     <div className="col-span-2">
                       <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-[#F5F8FF] text-navy/60 text-xs font-mono">
                         {c.currency}
@@ -351,7 +369,12 @@ const PricingMatrix = ({
               <div className="divide-y divide-border/70">
                 {c.operators.map((op) => (
                   <div key={op.operator} className="px-4 py-3 flex items-center justify-between gap-3">
-                    <span className="font-medium text-navy/85 text-sm">{op.operator}</span>
+                    <div className="flex items-center gap-2 font-medium text-navy/85 text-sm">
+                      {getOperatorIcon(op.operator) && (
+                        <img src={getOperatorIcon(op.operator)!} alt={op.operator} className="h-4 w-auto object-contain rounded-[2px]" />
+                      )}
+                      {op.operator}
+                    </div>
                     <div className="flex items-center gap-2">
                       {showPayin && (
                         <div className="flex flex-col items-end">
