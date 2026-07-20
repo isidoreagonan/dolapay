@@ -130,7 +130,8 @@ async function handleSyncWallet(request: Request) {
           if (!t || !t.id) continue;
           seenTxIds.add(String(t.id));
           const st = String(t.status || "").toLowerCase();
-          const amt = Number(t.amount || 0);
+          // Use net_amount to respect deducted fees and margins for pay-in, and total cost for pay-out
+          const amt = Number(t.net_amount || t.amount || 0);
           const desc = String(t.description || "").toLowerCase();
           const mode = String((t as any).mode || "").toLowerCase();
           const isTestTx = desc.includes("_test") || desc.includes("sandbox") || mode === "test" || mode === "sandbox";

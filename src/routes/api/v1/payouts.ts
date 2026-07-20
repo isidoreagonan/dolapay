@@ -3,6 +3,7 @@ import { z } from "zod";
 import { authenticateMerchant } from "./auth.server";
 import { pawapay, getCorrespondentCode } from "@/lib/pawapay.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { calculateMargin } from "@/lib/margins.server";
 
 const PayoutBody = z.object({
   amount: z.number().int().positive("Le montant doit être supérieur à zéro"),
@@ -81,6 +82,30 @@ export const Route = createFileRoute("/api/v1/payouts")({
           .single();
 
         const payoutId = item?.id || batch.id;
+
+        // Calculer les marges et frais pour le payout
+        const margins = await calculateMargin(supabaseAdmin, amount, "pay-out", correspondent, "pawapay");
+
+        // Enregistrer la transaction avec le même ID que l'item pour que sync-wallet la prenne en compte avec les frais
+        if (item) {
+          await supabaseAdmin.from("transactions").insert({
+            id: item.id,
+            profile_id: auth.profile_id,
+            amount: amount,
+            currency,
+            type: "pay-out",
+            status: "processing",
+            description: `[API_PAYOUT] ${correspondent} · ${recipient_phone} · ${reference || 'Décaissement API'}`,
+            net_amount: margins.net_amount, // Ce sera amount + totalFees déduit du solde
+            operator_fee: margins.operator_fee,
+            gateway_fee: margins.gateway_fee,
+            dola_margin: margins.dola_margin,
+            gateway: "pawapay",
+            customer_phone: recipient_phone,
+            provider: "pawapay",
+            payment_method: provider,
+          } as any);
+        }
 
         try {
           const res = await pawapay.initiatePayout({

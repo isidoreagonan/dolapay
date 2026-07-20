@@ -3,6 +3,7 @@ import { z } from "zod";
 import { authenticateMerchant } from "./auth.server";
 import { pawapay, getCorrespondentCode } from "@/lib/pawapay.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import { calculateMargin } from "@/lib/margins.server";
 
 const ChargeBody = z.object({
   amount: z.number().int().positive("Le montant doit être un entier positif"),
@@ -51,6 +52,9 @@ export const Route = createFileRoute("/api/v1/charges")({
           });
         }
 
+        // Calculate fees and margins
+        const margins = await calculateMargin(supabaseAdmin, amount, "pay-in", correspondent, "pawapay");
+
         // Créer l'enregistrement dans la table transactions
         const { data: tx, error: txErr } = await supabaseAdmin
           .from("transactions")
@@ -61,7 +65,11 @@ export const Route = createFileRoute("/api/v1/charges")({
             type: "pay-in",
             status: auth.is_test ? "success" : "pending", // Mode Test = Success immédiat
             description: `[API_CHARGE${auth.is_test ? '_TEST' : ''}] ${correspondent} · ${customer_phone} · ${description || 'Encaissement API'}`,
-            net_amount: amount,
+            net_amount: margins.net_amount,
+            operator_fee: margins.operator_fee,
+            gateway_fee: margins.gateway_fee,
+            dola_margin: margins.dola_margin,
+            gateway: "pawapay",
             customer_phone,
             provider: "pawapay",
             payment_method: provider,

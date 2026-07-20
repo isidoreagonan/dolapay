@@ -159,10 +159,15 @@ export const Route = createFileRoute("/api/public/ligdicash-webhook")({
                 }
               }
 
-              // Mettre à jour également withdrawal_requests si l'ID correspond
+              // Mettre à jour également withdrawal_requests et transactions si l'ID correspond
               await (supabaseAdmin.from("withdrawal_requests") as any)
                 .update({ status: verifiedStatus })
                 .eq("id", itemId);
+                
+              await supabaseAdmin.from("transactions")
+                .update({ status: verifiedStatus })
+                .eq("id", itemId)
+                .eq("type", "pay-out");
 
               return Response.json({ received: true, processed: "payout", status: verifiedStatus });
           }
