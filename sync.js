@@ -5,12 +5,12 @@ async function run() {
   const url = process.env.VITE_SUPABASE_URL;
   const key = process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
   
-  const res = await fetch(`${url}/rest/v1/transactions?amount=eq.200&select=profile_id`, {
+  const res = await fetch(`${url}/rest/v1/profiles?id=ilike.46179a95-999b-409d-%&select=id`, {
     headers: { 'apikey': key, 'Authorization': `Bearer ${key}` }
   });
   const data = await res.json();
   if (data && data.length > 0) {
-    const profileId = data[0].profile_id;
+    const profileId = data[0].id;
     console.log("Found profile", profileId);
     
     const syncRes = await fetch(`https://dola-pay.com/api/public/sync-wallet`, {
@@ -20,7 +20,7 @@ async function run() {
     });
     console.log(await syncRes.json());
   } else {
-    console.log("No tx found");
+    console.log("No profile found", data);
   }
 }
 run();
