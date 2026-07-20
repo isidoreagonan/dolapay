@@ -22,6 +22,8 @@ import { Route as ProductsEcommerceRouteImport } from './routes/products.ecommer
 import { Route as PaySlugRouteImport } from './routes/pay.$slug'
 import { Route as LegalTermsRouteImport } from './routes/legal.terms'
 import { Route as LegalPrivacyRouteImport } from './routes/legal.privacy'
+import { Route as LegalMentionsRouteImport } from './routes/legal.mentions'
+import { Route as LegalCookiePolicyRouteImport } from './routes/legal.cookie-policy'
 import { Route as LegalAmlRouteImport } from './routes/legal.aml'
 import { Route as DevelopersSdksRouteImport } from './routes/developers.sdks'
 import { Route as DevelopersApiRouteImport } from './routes/developers.api'
@@ -131,6 +133,16 @@ const LegalTermsRoute = LegalTermsRouteImport.update({
 const LegalPrivacyRoute = LegalPrivacyRouteImport.update({
   id: '/legal/privacy',
   path: '/legal/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalMentionsRoute = LegalMentionsRouteImport.update({
+  id: '/legal/mentions',
+  path: '/legal/mentions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalCookiePolicyRoute = LegalCookiePolicyRouteImport.update({
+  id: '/legal/cookie-policy',
+  path: '/legal/cookie-policy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LegalAmlRoute = LegalAmlRouteImport.update({
@@ -398,6 +410,8 @@ export interface FileRoutesByFullPath {
   '/developers/api': typeof DevelopersApiRoute
   '/developers/sdks': typeof DevelopersSdksRoute
   '/legal/aml': typeof LegalAmlRoute
+  '/legal/cookie-policy': typeof LegalCookiePolicyRoute
+  '/legal/mentions': typeof LegalMentionsRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
   '/pay/$slug': typeof PaySlugRoute
@@ -456,6 +470,8 @@ export interface FileRoutesByTo {
   '/developers/api': typeof DevelopersApiRoute
   '/developers/sdks': typeof DevelopersSdksRoute
   '/legal/aml': typeof LegalAmlRoute
+  '/legal/cookie-policy': typeof LegalCookiePolicyRoute
+  '/legal/mentions': typeof LegalMentionsRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
   '/pay/$slug': typeof PaySlugRoute
@@ -518,6 +534,8 @@ export interface FileRoutesById {
   '/developers/api': typeof DevelopersApiRoute
   '/developers/sdks': typeof DevelopersSdksRoute
   '/legal/aml': typeof LegalAmlRoute
+  '/legal/cookie-policy': typeof LegalCookiePolicyRoute
+  '/legal/mentions': typeof LegalMentionsRoute
   '/legal/privacy': typeof LegalPrivacyRoute
   '/legal/terms': typeof LegalTermsRoute
   '/pay/$slug': typeof PaySlugRoute
@@ -580,6 +598,8 @@ export interface FileRouteTypes {
     | '/developers/api'
     | '/developers/sdks'
     | '/legal/aml'
+    | '/legal/cookie-policy'
+    | '/legal/mentions'
     | '/legal/privacy'
     | '/legal/terms'
     | '/pay/$slug'
@@ -638,6 +658,8 @@ export interface FileRouteTypes {
     | '/developers/api'
     | '/developers/sdks'
     | '/legal/aml'
+    | '/legal/cookie-policy'
+    | '/legal/mentions'
     | '/legal/privacy'
     | '/legal/terms'
     | '/pay/$slug'
@@ -699,6 +721,8 @@ export interface FileRouteTypes {
     | '/developers/api'
     | '/developers/sdks'
     | '/legal/aml'
+    | '/legal/cookie-policy'
+    | '/legal/mentions'
     | '/legal/privacy'
     | '/legal/terms'
     | '/pay/$slug'
@@ -757,6 +781,8 @@ export interface RootRouteChildren {
   DevelopersApiRoute: typeof DevelopersApiRoute
   DevelopersSdksRoute: typeof DevelopersSdksRoute
   LegalAmlRoute: typeof LegalAmlRoute
+  LegalCookiePolicyRoute: typeof LegalCookiePolicyRoute
+  LegalMentionsRoute: typeof LegalMentionsRoute
   LegalPrivacyRoute: typeof LegalPrivacyRoute
   LegalTermsRoute: typeof LegalTermsRoute
   PaySlugRoute: typeof PaySlugRoute
@@ -873,6 +899,20 @@ declare module '@tanstack/react-router' {
       path: '/legal/privacy'
       fullPath: '/legal/privacy'
       preLoaderRoute: typeof LegalPrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/mentions': {
+      id: '/legal/mentions'
+      path: '/legal/mentions'
+      fullPath: '/legal/mentions'
+      preLoaderRoute: typeof LegalMentionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/cookie-policy': {
+      id: '/legal/cookie-policy'
+      path: '/legal/cookie-policy'
+      fullPath: '/legal/cookie-policy'
+      preLoaderRoute: typeof LegalCookiePolicyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/legal/aml': {
@@ -1308,6 +1348,8 @@ const rootRouteChildren: RootRouteChildren = {
   DevelopersApiRoute: DevelopersApiRoute,
   DevelopersSdksRoute: DevelopersSdksRoute,
   LegalAmlRoute: LegalAmlRoute,
+  LegalCookiePolicyRoute: LegalCookiePolicyRoute,
+  LegalMentionsRoute: LegalMentionsRoute,
   LegalPrivacyRoute: LegalPrivacyRoute,
   LegalTermsRoute: LegalTermsRoute,
   PaySlugRoute: PaySlugRoute,

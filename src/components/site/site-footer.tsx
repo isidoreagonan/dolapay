@@ -25,15 +25,15 @@ const cols = [
     links: [
       { to: "/about", label: "À propos" },
       { to: "/coverage", label: "Couverture" },
-      { to: "/contact", label: "Contact" },
+      { to: "/company/contact", label: "Contact" },
     ],
   },
   {
     title: "Légal",
     links: [
-      { to: "/legal", label: "Mentions légales" },
-      { to: "/privacy", label: "Confidentialité" },
-      { to: "/terms", label: "CGV" },
+      { to: "/legal/mentions", label: "Mentions légales" },
+      { to: "/legal/privacy", label: "Confidentialité" },
+      { to: "/legal/terms", label: "CGV" },
       { to: "/legal/cookie-policy", label: "Cookies" },
     ],
   },
