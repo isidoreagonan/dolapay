@@ -22,14 +22,7 @@ export const COUNTRY_RATES: CountryRate[] = [
     code: "BJ", name: "Bénin", flag: "🇧🇯", currency: "XOF",
     operators: [
       { operator: "MTN", payin: 3.20, payout: 2.50 },
-      { operator: "Moov", payin: 3.20, payout: 2.00 }
-    ],
-  },
-  {
-    code: "BF", name: "Burkina Faso", flag: "🇧🇫", currency: "XOF",
-    operators: [
-      { operator: "Moov", payin: 4.00, payout: 3.00 },
-      { operator: "Orange", payin: 4.30, payout: "Indisponible" }
+      { operator: "Moov Africa", payin: 3.20, payout: 2.00 }
     ],
   },
   {
@@ -40,10 +33,11 @@ export const COUNTRY_RATES: CountryRate[] = [
     ],
   },
   {
-    code: "CG", name: "Congo-Brazzaville", flag: "🇨🇬", currency: "XAF",
+    code: "CI", name: "Côte d'Ivoire", flag: "🇨🇮", currency: "XOF",
     operators: [
-      { operator: "Airtel", payin: 5.00, payout: 2.00 },
-      { operator: "MTN", payin: 5.00, payout: 2.00 }
+      { operator: "MTN", payin: 2.80, payout: 2.30 },
+      { operator: "Orange", payin: 3.50, payout: 3.00 },
+      { operator: "Moov Africa", payin: "Sur demande", payout: "Sur demande" }
     ],
   },
   {
@@ -55,17 +49,18 @@ export const COUNTRY_RATES: CountryRate[] = [
     ],
   },
   {
-    code: "GA", name: "Gabon", flag: "🇬🇦", currency: "XAF",
+    code: "CD_USD", name: "RDC", flag: "🇨🇩", currency: "USD",
     operators: [
-      { operator: "Airtel", payin: 3.00, payout: 2.00 }
+      { operator: "Airtel", payin: 4.00, payout: 3.00 },
+      { operator: "Orange", payin: 4.00, payout: 2.00 },
+      { operator: "Vodacom", payin: 3.50, payout: 3.00 }
     ],
   },
   {
-    code: "CI", name: "Côte d'Ivoire", flag: "🇨🇮", currency: "XOF",
+    code: "GA", name: "Gabon", flag: "🇬🇦", currency: "XAF",
     operators: [
-      { operator: "MTN", payin: 2.80, payout: 2.30 },
-      { operator: "Orange", payin: 3.50, payout: 3.00 },
-      { operator: "Wave", payin: 3.00, payout: 3.00 }
+      { operator: "Airtel", payin: 3.00, payout: 2.00 },
+      { operator: "Moov Africa", payin: "Sur demande", payout: "Sur demande" }
     ],
   },
   {
@@ -75,39 +70,53 @@ export const COUNTRY_RATES: CountryRate[] = [
     ],
   },
   {
+    code: "CG", name: "Congo-Brazzaville", flag: "🇨🇬", currency: "XAF",
+    operators: [
+      { operator: "Airtel", payin: 5.00, payout: 2.00 },
+      { operator: "MTN", payin: 5.00, payout: 2.00 }
+    ],
+  },
+  {
     code: "RW", name: "Rwanda", flag: "🇷🇼", currency: "RWF",
     operators: [
-      { operator: "MTN", payin: 4.10, payout: "60 RWF + 2%" },
-      { operator: "Airtel", payin: 3.50, payout: 2.00 }
+      { operator: "Airtel", payin: 3.50, payout: 2.00 },
+      { operator: "MTN", payin: 4.10, payout: "60 RWF + 2%" }
     ],
   },
   {
     code: "SN", name: "Sénégal", flag: "🇸🇳", currency: "XOF",
     operators: [
-      { operator: "YAS", payin: 3.00, payout: 2.50 },
       { operator: "Orange", payin: 3.00, payout: 2.80 },
-      { operator: "Wave", payin: 3.00, payout: 3.00 }
+      { operator: "Free", payin: "Sur demande", payout: "Sur demande" }
     ],
   },
   {
     code: "SL", name: "Sierra Leone", flag: "🇸🇱", currency: "SLE",
     operators: [
-      { operator: "Orange", payin: 4.30, payout: 3.15 }
+      { operator: "Orange", payin: 4.30, payout: 3.15 },
+      { operator: "Afrimoney", payin: "Sur demande", payout: "Sur demande" }
     ],
   },
   {
     code: "UG", name: "Ouganda", flag: "🇺🇬", currency: "UGX",
     operators: [
-      { operator: "MTN", payin: 4.00, payout: "Indisponible" },
-      { operator: "Airtel", payin: 3.50, payout: "Indisponible" }
+      { operator: "Airtel", payin: 3.50, payout: "Indisponible" },
+      { operator: "MTN", payin: 4.00, payout: "Indisponible" }
     ],
   },
   {
     code: "ZM", name: "Zambie", flag: "🇿🇲", currency: "ZMW",
     operators: [
-      { operator: "Airtel", payin: "Indisponible", payout: 2.00 },
       { operator: "MTN", payin: "Indisponible", payout: "2% + e-Levy + 2%" },
+      { operator: "Airtel", payin: "Indisponible", payout: 2.00 },
       { operator: "Zamtel", payin: "Indisponible", payout: 3.00 }
+    ],
+  },
+  {
+    code: "BF", name: "Burkina Faso", flag: "🇧🇫", currency: "XOF",
+    operators: [
+      { operator: "Moov", payin: 4.00, payout: 3.00 },
+      { operator: "Orange", payin: 4.30, payout: "Indisponible" }
     ],
   }
 ];
