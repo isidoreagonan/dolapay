@@ -16,6 +16,8 @@ type Tx = {
   created_at: string;
   profile_id: string;
   dola_margin?: number;
+  description?: string;
+  mode?: string;
 };
 
 function AdminOverview() {
@@ -25,7 +27,7 @@ function AdminOverview() {
       const since = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
       const { data, error } = await supabase
         .from("transactions")
-        .select("id,amount,status,type,created_at,profile_id,dola_margin")
+        .select("id,amount,status,type,created_at,profile_id,dola_margin,description,mode")
         .gte("created_at", since)
         .order("created_at", { ascending: false })
         .limit(1000);
@@ -104,6 +106,13 @@ function AdminOverview() {
     txs
       .filter((t) => {
         if (new Date(t.created_at).getTime() < since || t.status !== "success") return false;
+        
+        // Ignorer les transactions de test pour les métriques de l'admin
+        const desc = String(t.description || "").toLowerCase();
+        const mode = String(t.mode || "").toLowerCase();
+        const isTestTx = desc.includes("_test") || desc.includes("sandbox") || mode === "test" || mode === "sandbox";
+        if (isTestTx) return false;
+
         if (!type) return true;
         if (type === "pay-in") return t.type === "pay-in" || t.type === "payment_link";
         return t.type === "pay-out";
@@ -115,14 +124,37 @@ function AdminOverview() {
   const last30 = vol(now - 30 * day);
   const payIn30 = vol(now - 30 * day, "pay-in");
   const payOut30 = vol(now - 30 * day, "pay-out");
-  const totalCount = txs.filter((t) => new Date(t.created_at).getTime() >= now - 30 * day).length;
-  const completedCount = txs.filter((t) => new Date(t.created_at).getTime() >= now - 30 * day && t.status === "success").length;
+  const totalCount = txs.filter((t) => {
+    const desc = String(t.description || "").toLowerCase();
+    const mode = String(t.mode || "").toLowerCase();
+    const isTestTx = desc.includes("_test") || desc.includes("sandbox") || mode === "test" || mode === "sandbox";
+    return !isTestTx && new Date(t.created_at).getTime() >= now - 30 * day;
+  }).length;
+  
+  const completedCount = txs.filter((t) => {
+    const desc = String(t.description || "").toLowerCase();
+    const mode = String(t.mode || "").toLowerCase();
+    const isTestTx = desc.includes("_test") || desc.includes("sandbox") || mode === "test" || mode === "sandbox";
+    return !isTestTx && new Date(t.created_at).getTime() >= now - 30 * day && t.status === "success";
+  }).length;
+  
   const successRate = totalCount ? (completedCount / totalCount) * 100 : 0;
   
   // Calcul exact des marges réelles générées (au lieu d'une estimation)
+  // On applique un fallback sur l'ancienne estimation pour les transactions historiques
   const mrrActual = txs
-    .filter((t) => t.status === "success" && new Date(t.created_at).getTime() >= now - 30 * day)
-    .reduce((sum, t) => sum + Number(t.dola_margin || 0), 0);
+    .filter((t) => {
+      const desc = String(t.description || "").toLowerCase();
+      const mode = String(t.mode || "").toLowerCase();
+      const isTestTx = desc.includes("_test") || desc.includes("sandbox") || mode === "test" || mode === "sandbox";
+      return !isTestTx && t.status === "success" && new Date(t.created_at).getTime() >= now - 30 * day;
+    })
+    .reduce((sum, t) => {
+      if (t.dola_margin != null) return sum + Number(t.dola_margin);
+      if (t.type === "pay-in" || t.type === "payment_link") return sum + (Number(t.amount) * 0.02);
+      if (t.type === "pay-out") return sum + (Number(t.amount) * 0.01);
+      return sum;
+    }, 0);
 
   const pendingKyc = (profileStats ?? []).filter((p) => p.kyc_status === "pending").length;
   const merchants = (profileStats ?? []).length;
