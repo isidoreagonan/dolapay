@@ -5,7 +5,7 @@ export const Route = createFileRoute("/api/public/fix-isidore")({
     handlers: {
       GET: async () => {
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        const { data: profile } = await supabaseAdmin.from("profiles").select("id").ilike("email", "%isidoreagonan%").maybeSingle();
+        const { data: profile } = await supabaseAdmin.from("profiles").select("id").ilike("id", "427b848e%").maybeSingle();
         if (profile) {
            const { data: txs } = await supabaseAdmin.from("transactions").select("net_amount, amount").eq("profile_id", profile.id).eq("status", "success");
            let net = 0;
