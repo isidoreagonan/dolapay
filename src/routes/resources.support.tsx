@@ -113,7 +113,7 @@ const SupportPage = () => (
             </div>
           </Link>
 
-          <a href="#" className="group rounded-2xl bg-white border border-border p-6 shadow-sm hover:shadow-soft transition-all flex items-start gap-4">
+          <Link to="/resources/faq" className="group rounded-2xl bg-white border border-border p-6 shadow-sm hover:shadow-soft transition-all flex items-start gap-4">
             <div className="h-12 w-12 rounded-xl bg-orange-500/10 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
               <LifeBuoy className="h-6 w-6 text-orange-500" />
             </div>
@@ -123,7 +123,7 @@ const SupportPage = () => (
               </h3>
               <p className="mt-1 text-sm text-navy/60 leading-relaxed">Questions sur les virements, les limites, les devises, la facturation et la gestion des litiges.</p>
             </div>
-          </a>
+          </Link>
         </div>
       </div>
     </section>
