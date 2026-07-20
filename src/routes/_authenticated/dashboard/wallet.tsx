@@ -10,7 +10,7 @@ import {
   Wallet as WalletIcon, ArrowUpRight, ArrowDownLeft, ShieldCheck, Lock,
   Loader2, KeyRound, Eye, EyeOff, AlertCircle, Send, Landmark, Smartphone,
   CheckCircle2, XCircle, Clock, Check, ChevronDown, RefreshCw,
-  DollarSign, Search, FileSpreadsheet, Filter, PiggyBank, CreditCard
+  DollarSign, Search, FileSpreadsheet, Filter, PiggyBank, CreditCard, Trash2
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile, type Profile } from "./route";
