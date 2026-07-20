@@ -43,7 +43,6 @@ import { Route as ApiPublicSyncWalletRouteImport } from './routes/api/public/syn
 import { Route as ApiPublicSendNotificationRouteImport } from './routes/api/public/send-notification'
 import { Route as ApiPublicPawapayWebhookRouteImport } from './routes/api/public/pawapay-webhook'
 import { Route as ApiPublicLigdicashWebhookRouteImport } from './routes/api/public/ligdicash-webhook'
-import { Route as ApiPublicFixAllWalletsRouteImport } from './routes/api/public/fix-all-wallets'
 import { Route as AuthenticatedDashboardWalletRouteImport } from './routes/_authenticated/dashboard/wallet'
 import { Route as AuthenticatedDashboardVerifyRouteImport } from './routes/_authenticated/dashboard/verify'
 import { Route as AuthenticatedDashboardTransactionsRouteImport } from './routes/_authenticated/dashboard/transactions'
@@ -240,11 +239,6 @@ const ApiPublicLigdicashWebhookRoute =
     path: '/api/public/ligdicash-webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicFixAllWalletsRoute = ApiPublicFixAllWalletsRouteImport.update({
-  id: '/api/public/fix-all-wallets',
-  path: '/api/public/fix-all-wallets',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthenticatedDashboardWalletRoute =
   AuthenticatedDashboardWalletRouteImport.update({
     id: '/wallet',
@@ -402,7 +396,6 @@ export interface FileRoutesByFullPath {
   '/dashboard/transactions': typeof AuthenticatedDashboardTransactionsRoute
   '/dashboard/verify': typeof AuthenticatedDashboardVerifyRoute
   '/dashboard/wallet': typeof AuthenticatedDashboardWalletRoute
-  '/api/public/fix-all-wallets': typeof ApiPublicFixAllWalletsRoute
   '/api/public/ligdicash-webhook': typeof ApiPublicLigdicashWebhookRoute
   '/api/public/pawapay-webhook': typeof ApiPublicPawapayWebhookRoute
   '/api/public/send-notification': typeof ApiPublicSendNotificationRoute
@@ -457,7 +450,6 @@ export interface FileRoutesByTo {
   '/dashboard/transactions': typeof AuthenticatedDashboardTransactionsRoute
   '/dashboard/verify': typeof AuthenticatedDashboardVerifyRoute
   '/dashboard/wallet': typeof AuthenticatedDashboardWalletRoute
-  '/api/public/fix-all-wallets': typeof ApiPublicFixAllWalletsRoute
   '/api/public/ligdicash-webhook': typeof ApiPublicLigdicashWebhookRoute
   '/api/public/pawapay-webhook': typeof ApiPublicPawapayWebhookRoute
   '/api/public/send-notification': typeof ApiPublicSendNotificationRoute
@@ -516,7 +508,6 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/transactions': typeof AuthenticatedDashboardTransactionsRoute
   '/_authenticated/dashboard/verify': typeof AuthenticatedDashboardVerifyRoute
   '/_authenticated/dashboard/wallet': typeof AuthenticatedDashboardWalletRoute
-  '/api/public/fix-all-wallets': typeof ApiPublicFixAllWalletsRoute
   '/api/public/ligdicash-webhook': typeof ApiPublicLigdicashWebhookRoute
   '/api/public/pawapay-webhook': typeof ApiPublicPawapayWebhookRoute
   '/api/public/send-notification': typeof ApiPublicSendNotificationRoute
@@ -575,7 +566,6 @@ export interface FileRouteTypes {
     | '/dashboard/transactions'
     | '/dashboard/verify'
     | '/dashboard/wallet'
-    | '/api/public/fix-all-wallets'
     | '/api/public/ligdicash-webhook'
     | '/api/public/pawapay-webhook'
     | '/api/public/send-notification'
@@ -630,7 +620,6 @@ export interface FileRouteTypes {
     | '/dashboard/transactions'
     | '/dashboard/verify'
     | '/dashboard/wallet'
-    | '/api/public/fix-all-wallets'
     | '/api/public/ligdicash-webhook'
     | '/api/public/pawapay-webhook'
     | '/api/public/send-notification'
@@ -688,7 +677,6 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/transactions'
     | '/_authenticated/dashboard/verify'
     | '/_authenticated/dashboard/wallet'
-    | '/api/public/fix-all-wallets'
     | '/api/public/ligdicash-webhook'
     | '/api/public/pawapay-webhook'
     | '/api/public/send-notification'
@@ -728,7 +716,6 @@ export interface RootRouteChildren {
   ProductsPayInRoute: typeof ProductsPayInRoute
   ProductsPayOutRoute: typeof ProductsPayOutRoute
   ProductsPaymentLinksRoute: typeof ProductsPaymentLinksRoute
-  ApiPublicFixAllWalletsRoute: typeof ApiPublicFixAllWalletsRoute
   ApiPublicLigdicashWebhookRoute: typeof ApiPublicLigdicashWebhookRoute
   ApiPublicPawapayWebhookRoute: typeof ApiPublicPawapayWebhookRoute
   ApiPublicSendNotificationRoute: typeof ApiPublicSendNotificationRoute
@@ -981,13 +968,6 @@ declare module '@tanstack/react-router' {
       path: '/api/public/ligdicash-webhook'
       fullPath: '/api/public/ligdicash-webhook'
       preLoaderRoute: typeof ApiPublicLigdicashWebhookRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/fix-all-wallets': {
-      id: '/api/public/fix-all-wallets'
-      path: '/api/public/fix-all-wallets'
-      fullPath: '/api/public/fix-all-wallets'
-      preLoaderRoute: typeof ApiPublicFixAllWalletsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/dashboard/wallet': {
@@ -1255,7 +1235,6 @@ const rootRouteChildren: RootRouteChildren = {
   ProductsPayInRoute: ProductsPayInRoute,
   ProductsPayOutRoute: ProductsPayOutRoute,
   ProductsPaymentLinksRoute: ProductsPaymentLinksRoute,
-  ApiPublicFixAllWalletsRoute: ApiPublicFixAllWalletsRoute,
   ApiPublicLigdicashWebhookRoute: ApiPublicLigdicashWebhookRoute,
   ApiPublicPawapayWebhookRoute: ApiPublicPawapayWebhookRoute,
   ApiPublicSendNotificationRoute: ApiPublicSendNotificationRoute,
