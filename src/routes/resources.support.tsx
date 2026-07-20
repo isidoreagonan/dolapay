@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-export const Route = createFileRoute("/resources/support")({ component: SupportPage });
+
 import { motion } from "framer-motion";
 import { Mail, MessageSquare, Phone, Clock, FileText, ArrowRight, LifeBuoy } from "lucide-react";
 import PageShell from "@/components/site/page-shell";
@@ -131,3 +131,5 @@ const SupportPage = () => (
 );
 
 export default SupportPage;
+
+export const Route = createFileRoute("/resources/support")({ component: SupportPage });

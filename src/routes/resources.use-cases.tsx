@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-export const Route = createFileRoute("/resources/use-cases")({ component: UseCases });
+
 import { motion } from "framer-motion";
 import { ArrowRight, ShoppingCart, Briefcase, Rocket, Gamepad2, CheckCircle2 } from "lucide-react";
 import PageShell from "@/components/site/page-shell";
@@ -159,3 +159,5 @@ const UseCases = () => (
 );
 
 export default UseCases;
+
+export const Route = createFileRoute("/resources/use-cases")({ component: UseCases });
