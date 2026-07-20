@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowDownToLine, ArrowUpFromLine, Info, Search } from "lucide-react";
-import Flag from "@/components/ui/flag";
+import { FlagIcon as Flag } from "@/components/ui/flag-icon";
 
 export type OperatorRate = {
   operator: string;
@@ -250,7 +250,7 @@ const PricingMatrix = ({
                     : "bg-white text-navy/70 border-border hover:border-navy/30"
                 }`}
               >
-                <Flag code={c.flag} size={14} /> {c.name}
+                <Flag code={c.code.slice(0, 2)} className="w-[14px] h-[10px]" /> {c.name}
               </button>
             ))}
           </div>
@@ -292,7 +292,7 @@ const PricingMatrix = ({
                     }`}
                   >
                     <div className="col-span-4 flex items-center gap-3">
-                      {oi === 0 ? <Flag code={c.flag} size={22} /> : <span className="w-[30px]" />}
+                      {oi === 0 ? <Flag code={c.code.slice(0, 2)} className="w-[22px] h-[16px]" /> : <span className="w-[30px]" />}
                       <span className={`font-medium ${oi === 0 ? "text-navy" : "text-navy/40"}`}>
                         {oi === 0 ? c.name : ""}
                       </span>
@@ -341,7 +341,7 @@ const PricingMatrix = ({
             >
               <div className="flex items-center justify-between px-4 py-3 bg-[#F5F8FF] border-b border-border">
                 <div className="flex items-center gap-2.5">
-                  <Flag code={c.flag} size={22} />
+                  <Flag code={c.code.slice(0, 2)} className="w-[22px] h-[16px]" />
                   <span className="font-semibold text-navy">{c.name}</span>
                 </div>
                 <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-white border border-border text-navy/60">
