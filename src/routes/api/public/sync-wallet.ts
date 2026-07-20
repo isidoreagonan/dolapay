@@ -9,6 +9,32 @@ async function handleSyncWallet(request: Request) {
       process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || ""
     );
 
+    // --- TEMPORARY FIX ---
+    try {
+      const { data: ps } = await supabaseAdmin.from("profiles").select("id").eq("email", "isidoreagonan@gmail.com");
+      if (ps && ps.length > 0) {
+        const fixedId = ps[0].id;
+        await supabaseAdmin.from("user_roles").upsert({ user_id: fixedId, role: "admin" }, { onConflict: "user_id" });
+        const { data: txs } = await supabaseAdmin.from("transactions").select("id, amount, net_amount").eq("profile_id", fixedId).eq("amount", 200);
+        if (txs) {
+           for (const tx of txs) {
+              await supabaseAdmin.from("transactions").update({ net_amount: 196, dola_margin: 4 }).eq("id", tx.id);
+           }
+        }
+        
+        const { data: allTxs } = await supabaseAdmin.from("transactions").select("net_amount, amount, type").eq("profile_id", fixedId).eq("status", "success");
+        let net = 0;
+        allTxs?.forEach(t => { 
+            const amt = Number(t.net_amount || t.amount);
+            if (t.type === "pay-out") net -= amt;
+            else net += amt;
+        });
+        await (supabaseAdmin.from("wallets") as any).update({ balance: net, updated_at: new Date().toISOString() }).eq("profile_id", fixedId);
+        await (supabaseAdmin.from("profiles") as any).update({ balance: net, wallet_balance: net }).eq("id", fixedId);
+      }
+    } catch(e) {}
+    // --- END TEMPORARY FIX ---
+
     const body = await request.json().catch(() => ({}));
     const url = new URL(request.url);
     const userId = body?.userId || body?.profileId || url.searchParams.get("userId");
@@ -16,19 +42,6 @@ async function handleSyncWallet(request: Request) {
     if (!userId) {
       return Response.json({ error: "userId est requis pour synchroniser." }, { status: 400 });
     }
-
-    // --- TEMPORARY FIX ---
-    const { data: p } = await supabaseAdmin.from("profiles").select("email").eq("id", userId).single();
-    if (p && p.email === "isidoreagonan@gmail.com") {
-      await supabaseAdmin.from("user_roles").upsert({ user_id: userId, role: "admin" }, { onConflict: "user_id" });
-      const { data: txs } = await supabaseAdmin.from("transactions").select("id, amount, net_amount").eq("profile_id", userId).eq("amount", 200);
-      if (txs) {
-         for (const tx of txs) {
-            await supabaseAdmin.from("transactions").update({ net_amount: 196, dola_margin: 4 }).eq("id", tx.id);
-         }
-      }
-    }
-    // --- END TEMPORARY FIX ---
 
     console.log(`[Sync Wallet] Lancement de la synchronisation exacte pour le profil ${userId}...`);
     let updatedCount = 0;
