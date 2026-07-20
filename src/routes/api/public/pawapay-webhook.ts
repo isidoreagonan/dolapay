@@ -91,7 +91,7 @@ export const Route = createFileRoute("/api/public/pawapay-webhook")({
 
                 if (newStatus === "success" && tx.profile_id && Number(tx.amount) > 0) {
                   try {
-                    const amt = Number(tx.amount);
+                    const amt = Number(tx.net_amount || tx.amount);
                     const { data: w } = await (supabaseAdmin.from("wallets") as any).select("balance").eq("profile_id", tx.profile_id).maybeSingle();
                     if (w && typeof w.balance === "number") {
                       await (supabaseAdmin.from("wallets") as any).update({ balance: w.balance + amt, updated_at: new Date().toISOString() }).eq("profile_id", tx.profile_id);

@@ -24,6 +24,7 @@ export const Route = createFileRoute("/_authenticated/dashboard/")({
 type Tx = {
   id: string;
   amount: number;
+  net_amount?: number;
   currency: string;
   status: string;
   type: string;
@@ -81,7 +82,7 @@ function Overview() {
       since.setDate(since.getDate() - PERIOD_DAYS * 2);
       const { data, error } = await supabase
         .from("transactions")
-        .select("id,amount,currency,status,type,created_at,description")
+        .select("id,amount,net_amount,currency,status,type,created_at,description")
         .eq("profile_id", profile!.id)
         .gte("created_at", since.toISOString())
         .order("created_at", { ascending: false });
@@ -167,9 +168,11 @@ function Overview() {
   const payout = successful.filter((t) => t.type === "pay-out");
 
   const sum = (arr: Tx[]) => arr.reduce((s, t) => s + Number(t.amount), 0);
+  const sumNet = (arr: Tx[]) => arr.reduce((s, t) => s + Number(t.net_amount || t.amount), 0);
   const payinVol = sum(payin);
+  const payinNet = sumNet(payin);
   const payoutVol = sum(payout);
-  const balance = payinVol - payoutVol;
+  const balance = payinNet - payoutVol;
 
   // Le Volume Total (Chiffre d'affaires traité), le Panier Moyen, le Taux de succès et le Plafond mensuel
   // se calculent STRICTEMENT sur les encaissements clients (Pay-in / Liens de paiement).
