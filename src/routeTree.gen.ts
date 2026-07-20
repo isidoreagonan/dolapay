@@ -12,6 +12,8 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ResourcesUseCasesRouteImport } from './routes/resources.use-cases'
+import { Route as ResourcesSupportRouteImport } from './routes/resources.support'
 import { Route as ProductsPaymentLinksRouteImport } from './routes/products.payment-links'
 import { Route as ProductsPayOutRouteImport } from './routes/products.pay-out'
 import { Route as ProductsPayInRouteImport } from './routes/products.pay-in'
@@ -78,6 +80,16 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResourcesUseCasesRoute = ResourcesUseCasesRouteImport.update({
+  id: '/resources/use-cases',
+  path: '/resources/use-cases',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResourcesSupportRoute = ResourcesSupportRouteImport.update({
+  id: '/resources/support',
+  path: '/resources/support',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProductsPaymentLinksRoute = ProductsPaymentLinksRouteImport.update({
@@ -387,6 +399,8 @@ export interface FileRoutesByFullPath {
   '/products/pay-in': typeof ProductsPayInRoute
   '/products/pay-out': typeof ProductsPayOutRoute
   '/products/payment-links': typeof ProductsPaymentLinksRoute
+  '/resources/support': typeof ResourcesSupportRoute
+  '/resources/use-cases': typeof ResourcesUseCasesRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/compliance': typeof AuthenticatedAdminComplianceRoute
   '/admin/finance': typeof AuthenticatedAdminFinanceRoute
@@ -442,6 +456,8 @@ export interface FileRoutesByTo {
   '/products/pay-in': typeof ProductsPayInRoute
   '/products/pay-out': typeof ProductsPayOutRoute
   '/products/payment-links': typeof ProductsPaymentLinksRoute
+  '/resources/support': typeof ResourcesSupportRoute
+  '/resources/use-cases': typeof ResourcesUseCasesRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/compliance': typeof AuthenticatedAdminComplianceRoute
   '/admin/finance': typeof AuthenticatedAdminFinanceRoute
@@ -501,6 +517,8 @@ export interface FileRoutesById {
   '/products/pay-in': typeof ProductsPayInRoute
   '/products/pay-out': typeof ProductsPayOutRoute
   '/products/payment-links': typeof ProductsPaymentLinksRoute
+  '/resources/support': typeof ResourcesSupportRoute
+  '/resources/use-cases': typeof ResourcesUseCasesRoute
   '/_authenticated/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/_authenticated/admin/compliance': typeof AuthenticatedAdminComplianceRoute
   '/_authenticated/admin/finance': typeof AuthenticatedAdminFinanceRoute
@@ -560,6 +578,8 @@ export interface FileRouteTypes {
     | '/products/pay-in'
     | '/products/pay-out'
     | '/products/payment-links'
+    | '/resources/support'
+    | '/resources/use-cases'
     | '/admin/audit'
     | '/admin/compliance'
     | '/admin/finance'
@@ -615,6 +635,8 @@ export interface FileRouteTypes {
     | '/products/pay-in'
     | '/products/pay-out'
     | '/products/payment-links'
+    | '/resources/support'
+    | '/resources/use-cases'
     | '/admin/audit'
     | '/admin/compliance'
     | '/admin/finance'
@@ -673,6 +695,8 @@ export interface FileRouteTypes {
     | '/products/pay-in'
     | '/products/pay-out'
     | '/products/payment-links'
+    | '/resources/support'
+    | '/resources/use-cases'
     | '/_authenticated/admin/audit'
     | '/_authenticated/admin/compliance'
     | '/_authenticated/admin/finance'
@@ -728,6 +752,8 @@ export interface RootRouteChildren {
   ProductsPayInRoute: typeof ProductsPayInRoute
   ProductsPayOutRoute: typeof ProductsPayOutRoute
   ProductsPaymentLinksRoute: typeof ProductsPaymentLinksRoute
+  ResourcesSupportRoute: typeof ResourcesSupportRoute
+  ResourcesUseCasesRoute: typeof ResourcesUseCasesRoute
   ApiPublicLigdicashWebhookRoute: typeof ApiPublicLigdicashWebhookRoute
   ApiPublicPawapayWebhookRoute: typeof ApiPublicPawapayWebhookRoute
   ApiPublicRestoreAdminRoute: typeof ApiPublicRestoreAdminRoute
@@ -764,6 +790,20 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resources/use-cases': {
+      id: '/resources/use-cases'
+      path: '/resources/use-cases'
+      fullPath: '/resources/use-cases'
+      preLoaderRoute: typeof ResourcesUseCasesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/resources/support': {
+      id: '/resources/support'
+      path: '/resources/support'
+      fullPath: '/resources/support'
+      preLoaderRoute: typeof ResourcesSupportRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/products/payment-links': {
@@ -1255,6 +1295,8 @@ const rootRouteChildren: RootRouteChildren = {
   ProductsPayInRoute: ProductsPayInRoute,
   ProductsPayOutRoute: ProductsPayOutRoute,
   ProductsPaymentLinksRoute: ProductsPaymentLinksRoute,
+  ResourcesSupportRoute: ResourcesSupportRoute,
+  ResourcesUseCasesRoute: ResourcesUseCasesRoute,
   ApiPublicLigdicashWebhookRoute: ApiPublicLigdicashWebhookRoute,
   ApiPublicPawapayWebhookRoute: ApiPublicPawapayWebhookRoute,
   ApiPublicRestoreAdminRoute: ApiPublicRestoreAdminRoute,

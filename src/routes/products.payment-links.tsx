@@ -7,7 +7,7 @@ const NoCode = () => (
   <ProductPage
     seoTitle="Liens de paiement no-code — DolaPay"
     seoDescription="Créez un lien de paiement en 30 secondes, sans coder. Partagez sur WhatsApp, Instagram, TikTok — encaissez en Mobile Money ou par carte."
-    canonicalUrl="/products/no-code"
+    canonicalUrl="/products/payment-links"
     eyebrow="Produit · No-code"
     title={<>Vendez sur WhatsApp. <span className="text-primary">Sans une ligne de code.</span></>}
     description="Créez un lien de paiement en 30 secondes, personnalisez-le à vos couleurs, partagez-le partout, et encaissez en Mobile Money ou par carte."

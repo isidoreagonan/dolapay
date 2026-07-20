@@ -25,7 +25,7 @@ const About = () => (
   <PageShell
     title="À propos de DolaPay — L'infrastructure de paiement de l'Afrique"
     description="DolaPay bâtit l'infrastructure de paiement moderne pour l'Afrique : Mobile Money, cartes, payouts et API dans 12 pays. Notre mission, notre équipe."
-    canonicalUrl="/about"
+    canonicalUrl="/company/about"
   >
     <PageHero
       eyebrow="Notre mission"

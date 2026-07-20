@@ -9,7 +9,7 @@ type Item = { to: string; label: string; desc: string; icon: any };
 const products: Item[] = [
   { to: "/products/pay-in", label: "Encaissements (Pay-in)", desc: "Mobile Money + cartes en un checkout", icon: Wallet },
   { to: "/products/pay-out", label: "Décaissements (Pay-out)", desc: "Bulk payouts instantanés vers tout portefeuille", icon: Zap },
-  { to: "/products/no-code", label: "Liens de paiement", desc: "Encaissez sans une seule ligne de code", icon: Link2 },
+  { to: "/products/payment-links", label: "Liens de paiement", desc: "Encaissez sans une seule ligne de code", icon: Link2 },
 ];
 const resources: Item[] = [
   { to: "/docs", label: "Documentation API", desc: "Guides, SDK, référence complète", icon: BookOpen },
@@ -17,8 +17,8 @@ const resources: Item[] = [
   { to: "/resources/use-cases", label: "Cas d'usage", desc: "E-commerce, freelances, startups tech", icon: Layers },
 ];
 const company: Item[] = [
-  { to: "/about", label: "À propos de DolaPay", desc: "Notre mission pour l'Afrique", icon: Building2 },
-  { to: "/coverage", label: "Couverture & Pays", desc: "12 économies, tous les opérateurs", icon: Globe2 },
+  { to: "/company/about", label: "À propos de DolaPay", desc: "Notre mission pour l'Afrique", icon: Building2 },
+  { to: "/company/coverage", label: "Couverture & Pays", desc: "12 économies, tous les opérateurs", icon: Globe2 },
 ];
 
 const Dropdown = ({ label, items }: { label: string; items: Item[] }) => {
