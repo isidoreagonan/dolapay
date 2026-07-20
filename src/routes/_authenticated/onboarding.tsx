@@ -33,37 +33,22 @@ function OnboardingPage() {
     },
   });
 
-  const [draft] = useState(() => {
-    try {
-      const s = localStorage.getItem("dola_onboard_draft");
-      return s ? JSON.parse(s) : null;
-    } catch { return null; }
-  });
-
-  const [step, setStep] = useState(draft?.step ?? 0);
-  const [accountType, setAccountType] = useState<AccountType>(draft?.accountType ?? "standard");
+  const [step, setStep] = useState(0);
+  const [accountType, setAccountType] = useState<AccountType>("standard");
 
   // Standard / Enterprise Info
-  const [fullName, setFullName] = useState(draft?.fullName ?? "");
-  const [country, setCountry] = useState(draft?.country ?? "");
-  const [city, setCity] = useState(draft?.city ?? "");
-  const [address, setAddress] = useState(draft?.address ?? "");
+  const [fullName, setFullName] = useState("");
+  const [country, setCountry] = useState("");
+  const [city, setCity] = useState("");
+  const [address, setAddress] = useState("");
 
   // Enterprise Only
-  const [companyName, setCompanyName] = useState(draft?.companyName ?? "");
-  const [regNum, setRegNum] = useState(draft?.regNum ?? "");
-  const [taxId, setTaxId] = useState(draft?.taxId ?? "");
+  const [companyName, setCompanyName] = useState("");
+  const [regNum, setRegNum] = useState("");
+  const [taxId, setTaxId] = useState("");
 
   // Documents
   const [docs, setDocs] = useState<Record<string, File | null>>({});
-
-  useEffect(() => {
-    try {
-      localStorage.setItem("dola_onboard_draft", JSON.stringify({
-        step, accountType, fullName, country, city, address, companyName, regNum, taxId
-      }));
-    } catch { /* ignore */ }
-  }, [step, accountType, fullName, country, city, address, companyName, regNum, taxId]);
 
   const kybLabels = getKybLabels(country);
 
