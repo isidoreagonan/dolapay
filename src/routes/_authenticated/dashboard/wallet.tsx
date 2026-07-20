@@ -229,6 +229,56 @@ function WalletPage() {
   const [showWithdrawPin, setShowWithdrawPin] = useState(false);
   const activeCountry = WITHDRAW_COUNTRIES.find((c) => c.code === withdrawCountry) || WITHDRAW_COUNTRIES[0];
 
+  // Saved Payout Methods State
+  const [addMethodModalOpen, setAddMethodModalOpen] = useState(false);
+  const [newMethodCountry, setNewMethodCountry] = useState("BF");
+  const [showNewCountryDropdown, setShowNewCountryDropdown] = useState(false);
+  const [newMethodProvider, setNewMethodProvider] = useState("Orange Money");
+  const [newMethodPhone, setNewMethodPhone] = useState("");
+  const newMethodActiveCountry = WITHDRAW_COUNTRIES.find((c) => c.code === newMethodCountry) || WITHDRAW_COUNTRIES[0];
+
+  const { data: savedMethods = [], refetch: refetchSavedMethods } = useQuery({
+    queryKey: ["saved_payout_methods", profile?.id],
+    enabled: !!profile?.id,
+    queryFn: async () => {
+      const { data, error } = await supabase.from("saved_payout_methods").select("*").eq("profile_id", profile!.id).order("created_at", { ascending: false });
+      if (error) console.error("Error fetching saved methods:", error);
+      return data || [];
+    }
+  });
+
+  const addMethodMutation = useMutation({
+    mutationFn: async () => {
+      if (!newMethodPhone) throw new Error("Veuillez saisir un numéro de téléphone");
+      const { error } = await supabase.from("saved_payout_methods").insert({
+        profile_id: profile!.id,
+        country_code: newMethodCountry,
+        provider: newMethodProvider,
+        phone_number: newMethodPhone,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Moyen de retrait enregistré avec succès");
+      setAddMethodModalOpen(false);
+      setNewMethodPhone("");
+      refetchSavedMethods();
+    },
+    onError: (err: any) => toast.error(err.message || "Erreur lors de l'enregistrement"),
+  });
+
+  const deleteMethodMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("saved_payout_methods").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Moyen de retrait supprimé");
+      refetchSavedMethods();
+    },
+    onError: () => toast.error("Erreur lors de la suppression"),
+  });
+
   const { data: wallet, isLoading: walletLoading } = useQuery({
     queryKey: ["my-wallet", profile?.id, testMode],
     enabled: !!profile?.id,
@@ -653,30 +703,7 @@ function WalletPage() {
             <div className={cn("h-2 w-2 rounded-full", testMode ? "bg-amber-500" : "bg-emerald-500")} />
             {testMode ? "Mode Test (Sandbox)" : "Mode Live (Réel)"}
           </button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={async () => {
-              toast.loading("Synchronisation en cours...");
-              try {
-                await fetch("/api/public/sync-wallet", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ userId: profile!.id })
-                });
-                await qc.invalidateQueries({ queryKey: ["my-wallet"] });
-                await qc.invalidateQueries({ queryKey: ["my-withdrawals"] });
-                toast.dismiss();
-                toast.success("Synchronisation exacte terminée !");
-              } catch (e) {
-                toast.dismiss();
-                toast.error("Erreur de synchronisation");
-              }
-            }}
-            className="h-10 px-3.5 text-xs font-semibold rounded-xl flex items-center gap-1.5 border-border hover:bg-muted"
-          >
-            <RefreshCw className="h-3.5 w-3.5" /> Synchroniser
-          </Button>
+
           <Button
             variant="outline"
             size="sm"
@@ -899,20 +926,163 @@ function WalletPage() {
               Suivez vos soldes et gérez vos moyens de retrait Mobile Money.
             </p>
             <Button
-              onClick={() => setPinModalOpen(true)}
+              onClick={() => setAddMethodModalOpen(true)}
               variant="outline"
               className="w-full h-10 border-primary/30 text-primary hover:bg-primary/10 font-bold rounded-xl flex items-center justify-center gap-2 text-xs"
             >
-              + Ajouter un moyen (ou PIN)
+              + Ajouter un moyen
             </Button>
-            <div className="p-6 text-center rounded-2xl bg-muted/40 border border-dashed text-xs text-muted-foreground space-y-2">
-              <Landmark className="h-8 w-8 mx-auto text-muted-foreground/30" />
-              <p>Aucun moyen de retrait permanent enregistré.</p>
-              <p className="text-[10px] opacity-75">Vous pouvez saisir votre numéro lors de chaque demande de retrait instantané.</p>
-            </div>
+            
+            {savedMethods.length === 0 ? (
+              <div className="p-6 text-center rounded-2xl bg-muted/40 border border-dashed text-xs text-muted-foreground space-y-2">
+                <Landmark className="h-8 w-8 mx-auto text-muted-foreground/30" />
+                <p>Aucun moyen de retrait enregistré.</p>
+                <p className="text-[10px] opacity-75">Enregistrez un compte Mobile Money pour des retraits plus rapides.</p>
+              </div>
+            ) : (
+              <div className="space-y-3 mt-4">
+                {savedMethods.map((m: any) => {
+                  const countryDef = WITHDRAW_COUNTRIES.find(c => c.code === m.country_code);
+                  const providerDef = countryDef?.methods.find(p => p.name === m.provider || p.id === m.provider);
+                  return (
+                    <div key={m.id} className="flex items-center justify-between p-3 rounded-xl border bg-slate-50/50 dark:bg-slate-900/50">
+                      <div className="flex items-center gap-3">
+                        {providerDef?.logoUrl ? (
+                          <img src={providerDef.logoUrl} alt={m.provider} className="w-8 h-8 rounded-lg object-contain bg-white dark:bg-slate-900 p-0.5 shadow-xs border shrink-0" />
+                        ) : (
+                          <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary font-extrabold flex items-center justify-center text-xs shrink-0">{m.provider?.substring(0, 2).toUpperCase()}</div>
+                        )}
+                        <div>
+                          <div className="font-bold text-xs flex items-center gap-2">
+                            {m.provider}
+                            {countryDef && <FlagIcon code={countryDef.code} flag={countryDef.flag} name={countryDef.name} className="w-4 h-3 shadow-xs" />}
+                          </div>
+                          <div className="text-[11px] font-mono opacity-75">{m.phone_number}</div>
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => deleteMethodMutation.mutate(m.id)}
+                        disabled={deleteMethodMutation.isPending}
+                        className="h-8 w-8 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-full shrink-0"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </Card>
         </div>
       </div>
+
+      {/* Add Payout Method Modal */}
+      {addMethodModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
+          <Card className="w-full max-w-md p-6 space-y-6 relative border-slate-200/60 dark:border-slate-800/60 shadow-2xl">
+            <div>
+              <h2 className="text-xl font-bold tracking-tight">Ajouter un moyen de retrait</h2>
+              <p className="text-xs text-muted-foreground mt-1">
+                Enregistrez un compte Mobile Money pour demander des retraits plus rapidement.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              {/* 1. Pays */}
+              <div className="space-y-1.5 relative">
+                <Label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">Pays d'émission</Label>
+                <button
+                  type="button"
+                  onClick={() => setShowNewCountryDropdown(!showNewCountryDropdown)}
+                  className="w-full h-12 flex items-center justify-between px-3.5 border rounded-xl bg-slate-50/50 hover:bg-slate-100 dark:bg-slate-900/50 dark:hover:bg-slate-800"
+                >
+                  <div className="flex items-center gap-3">
+                    <FlagIcon code={newMethodActiveCountry.code} flag={newMethodActiveCountry.flag} name={newMethodActiveCountry.name} className="w-6 h-4" />
+                    <span className="font-medium text-sm">{newMethodActiveCountry.name}</span>
+                  </div>
+                  <ChevronDown className="h-4 w-4 opacity-50" />
+                </button>
+
+                {showNewCountryDropdown && (
+                  <div className="absolute top-[calc(100%+4px)] left-0 w-full z-10 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl overflow-hidden p-1.5">
+                    {WITHDRAW_COUNTRIES.map((c) => (
+                      <button
+                        key={c.code}
+                        type="button"
+                        onClick={() => { setNewMethodCountry(c.code); setNewMethodProvider(c.methods[0].id); setShowNewCountryDropdown(false); }}
+                        className={cn("w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-sm text-left hover:bg-slate-100 dark:hover:bg-slate-800", newMethodCountry === c.code ? "bg-primary/10 text-primary font-bold" : "text-slate-700 dark:text-slate-300")}
+                      >
+                        <div className="flex items-center gap-3">
+                          <FlagIcon code={c.code} flag={c.flag} name={c.name} className="w-6 h-4" />
+                          <span>{c.name}</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* 2. Opérateur */}
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">Opérateur Mobile Money</Label>
+                <div className="grid grid-cols-2 gap-2.5">
+                  {newMethodActiveCountry.methods.map((m) => {
+                    const active = newMethodProvider === m.id;
+                    return (
+                      <button
+                        key={m.id}
+                        type="button"
+                        onClick={() => setNewMethodProvider(m.id)}
+                        className={cn("relative flex items-center gap-3 p-3 rounded-xl border transition-all text-left", active ? m.color + " border-2 border-current shadow-md scale-[1.01]" : "border-slate-200 dark:border-slate-800 bg-slate-50/40 hover:bg-slate-100 dark:bg-slate-900/40 text-slate-700 dark:text-slate-300")}
+                      >
+                        {m.logoUrl ? (
+                          <img src={m.logoUrl} alt={m.name} className="w-8 h-8 rounded-lg object-contain bg-white dark:bg-slate-900 p-0.5 border shrink-0" />
+                        ) : (
+                          <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary font-extrabold flex items-center justify-center text-xs shrink-0">{m.name.substring(0, 2).toUpperCase()}</div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="font-bold text-xs truncate">{m.name}</div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 3. Numéro */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">Numéro de téléphone</Label>
+                <div className="flex items-stretch rounded-xl border h-12 overflow-hidden bg-slate-50/50 dark:bg-slate-900/50">
+                  <div className="flex shrink-0 items-center gap-2 border-r px-3.5 bg-slate-100/80 dark:bg-slate-800/50 text-sm font-bold">
+                    <FlagIcon code={newMethodActiveCountry.code} flag={newMethodActiveCountry.flag} name={newMethodActiveCountry.name} className="w-5 h-3.5" />
+                    <span className="font-mono">+{newMethodActiveCountry.prefix}</span>
+                  </div>
+                  <Input
+                    value={newMethodPhone}
+                    onChange={(e) => setNewMethodPhone(e.target.value.replace(/\D/g, ""))}
+                    placeholder="Numéro mobile"
+                    className="flex-1 h-full border-0 bg-transparent pl-3.5 font-mono text-sm font-medium focus-visible:ring-0"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-2">
+              <Button variant="outline" onClick={() => setAddMethodModalOpen(false)}>Annuler</Button>
+              <Button onClick={() => addMethodMutation.mutate()} disabled={addMethodMutation.isPending || !newMethodPhone} className="bg-primary hover:bg-primary/90 text-white font-bold gap-2">
+                {addMethodMutation.isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+                Enregistrer le moyen
+              </Button>
+            </div>
+            
+            <button onClick={() => setAddMethodModalOpen(false)} className="absolute right-4 top-4 rounded-sm opacity-70 hover:opacity-100">
+              <XCircle className="h-5 w-5" />
+            </button>
+          </Card>
+        </div>
+      )}
 
       {/* PIN Setup/Reset Modal */}
       {pinModalOpen && (
@@ -1015,6 +1185,47 @@ function WalletPage() {
             </div>
 
             <form onSubmit={(e) => { e.preventDefault(); withdrawMutation.mutate(); }} className="space-y-5">
+              {/* Moyens enregistrés (Raccourcis) */}
+              {savedMethods.length > 0 && (
+                <div className="space-y-2 pb-2 border-b border-slate-100 dark:border-slate-800">
+                  <Label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+                    Mes moyens enregistrés
+                  </Label>
+                  <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                    {savedMethods.map((m: any) => {
+                      const countryDef = WITHDRAW_COUNTRIES.find(c => c.code === m.country_code);
+                      const providerDef = countryDef?.methods.find(p => p.name === m.provider || p.id === m.provider);
+                      const isSelected = withdrawCountry === m.country_code && withdrawMethod === m.provider && withdrawPhone === m.phone_number;
+                      return (
+                        <button
+                          key={m.id}
+                          type="button"
+                          onClick={() => {
+                            setWithdrawCountry(m.country_code);
+                            setWithdrawMethod(m.provider);
+                            setWithdrawPhone(m.phone_number);
+                          }}
+                          className={cn(
+                            "flex items-center gap-2 px-3 py-2 rounded-xl border text-left shrink-0 transition-all",
+                            isSelected ? "border-primary bg-primary/5 shadow-sm" : "border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 hover:bg-slate-100 dark:hover:bg-slate-800"
+                          )}
+                        >
+                          {providerDef?.logoUrl ? (
+                            <img src={providerDef.logoUrl} alt={m.provider} className="w-6 h-6 rounded-md object-contain bg-white dark:bg-slate-900 p-0.5 border shrink-0" />
+                          ) : (
+                            <div className="w-6 h-6 rounded-md bg-primary/10 text-primary font-extrabold flex items-center justify-center text-[10px] shrink-0">{m.provider?.substring(0, 2).toUpperCase()}</div>
+                          )}
+                          <div>
+                            <div className="text-[10px] font-bold">{m.provider}</div>
+                            <div className="text-[10px] font-mono opacity-75">{m.phone_number}</div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* 1. Sélection du Pays de Retrait */}
               <div className="space-y-1.5 relative">
                 <Label className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">
