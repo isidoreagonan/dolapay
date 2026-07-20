@@ -123,7 +123,7 @@ const FAQPage = () => (
             <Link to="/resources/support">Contacter le support</Link>
           </Button>
           <Button asChild size="lg" variant="outline" className="rounded-xl border-navy/15 text-navy hover:bg-navy/5">
-            <Link to="/docs">Consulter la doc API</Link>
+            <Link to="/developers/api">Consulter la doc API</Link>
           </Button>
         </div>
       </div>

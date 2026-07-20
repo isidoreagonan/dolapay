@@ -93,7 +93,7 @@ const Hero = () => {
               <Link to="/auth/sign-up" className="flex items-center gap-2">Commencer gratuitement <ArrowRight className="h-4 w-4" /></Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="rounded-xl h-12 px-6 text-base border-navy/15 text-navy hover:bg-navy/5">
-              <Link to="/docs">Voir la documentation</Link>
+              <Link to="/developers/api">Voir la documentation</Link>
             </Button>
           </motion.div>
 
@@ -195,7 +195,7 @@ const Features = () => {
     { icon: Wallet, title: "Encaissements (Pay-in)", desc: "Mobile Money + cartes Visa/Mastercard. Un checkout, tous les moyens de paiement locaux.", href: "/products/pay-in" },
     { icon: Zap, title: "Bulk Pay-out", desc: "Envoyez de l'argent vers des milliers de portefeuilles en un clic. API ou CSV.", href: "/products/pay-out" },
     { icon: Link2, title: "Liens no-code", desc: "Vendez sur WhatsApp, Instagram, TikTok. Créez un lien, partagez, encaissez.", href: "/products/no-code" },
-    { icon: Code2, title: "API développeur", desc: "RESTful, webhooks temps réel, SDK Node/Python/PHP. Intégration en 5 minutes.", href: "/docs" },
+    { icon: Code2, title: "API développeur", desc: "RESTful, webhooks temps réel, SDK Node/Python/PHP. Intégration en 5 minutes.", href: "/developers/api" },
   ];
 
   return (
@@ -575,7 +575,7 @@ const Developers = () => (
             ))}
           </div>
           <Button asChild size="lg" className="mt-8 rounded-xl bg-white text-navy hover:bg-white/90">
-            <Link to="/docs" className="flex items-center gap-2">Explorer la doc <ArrowUpRight className="h-4 w-4" /></Link>
+            <Link to="/developers/api" className="flex items-center gap-2">Explorer la doc <ArrowUpRight className="h-4 w-4" /></Link>
           </Button>
         </motion.div>
 

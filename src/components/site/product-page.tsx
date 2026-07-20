@@ -32,7 +32,7 @@ const ProductPage = (p: Props) => (
           <Link to="/auth/sign-up" className="flex items-center gap-2">Commencer gratuitement <ArrowRight className="h-4 w-4" /></Link>
         </Button>
         <Button asChild size="lg" variant="outline" className="rounded-xl border-navy/15 text-navy hover:bg-navy/5">
-          <Link to="/docs">Voir la doc</Link>
+          <Link to="/developers/api">Voir la doc</Link>
         </Button>
       </div>
     </PageHero>

@@ -12,7 +12,7 @@ const products: Item[] = [
   { to: "/products/payment-links", label: "Liens de paiement", desc: "Encaissez sans une seule ligne de code", icon: Link2 },
 ];
 const resources: Item[] = [
-  { to: "/docs", label: "Documentation API", desc: "Guides, SDK, référence complète", icon: BookOpen },
+  { to: "/developers/api", label: "Documentation API", desc: "Guides, SDK, référence complète", icon: BookOpen },
   { to: "/resources/support", label: "Support marchand", desc: "Une équipe humaine, 7j/7", icon: LifeBuoy },
   { to: "/resources/use-cases", label: "Cas d'usage", desc: "E-commerce, freelances, startups tech", icon: Layers },
 ];

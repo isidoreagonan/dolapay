@@ -146,7 +146,7 @@ const DocsPage = () => (
   <PageShell
     title="Documentation API DolaPay — Guide développeurs"
     description="Documentation complète de l'API DolaPay : authentification, encaissements Mobile Money, décaissements en masse, webhooks signés, gestion des erreurs."
-    canonicalUrl="/docs"
+    canonicalUrl="/developers/api"
   >
     <div className="mx-auto max-w-7xl px-4 md:px-6 pt-28 md:pt-36 pb-12 md:pb-16">
       <div className="grid lg:grid-cols-[240px_1fr] gap-10">

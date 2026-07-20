@@ -101,7 +101,7 @@ const SupportPage = () => (
         </div>
 
         <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-          <Link to="/docs" className="group rounded-2xl bg-white border border-border p-6 shadow-sm hover:shadow-soft transition-all flex items-start gap-4">
+          <Link to="/developers/api" className="group rounded-2xl bg-white border border-border p-6 shadow-sm hover:shadow-soft transition-all flex items-start gap-4">
             <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
               <FileText className="h-6 w-6 text-primary" />
             </div>
