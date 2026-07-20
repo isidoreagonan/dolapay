@@ -48,6 +48,7 @@ function TransactionsPage() {
       const { data, error } = await supabase
         .from("transactions")
         .select("*")
+        .eq("profile_id", profile!.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
       const results: Tx[] = (data ?? []) as Tx[];

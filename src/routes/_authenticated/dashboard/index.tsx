@@ -82,6 +82,7 @@ function Overview() {
       const { data, error } = await supabase
         .from("transactions")
         .select("id,amount,currency,status,type,created_at,description")
+        .eq("profile_id", profile!.id)
         .gte("created_at", since.toISOString())
         .order("created_at", { ascending: false });
       if (error) throw error;
