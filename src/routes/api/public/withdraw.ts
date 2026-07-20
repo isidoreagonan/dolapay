@@ -17,6 +17,7 @@ export const Route = createFileRoute("/api/public/withdraw")({
           }
 
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const { calculateMargin } = await import("@/lib/margins.server");
           const { data: { user }, error: authErr } = await supabaseAdmin.auth.getUser(token);
 
           if (authErr || !user) {
@@ -312,12 +313,18 @@ export const Route = createFileRoute("/api/public/withdraw")({
             const baseDeposit = livePayin > 0 ? livePayin : Math.max(currentBalance + livePayout, profBalance + livePayout, metaBalance + livePayout, 300);
             currentBalance = Math.max(0, baseDeposit - livePayout);
 
-            if (currentBalance < amount) {
-              return Response.json({ error: `Solde insuffisant (${Math.round(currentBalance)} XOF disponibles) pour effectuer ce retrait.` }, { status: 400 });
+            const { getCorrespondentCode } = await import("@/lib/pawapay.server");
+            const correspondentCode = getCorrespondentCode(method, phone);
+            
+            // Calculer les marges et frais pour le retrait
+            const margins = await calculateMargin(supabaseAdmin, amount, "pay-out", correspondentCode, "pawapay");
+
+            if (currentBalance < margins.net_amount) {
+              return Response.json({ error: `Solde insuffisant (${Math.round(currentBalance)} XOF disponibles) pour un retrait de ${amount} (avec frais : ${margins.net_amount} XOF).` }, { status: 400 });
             }
 
             // Mettre à jour le solde (DÉDUCTION) sur l'ensemble des emplacements connus pour garder la synchro parfaite
-            const newBalance = currentBalance - amount;
+            const newBalance = currentBalance - margins.net_amount;
             
             await supabaseAdmin.auth.admin.updateUserById(user.id, {
               user_metadata: { ...(user.user_metadata || {}), wallet_balance: newBalance },
@@ -341,8 +348,7 @@ export const Route = createFileRoute("/api/public/withdraw")({
             // Connexion API PawaPay pour effectuer le décaissement automatique (Payout API)
             const isVirtualWithdraw = Boolean(json.testMode);
             let finalStatus = isVirtualWithdraw ? "success" : "processing";
-            const { pawapay, getCorrespondentCode } = await import("@/lib/pawapay.server");
-            const correspondentCode = getCorrespondentCode(method, phone);
+            const { pawapay } = await import("@/lib/pawapay.server");
             const payoutId = crypto.randomUUID(); // Exigence stricte PawaPay : exactement 36 caractères (UUID v4)
 
             if (!isVirtualWithdraw) {
@@ -388,7 +394,6 @@ export const Route = createFileRoute("/api/public/withdraw")({
               }
             }
 
-            // Créer la demande de retrait (withdrawal_request) - Tentatives multiples multi-schéma
             // Créer la demande de retrait (withdrawal_request) - Tentatives multiples multi-schéma avec id: payoutId
             const insertAttempts = [
               { id: payoutId, profile_id: user.id, wallet_id: wallet.id || user.id, amount, currency: "XOF", method, recipient_phone: phone, status: finalStatus },
@@ -420,20 +425,27 @@ export const Route = createFileRoute("/api/public/withdraw")({
               console.log("[Withdraw] Enregistrement dans transactions (pay-out) et payout_batches...");
               
               const txStatus = (finalStatus === "success" || finalStatus === "completed" || finalStatus === "processing") ? finalStatus : "pending";
-              const txPayload = {
+              // Transaction type "pay-out" ensures sync-wallet will calculate the updated balance properly
+              const txAttempt = await supabaseAdmin.from("transactions").insert({
                 id: payoutId,
                 profile_id: user.id,
-                amount: amount,
+                amount: amount, // Requested amount
+                net_amount: margins.net_amount, // Cost applied against the wallet balance
+                operator_fee: margins.operator_fee,
+                gateway_fee: margins.gateway_fee,
+                dola_margin: margins.dola_margin,
+                gateway: "pawapay",
+                provider: "pawapay",
                 currency: "XOF",
                 type: "pay-out",
                 status: txStatus,
-                description: `Retrait Mobile Money - ${method} (${phone}) [ID: ${payoutId}]`,
-                provider: method,
+                description: `[RETRAIT_UI] ${correspondentCode} · ${phone}`,
+                payment_method: method,
                 customer_phone: phone,
-                net_amount: amount
-              };
-
-              await (supabaseAdmin.from("transactions") as any).insert(txPayload);
+              } as any);
+              if (txAttempt.error) {
+                console.error("Erreur insertion transactions lors du retrait:", txAttempt.error);
+              }
 
               // Enregistrer également dans payout_batches / payout_batch_items
               try {

@@ -15,6 +15,7 @@ type Tx = {
   type: string;
   created_at: string;
   profile_id: string;
+  dola_margin?: number;
 };
 
 function AdminOverview() {
@@ -24,7 +25,7 @@ function AdminOverview() {
       const since = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
       const { data, error } = await supabase
         .from("transactions")
-        .select("id,amount,status,type,created_at,profile_id")
+        .select("id,amount,status,type,created_at,profile_id,dola_margin")
         .gte("created_at", since)
         .order("created_at", { ascending: false })
         .limit(1000);
@@ -117,7 +118,11 @@ function AdminOverview() {
   const totalCount = txs.filter((t) => new Date(t.created_at).getTime() >= now - 30 * day).length;
   const completedCount = txs.filter((t) => new Date(t.created_at).getTime() >= now - 30 * day && t.status === "success").length;
   const successRate = totalCount ? (completedCount / totalCount) * 100 : 0;
-  const mrrEstimate = payIn30 * 0.02 + payOut30 * 0.01;
+  
+  // Calcul exact des marges réelles générées (au lieu d'une estimation)
+  const mrrActual = txs
+    .filter((t) => t.status === "success" && new Date(t.created_at).getTime() >= now - 30 * day)
+    .reduce((sum, t) => sum + Number(t.dola_margin || 0), 0);
 
   const pendingKyc = (profileStats ?? []).filter((p) => p.kyc_status === "pending").length;
   const merchants = (profileStats ?? []).length;
@@ -127,7 +132,7 @@ function AdminOverview() {
     { label: "Volume 24h", value: today, fmt: "xof", icon: Activity, accent: "text-emerald-400" },
     { label: "Volume 7j", value: last7, fmt: "xof", icon: TrendingUp, accent: "text-sky-400" },
     { label: "Volume 30j", value: last30, fmt: "xof", icon: Wallet, accent: "text-violet-400" },
-    { label: "Revenu DolaPay (30j)", value: mrrEstimate, fmt: "xof", icon: TrendingUp, accent: "text-amber-400" },
+    { label: "Revenu DolaPay (30j)", value: mrrActual, fmt: "xof", icon: TrendingUp, accent: "text-amber-400" },
     { label: "Encaissements (30j)", value: payIn30, fmt: "xof", icon: ArrowDownLeft, accent: "text-emerald-400" },
     { label: "Décaissements (30j)", value: payOut30, fmt: "xof", icon: ArrowUpRight, accent: "text-rose-400" },
     { label: "Taux de succès (30j)", value: successRate, fmt: "pct", icon: Activity, accent: "text-emerald-400" },
