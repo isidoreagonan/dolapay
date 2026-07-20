@@ -31,6 +31,7 @@ export const Route = createFileRoute("/api/public/pay/$slug")({
 
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const { pawapay } = await import("@/lib/pawapay.server");
+          const { calculateMargin } = await import("@/lib/margins.server");
 
           // Rate limit: count attempts in last RATE_WINDOW_SEC for (ip, slug)
           const since = new Date(Date.now() - RATE_WINDOW_SEC * 1000).toISOString();
@@ -79,6 +80,9 @@ export const Route = createFileRoute("/api/public/pay/$slug")({
             parsed.data.provider.toUpperCase() === "CARD";
 
           const emailStr = parsed.data.customer_email ? parsed.data.customer_email.trim() : "noemail@client.com";
+          const gatewayUsed = isLigdiCash ? "ligdicash" : "pawapay";
+          const margins = await calculateMargin(supabaseAdmin, link.amount, "pay-in", parsed.data.provider, gatewayUsed);
+          
           const { data: tx, error: txErr } = await supabaseAdmin
             .from("transactions")
             .insert({
@@ -90,9 +94,13 @@ export const Route = createFileRoute("/api/public/pay/$slug")({
               idempotency_key: idemKey,
               description: `[${params.slug}] ${link.title} · ${parsed.data.customer_name} (${emailStr}) · ${parsed.data.provider} ${parsed.data.customer_phone}`,
               // Add required live DB columns
-              net_amount: link.amount,
+              net_amount: margins.net_amount,
+              operator_fee: margins.operator_fee,
+              gateway_fee: margins.gateway_fee,
+              dola_margin: margins.dola_margin,
+              gateway: gatewayUsed,
               customer_phone: parsed.data.customer_phone,
-              provider: isLigdiCash ? "ligdicash" : "pawapay",
+              provider: gatewayUsed,
               payment_method: parsed.data.provider,
             } as any)
             .select("id")
