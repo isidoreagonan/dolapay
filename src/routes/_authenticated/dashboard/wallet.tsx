@@ -302,7 +302,7 @@ function WalletPage() {
 
       for (const t of allTxs) {
         const st = String(t.status || "").toLowerCase();
-        const amt = Number(t.amount || 0);
+        const amt = Number(t.net_amount || t.amount || 0);
         const desc = String(t.description || "").toLowerCase();
         const mode = String((t as any).mode || "").toLowerCase();
         const isTestTx = desc.includes("_test") || desc.includes("sandbox") || mode === "test" || mode === "sandbox";
