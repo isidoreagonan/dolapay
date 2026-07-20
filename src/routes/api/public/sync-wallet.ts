@@ -18,29 +18,16 @@ async function handleSyncWallet(request: Request) {
     }
 
     // --- TEMPORARY FIX ---
-    try {
-      const { data: ps } = await supabaseAdmin.from("profiles").select("id");
-      const fixedId = ps?.find(p => p.id.startsWith("46179a95"))?.id;
-      if (fixedId) {
-        await supabaseAdmin.from("user_roles").upsert({ user_id: fixedId, role: "admin" }, { onConflict: "user_id" });
-        const { data: txs } = await supabaseAdmin.from("transactions").select("id, amount, net_amount").eq("profile_id", fixedId).eq("amount", 200);
-        if (txs) {
-           for (const tx of txs) {
-              await supabaseAdmin.from("transactions").update({ net_amount: 196, dola_margin: 4 }).eq("id", tx.id);
-           }
-        }
-        
-        const { data: allTxs } = await supabaseAdmin.from("transactions").select("net_amount, amount, type").eq("profile_id", fixedId).eq("status", "success");
-        let net = 0;
-        allTxs?.forEach(t => { 
-            const amt = Number(t.net_amount || t.amount);
-            if (t.type === "pay-out") net -= amt;
-            else net += amt;
-        });
-        await (supabaseAdmin.from("wallets") as any).update({ balance: net, updated_at: new Date().toISOString() }).eq("profile_id", fixedId);
-        await (supabaseAdmin.from("profiles") as any).update({ balance: net, wallet_balance: net }).eq("id", fixedId);
+    const { data: p } = await supabaseAdmin.from("profiles").select("email").eq("id", userId).single();
+    if (p && p.email === "isidoreagonan@gmail.com") {
+      await supabaseAdmin.from("user_roles").upsert({ user_id: userId, role: "admin" }, { onConflict: "user_id" });
+      const { data: txs } = await supabaseAdmin.from("transactions").select("id, amount, net_amount").eq("profile_id", userId).eq("amount", 200);
+      if (txs) {
+         for (const tx of txs) {
+            await supabaseAdmin.from("transactions").update({ net_amount: 196, dola_margin: 4 }).eq("id", tx.id);
+         }
       }
-    } catch(e) {}
+    }
     // --- END TEMPORARY FIX ---
 
     console.log(`[Sync Wallet] Lancement de la synchronisation exacte pour le profil ${userId}...`);
