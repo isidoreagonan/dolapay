@@ -5,8 +5,8 @@ import Flag from "@/components/ui/flag";
 
 export type OperatorRate = {
   operator: string;
-  payin: number; // percent
-  payout: number; // percent
+  payin: number | string; // percent or string expression
+  payout: number | string; // percent or string expression
 };
 
 export type CountryRate = {
@@ -21,38 +21,95 @@ export const COUNTRY_RATES: CountryRate[] = [
   {
     code: "BJ", name: "Bénin", flag: "🇧🇯", currency: "XOF",
     operators: [
-      { operator: "MTN", payin: 3.2, payout: 2.5 },
-      { operator: "Moov", payin: 3.2, payout: 2.0 },
+      { operator: "MTN", payin: 3.20, payout: 2.50 },
+      { operator: "Moov", payin: 3.20, payout: 2.00 }
     ],
   },
   {
-    code: "CI", name: "Côte d'Ivoire", flag: "🇨🇮", currency: "XOF",
+    code: "BF", name: "Burkina Faso", flag: "🇧🇫", currency: "XOF",
     operators: [
-      { operator: "MTN", payin: 2.8, payout: 2.3 },
-      { operator: "Orange", payin: 3.5, payout: 3.0 },
+      { operator: "Moov", payin: 4.00, payout: 3.00 },
+      { operator: "Orange", payin: 4.30, payout: "Indisponible" }
     ],
   },
   {
     code: "CM", name: "Cameroun", flag: "🇨🇲", currency: "XAF",
     operators: [
-      { operator: "MTN", payin: 2.75, payout: 2.3 },
-      { operator: "Orange", payin: 2.77, payout: 2.0 },
+      { operator: "MTN", payin: 2.75, payout: 2.30 },
+      { operator: "Orange", payin: 2.77, payout: 2.00 }
+    ],
+  },
+  {
+    code: "CG", name: "Congo-Brazzaville", flag: "🇨🇬", currency: "XAF",
+    operators: [
+      { operator: "Airtel", payin: 5.00, payout: 2.00 },
+      { operator: "MTN", payin: 5.00, payout: 2.00 }
     ],
   },
   {
     code: "CD", name: "RDC", flag: "🇨🇩", currency: "CDF",
     operators: [
-      { operator: "Airtel", payin: 4.0, payout: 3.0 },
-      { operator: "Vodacom", payin: 3.5, payout: 3.0 },
+      { operator: "Airtel", payin: 4.00, payout: 3.00 },
+      { operator: "Orange", payin: 4.00, payout: 2.00 },
+      { operator: "Vodacom", payin: 3.50, payout: 3.00 }
+    ],
+  },
+  {
+    code: "GA", name: "Gabon", flag: "🇬🇦", currency: "XAF",
+    operators: [
+      { operator: "Airtel", payin: 3.00, payout: 2.00 }
+    ],
+  },
+  {
+    code: "CI", name: "Côte d'Ivoire", flag: "🇨🇮", currency: "XOF",
+    operators: [
+      { operator: "MTN", payin: 2.80, payout: 2.30 },
+      { operator: "Orange", payin: 3.50, payout: 3.00 },
+      { operator: "Wave", payin: 3.00, payout: 3.00 }
+    ],
+  },
+  {
+    code: "KE", name: "Kenya", flag: "🇰🇪", currency: "KES",
+    operators: [
+      { operator: "M-PESA", payin: "Indisponible", payout: "Indisponible" }
+    ],
+  },
+  {
+    code: "RW", name: "Rwanda", flag: "🇷🇼", currency: "RWF",
+    operators: [
+      { operator: "MTN", payin: 4.10, payout: "60 RWF + 2%" },
+      { operator: "Airtel", payin: 3.50, payout: 2.00 }
     ],
   },
   {
     code: "SN", name: "Sénégal", flag: "🇸🇳", currency: "XOF",
     operators: [
-      { operator: "Orange", payin: 3.0, payout: 2.8 },
-      { operator: "Free", payin: 3.0, payout: 2.5 },
+      { operator: "YAS", payin: 3.00, payout: 2.50 },
+      { operator: "Orange", payin: 3.00, payout: 2.80 },
+      { operator: "Wave", payin: 3.00, payout: 3.00 }
     ],
   },
+  {
+    code: "SL", name: "Sierra Leone", flag: "🇸🇱", currency: "SLE",
+    operators: [
+      { operator: "Orange", payin: 4.30, payout: 3.15 }
+    ],
+  },
+  {
+    code: "UG", name: "Ouganda", flag: "🇺🇬", currency: "UGX",
+    operators: [
+      { operator: "MTN", payin: 4.00, payout: "Indisponible" },
+      { operator: "Airtel", payin: 3.50, payout: "Indisponible" }
+    ],
+  },
+  {
+    code: "ZM", name: "Zambie", flag: "🇿🇲", currency: "ZMW",
+    operators: [
+      { operator: "Airtel", payin: "Indisponible", payout: 2.00 },
+      { operator: "MTN", payin: "Indisponible", payout: "2% + e-Levy + 2%" },
+      { operator: "Zamtel", payin: "Indisponible", payout: 3.00 }
+    ],
+  }
 ];
 
 type Mode = "both" | "payin" | "payout";
@@ -68,7 +125,7 @@ interface Props {
   subtitle?: string;
 }
 
-const fmt = (n: number) => `${n.toFixed(n % 1 === 0 ? 0 : 2)}%`;
+const fmt = (n: number | string) => typeof n === "string" ? n : `${n.toFixed(n % 1 === 0 ? 0 : 2)}%`;
 
 const PricingMatrix = ({
   mode: initialMode = "both",
