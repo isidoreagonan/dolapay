@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { motion } from "framer-motion";
-import { ArrowRight, ShoppingCart, Briefcase, Rocket, Gamepad2, CheckCircle2 } from "lucide-react";
+import { ArrowRight, ShoppingCart, Briefcase, Rocket, CheckCircle2 } from "lucide-react";
 import PageShell from "@/components/site/page-shell";
 import PageHero from "@/components/site/page-hero";
 import { Button } from "@/components/ui/button";
@@ -51,21 +51,6 @@ const cases = [
     ],
     color: "text-primary",
     bg: "bg-primary/10",
-  },
-  {
-    id: "betting",
-    icon: Gamepad2,
-    title: "Gaming & Paris Sportifs",
-    subtitle: "Pay-ins et Payouts ultra-rapides.",
-    description: "La vitesse est cruciale dans votre industrie. Acceptez des dépôts instantanés et traitez les retraits de vos joueurs en quelques secondes, sur n'importe quel opérateur Mobile Money.",
-    benefits: [
-      "Haute disponibilité : 99.99% d'uptime",
-      "Capacité à traiter de très gros volumes",
-      "Décaissements (payouts) automatisés et garantis",
-      "Outils de lutte contre la fraude intégrés"
-    ],
-    color: "text-purple-500",
-    bg: "bg-purple-500/10",
   }
 ];
 
