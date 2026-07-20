@@ -256,7 +256,6 @@ function DashboardLayout() {
     ...(profile?.account_type === "enterprise"
       ? [{ to: "/dashboard/api-keys", icon: KeyRound, label: "Clés API" }]
       : []),
-    { to: "/dashboard/verify", icon: ShieldCheck, label: profile?.kyc_status === "approved" ? "Vérifié" : "Vérification" },
     { to: "/dashboard/settings", icon: SettingsIcon, label: "Compte & KYC" },
     ...(isAdmin ? [{ to: "/admin", icon: Crown, label: "Système Admin" }] : []),
   ];
