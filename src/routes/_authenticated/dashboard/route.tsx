@@ -221,11 +221,20 @@ function DashboardLayout() {
       navigate({ to: "/onboarding", replace: true });
       return;
     }
+    
+    // GATING GLOBAL: Si KYC n'est pas approuvé, bloquer l'accès aux autres pages
+    if (profile && profile.kyc_status !== "approved" && profile.onboarding_completed) {
+      if (pathname !== "/dashboard" && pathname !== "/dashboard/" && !pathname.startsWith("/dashboard/settings") && !pathname.startsWith("/dashboard/verify")) {
+        navigate({ to: "/dashboard", replace: true });
+        return;
+      }
+    }
+
     // Admins are auto-redirected to /admin UNLESS they explicitly chose merchant view.
     if (isAdmin && typeof window !== "undefined" && sessionStorage.getItem("merchant_view") !== "1") {
       navigate({ to: "/admin", replace: true });
     }
-  }, [profile, isAdmin, navigate]);
+  }, [profile, isAdmin, navigate, pathname]);
 
   if (profileLoading || adminLoading || !profile) {
     return (
