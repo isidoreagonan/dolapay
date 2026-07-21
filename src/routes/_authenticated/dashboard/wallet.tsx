@@ -10,7 +10,8 @@ import {
   Wallet as WalletIcon, ArrowUpRight, ArrowDownLeft, ShieldCheck, Lock,
   Loader2, KeyRound, Eye, EyeOff, AlertCircle, Send, Landmark, Smartphone,
   CheckCircle2, XCircle, Clock, Check, ChevronDown, RefreshCw,
-  DollarSign, Search, FileSpreadsheet, Filter, PiggyBank, CreditCard, Trash2
+  DollarSign, Search, Download, Edit3, Save, X, RotateCcw, HelpCircle,
+  FileText, FileSpreadsheet, Filter, PiggyBank, CreditCard, Trash2
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile, type Profile } from "./route";
@@ -53,6 +54,7 @@ function WalletPage() {
 
   // Saved Payout Methods State
   const [addMethodModalOpen, setAddMethodModalOpen] = useState(false);
+  const [selectedTx, setSelectedTx] = useState<any>(null);
   const [newMethodCountry, setNewMethodCountry] = useState("BF");
   const [showNewCountryDropdown, setShowNewCountryDropdown] = useState(false);
   const [newMethodProvider, setNewMethodProvider] = useState("Orange Money");
@@ -638,7 +640,11 @@ function WalletPage() {
                   </thead>
                   <tbody className="divide-y divide-border">
                     {filteredWithdrawals.map((w) => (
-                      <tr key={w.id} className="hover:bg-muted/30 transition-colors font-medium">
+                      <tr 
+                        key={w.id} 
+                        onClick={() => setSelectedTx(w)}
+                        className="hover:bg-muted/30 transition-colors font-medium cursor-pointer"
+                      >
                         <td className="px-4 py-3.5 font-mono text-[11px] text-muted-foreground">
                           {String(w.id || "").slice(0, 8)}...
                           <div className="text-[10px] text-muted-foreground/60">
@@ -944,6 +950,73 @@ function WalletPage() {
       )}
 
 
+      {/* Transaction Details Modal */}
+      {selectedTx && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
+          <Card className="w-full max-w-md p-6 shadow-2xl relative border bg-card">
+            <div className="text-center mb-6">
+              <div className="mx-auto w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3 text-primary">
+                <FileText className="h-6 w-6" />
+              </div>
+              <h2 className="text-xl font-black">Détails de la transaction</h2>
+              <p className="text-sm text-muted-foreground">ID: {selectedTx.id}</p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex justify-between items-center py-3 border-b border-border">
+                <span className="text-sm font-medium text-muted-foreground">Montant</span>
+                <span className="font-bold">{fmt(selectedTx.amount)} {selectedTx.currency || "XOF"}</span>
+              </div>
+              
+              <div className="flex justify-between items-center py-3 border-b border-border">
+                <span className="text-sm font-medium text-muted-foreground">Frais</span>
+                <span className="font-bold text-rose-500">{selectedTx.fee ? fmt(selectedTx.fee) : "0"} {selectedTx.currency || "XOF"}</span>
+              </div>
+
+              <div className="flex justify-between items-center py-3 border-b border-border">
+                <span className="text-sm font-medium text-muted-foreground">Statut</span>
+                <StatusBadge status={selectedTx.status} />
+              </div>
+
+              <div className="flex justify-between items-center py-3 border-b border-border">
+                <span className="text-sm font-medium text-muted-foreground">Date</span>
+                <span className="text-sm font-medium">
+                  {new Date(selectedTx.created_at).toLocaleString("fr-FR", {
+                    day: "2-digit", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit"
+                  })}
+                </span>
+              </div>
+
+              <div className="flex justify-between items-center py-3 border-b border-border">
+                <span className="text-sm font-medium text-muted-foreground">Destination</span>
+                <div className="text-right">
+                  <div className="font-bold">{selectedTx.recipient_phone || "N/A"}</div>
+                  <div className="text-[10px] uppercase text-primary font-bold">
+                    {selectedTx.method?.replace(/\(.*?\)/g, '') || "MOBILE MONEY"}
+                  </div>
+                </div>
+              </div>
+              
+              {selectedTx.status === "failed" && selectedTx.method && selectedTx.method.includes("(") && (
+                <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl">
+                  <div className="text-xs font-bold text-rose-600 dark:text-rose-400 mb-1">Raison de l'échec</div>
+                  <div className="text-xs text-rose-600/80 dark:text-rose-400/80 font-medium">
+                    {selectedTx.method.match(/\((.*?)\)/)?.[1] || "Erreur interne"}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <Button onClick={() => setSelectedTx(null)} className="w-full mt-6 bg-slate-900 hover:bg-slate-800 text-white font-bold h-11 rounded-xl">
+              Fermer
+            </Button>
+            
+            <button onClick={() => setSelectedTx(null)} className="absolute right-4 top-4 rounded-sm opacity-70 hover:opacity-100 transition-opacity">
+              <XCircle className="h-5 w-5" />
+            </button>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }
