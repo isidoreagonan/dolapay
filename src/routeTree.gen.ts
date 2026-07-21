@@ -71,6 +71,7 @@ import { Route as ApiPublicTxStatusIdRouteImport } from './routes/api/public/tx-
 import { Route as ApiPublicPaySlugRouteImport } from './routes/api/public/pay.$slug'
 import { Route as AuthenticatedDashboardPaymentLinksNewRouteImport } from './routes/_authenticated/dashboard/payment-links_.new'
 import { Route as AuthenticatedAdminMerchantsIdRouteImport } from './routes/_authenticated/admin/merchants.$id'
+import { Route as AuthenticatedDashboardPaymentLinksIdEditRouteImport } from './routes/_authenticated/dashboard/payment-links_.$id.edit'
 
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
@@ -400,6 +401,12 @@ const AuthenticatedAdminMerchantsIdRoute =
     path: '/merchants/$id',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const AuthenticatedDashboardPaymentLinksIdEditRoute =
+  AuthenticatedDashboardPaymentLinksIdEditRouteImport.update({
+    id: '/payment-links_/$id/edit',
+    path: '/payment-links/$id/edit',
+    getParentRoute: () => AuthenticatedDashboardRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -463,6 +470,7 @@ export interface FileRoutesByFullPath {
   '/api/public/tx-timeout/$id': typeof ApiPublicTxTimeoutIdRoute
   '/api/v1/charges/$id': typeof ApiV1ChargesIdRoute
   '/admin/merchants/': typeof AuthenticatedAdminMerchantsIndexRoute
+  '/dashboard/payment-links/$id/edit': typeof AuthenticatedDashboardPaymentLinksIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -524,6 +532,7 @@ export interface FileRoutesByTo {
   '/api/public/tx-timeout/$id': typeof ApiPublicTxTimeoutIdRoute
   '/api/v1/charges/$id': typeof ApiV1ChargesIdRoute
   '/admin/merchants': typeof AuthenticatedAdminMerchantsIndexRoute
+  '/dashboard/payment-links/$id/edit': typeof AuthenticatedDashboardPaymentLinksIdEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -589,6 +598,7 @@ export interface FileRoutesById {
   '/api/public/tx-timeout/$id': typeof ApiPublicTxTimeoutIdRoute
   '/api/v1/charges/$id': typeof ApiV1ChargesIdRoute
   '/_authenticated/admin/merchants/': typeof AuthenticatedAdminMerchantsIndexRoute
+  '/_authenticated/dashboard/payment-links_/$id/edit': typeof AuthenticatedDashboardPaymentLinksIdEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -654,6 +664,7 @@ export interface FileRouteTypes {
     | '/api/public/tx-timeout/$id'
     | '/api/v1/charges/$id'
     | '/admin/merchants/'
+    | '/dashboard/payment-links/$id/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -715,6 +726,7 @@ export interface FileRouteTypes {
     | '/api/public/tx-timeout/$id'
     | '/api/v1/charges/$id'
     | '/admin/merchants'
+    | '/dashboard/payment-links/$id/edit'
   id:
     | '__root__'
     | '/'
@@ -779,6 +791,7 @@ export interface FileRouteTypes {
     | '/api/public/tx-timeout/$id'
     | '/api/v1/charges/$id'
     | '/_authenticated/admin/merchants/'
+    | '/_authenticated/dashboard/payment-links_/$id/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1257,6 +1270,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminMerchantsIdRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
     }
+    '/_authenticated/dashboard/payment-links_/$id/edit': {
+      id: '/_authenticated/dashboard/payment-links_/$id/edit'
+      path: '/payment-links/$id/edit'
+      fullPath: '/dashboard/payment-links/$id/edit'
+      preLoaderRoute: typeof AuthenticatedDashboardPaymentLinksIdEditRouteImport
+      parentRoute: typeof AuthenticatedDashboardRouteRoute
+    }
   }
 }
 
@@ -1303,6 +1323,7 @@ interface AuthenticatedDashboardRouteRouteChildren {
   AuthenticatedDashboardWalletRoute: typeof AuthenticatedDashboardWalletRoute
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
   AuthenticatedDashboardPaymentLinksNewRoute: typeof AuthenticatedDashboardPaymentLinksNewRoute
+  AuthenticatedDashboardPaymentLinksIdEditRoute: typeof AuthenticatedDashboardPaymentLinksIdEditRoute
 }
 
 const AuthenticatedDashboardRouteRouteChildren: AuthenticatedDashboardRouteRouteChildren =
@@ -1321,6 +1342,8 @@ const AuthenticatedDashboardRouteRouteChildren: AuthenticatedDashboardRouteRoute
     AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
     AuthenticatedDashboardPaymentLinksNewRoute:
       AuthenticatedDashboardPaymentLinksNewRoute,
+    AuthenticatedDashboardPaymentLinksIdEditRoute:
+      AuthenticatedDashboardPaymentLinksIdEditRoute,
   }
 
 const AuthenticatedDashboardRouteRouteWithChildren =

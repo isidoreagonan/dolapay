@@ -66,7 +66,6 @@ function PaymentLinksPage() {
   const navigate = useNavigate();
   const { data: profile } = useProfile();
   const locked = profile?.kyc_status !== "approved";
-  const [editLink, setEditLink] = useState<PL | null>(null);
   const [previewLink, setPreviewLink] = useState<PL | null>(null);
   const [deleteLink, setDeleteLink] = useState<PL | null>(null);
   const [search, setSearch] = useState("");
@@ -267,7 +266,7 @@ function PaymentLinksPage() {
                   link={l}
                   onToggle={(v) => toggleActive.mutate({ id: l.id, active: v })}
                   onPreview={() => setPreviewLink(l)}
-                  onEdit={() => setEditLink(l)}
+                  onEdit={() => navigate({ to: "/dashboard/payment-links/$id/edit", params: { id: l.id } })}
                   onDelete={() => setDeleteLink(l)}
                 />
               </motion.div>
@@ -275,11 +274,6 @@ function PaymentLinksPage() {
           </div>
         )}
       </AnimatePresence>
-
-      {/* Edit Dialog */}
-      <Dialog open={!!editLink} onOpenChange={(v) => !v && setEditLink(null)}>
-        {editLink && <LinkFormDialog link={editLink} onClose={() => { setEditLink(null); }} />}
-      </Dialog>
 
       {/* Preview Dialog */}
       <Dialog open={!!previewLink} onOpenChange={(v) => !v && setPreviewLink(null)}>
@@ -434,196 +428,6 @@ function LinkCard({
   );
 }
 
-// ─── Form Dialog (Create + Edit) ──────────────────────────────────────────────
-function LinkFormDialog({ link, onClose }: { link?: PL; onClose: () => void }) {
-  const qc = useQueryClient();
-  const isEdit = !!link;
-
-  const [title, setTitle] = useState(link?.title ?? "");
-  const [description, setDescription] = useState(link?.description ?? "");
-  const [amount, setAmount] = useState(link?.amount?.toString() ?? "");
-  const [currency, setCurrency] = useState<Currency>(link?.currency ?? "XOF");
-  const [imageUrl, setImageUrl] = useState(link?.image_url ?? "");
-  const [invoiceNumber, setInvoiceNumber] = useState(link?.invoice_number ?? "");
-  const [feesPaidBy, setFeesPaidBy] = useState<FeesPaidBy>(link?.fees_paid_by ?? "merchant");
-  const [successUrl, setSuccessUrl] = useState(link?.success_url ?? "");
-  const [failureUrl, setFailureUrl] = useState(link?.failure_url ?? "");
-  const [thankYou, setThankYou] = useState(link?.thank_you_message ?? "");
-
-  const validUrl = (s: string) => {
-    if (!s.trim()) return null;
-    try { return new URL(s.trim()).toString(); } catch { throw new Error("URL invalide"); }
-  };
-
-  const save = useMutation({
-    mutationFn: async () => {
-      const payload = {
-        title: title.trim(),
-        description: description.trim() || null,
-        amount: Number(amount),
-        currency,
-        image_url: imageUrl || null,
-        invoice_number: invoiceNumber.trim() || null,
-        fees_paid_by: feesPaidBy,
-        success_url: validUrl(successUrl),
-        failure_url: validUrl(failureUrl),
-        thank_you_message: thankYou.trim() || null,
-      };
-      if (isEdit) {
-        const { error } = await supabase.from("payment_links").update(payload).eq("id", link.id);
-        if (error) throw error;
-      } else {
-        const { data: u } = await supabase.auth.getUser();
-        if (!u.user) throw new Error("Non connecté");
-        const slug = Math.random().toString(36).slice(2, 10);
-        const { error } = await supabase.from("payment_links").insert({
-          ...payload,
-          profile_id: u.user.id,
-          merchant_id: u.user.id,
-          slug,
-        } as any);
-        if (error) throw error;
-      }
-    },
-    onSuccess: () => {
-      toast.success(isEdit ? "Lien mis à jour ✓" : "Lien créé avec succès ✓");
-      qc.invalidateQueries({ queryKey: ["my-payment-links"] });
-      onClose();
-    },
-    onError: (e: Error) => toast.error(e.message),
-  });
-
-  return (
-    <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto border-white/10 bg-card/90 backdrop-blur-2xl">
-      <DialogHeader>
-        <DialogTitle className="flex items-center gap-2 text-2xl">
-          {isEdit ? <Pencil className="h-5 w-5 text-primary" /> : <Sparkles className="h-5 w-5 text-primary" />}
-          {isEdit ? "Modifier le lien" : "Nouveau lien de paiement"}
-        </DialogTitle>
-      </DialogHeader>
-      <form
-        onSubmit={(e) => { e.preventDefault(); save.mutate(); }}
-        className="space-y-5"
-      >
-        <Section icon={Receipt} title="Informations principales">
-          <div>
-            <Label>Titre du paiement *</Label>
-            <Input value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={120} placeholder="Ex : Abonnement Pro — Mensuel" />
-          </div>
-          <div>
-            <Label>Description (optionnel)</Label>
-            <Textarea value={description} onChange={(e) => setDescription(e.target.value)} maxLength={500} placeholder="Détaillez ce que le client paie…" rows={2} />
-          </div>
-          <div className="grid gap-3 sm:grid-cols-[2fr_1fr]">
-            <div>
-              <Label>Montant *</Label>
-              <Input type="number" min={100} step="any" value={amount} onChange={(e) => setAmount(e.target.value)} required placeholder="10000" />
-            </div>
-            <div>
-              <Label>Devise</Label>
-              <Select value={currency} onValueChange={(v) => setCurrency(v as Currency)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {CURRENCIES.map((c) => (
-                    <SelectItem key={c.code} value={c.code}>{c.code} — {c.symbol}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </Section>
-
-        <Section icon={Hash} title="Facturation & frais">
-          <div>
-            <Label>Numéro de facture</Label>
-            <div className="flex gap-2">
-              <Input value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} placeholder="INV-2026-001" />
-              <Button type="button" variant="outline" onClick={() => setInvoiceNumber(genInvoice())} className="shrink-0 gap-1">
-                <Sparkles className="h-3.5 w-3.5" /> Générer
-              </Button>
-            </div>
-          </div>
-          <div>
-            <Label>Qui paie les frais de transaction ?</Label>
-            <div className="mt-1 grid grid-cols-2 gap-2">
-              {(["merchant", "customer"] as FeesPaidBy[]).map((f) => (
-                <button
-                  type="button"
-                  key={f}
-                  onClick={() => setFeesPaidBy(f)}
-                  className={cn(
-                    "rounded-xl border px-4 py-3 text-left text-sm transition-all",
-                    feesPaidBy === f
-                      ? "border-primary bg-primary/10 ring-2 ring-primary/30"
-                      : "border-border hover:border-primary/40",
-                  )}
-                >
-                  <div className="flex items-center gap-2 font-semibold">
-                    <Wallet className="h-4 w-4" />
-                    {f === "merchant" ? "Moi (commerçant)" : "Le client"}
-                  </div>
-                  <div className="mt-1 text-xs text-muted-foreground">
-                    {f === "merchant" ? "Frais déduits du montant reçu" : "Frais ajoutés au paiement"}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        </Section>
-
-        <Section icon={ImageIcon} title="Visuel">
-          <ImageUploader value={imageUrl} onChange={setImageUrl} />
-        </Section>
-
-        <Section icon={ArrowRight} title="Redirection après paiement">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div>
-              <Label className="text-emerald-600">URL succès</Label>
-              <Input type="url" value={successUrl} onChange={(e) => setSuccessUrl(e.target.value)} placeholder="https://votre-site.com/merci" />
-            </div>
-            <div>
-              <Label className="text-rose-600">URL échec</Label>
-              <Input type="url" value={failureUrl} onChange={(e) => setFailureUrl(e.target.value)} placeholder="https://votre-site.com/echec" />
-            </div>
-          </div>
-        </Section>
-
-        <Section icon={MessageSquareHeart} title="Message de remerciement">
-          <Textarea
-            value={thankYou}
-            onChange={(e) => setThankYou(e.target.value)}
-            maxLength={300}
-            rows={2}
-            placeholder="Merci pour votre confiance ! Votre commande sera traitée sous 24h."
-          />
-        </Section>
-
-        <div className="sticky bottom-0 -mx-6 -mb-6 flex gap-3 border-t border-border bg-card/95 px-6 py-4 backdrop-blur">
-          <Button type="button" variant="outline" onClick={onClose} className="flex-1">Annuler</Button>
-          <Button type="submit" disabled={save.isPending} className="flex-1 gap-2">
-            <CheckCircle2 className="h-4 w-4" />
-            {save.isPending ? "Enregistrement…" : isEdit ? "Sauvegarder" : "Créer le lien"}
-          </Button>
-        </div>
-      </form>
-    </DialogContent>
-  );
-}
-
-function Section({ icon: Icon, title, children }: { icon: React.ElementType; title: string; children: React.ReactNode }) {
-  return (
-    <div className="space-y-3 rounded-2xl border border-border/60 bg-background/40 p-4 backdrop-blur">
-      <div className="flex items-center gap-2 text-sm font-bold">
-        <div className="grid h-7 w-7 place-items-center rounded-lg bg-primary/10 text-primary">
-          <Icon className="h-3.5 w-3.5" />
-        </div>
-        {title}
-      </div>
-      {children}
-    </div>
-  );
-}
-
 function PreviewDialog({ link }: { link: PL }) {
   const url = `${typeof window !== "undefined" ? window.location.origin : ""}/pay/${link.slug}`;
   const qr = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(url)}`;
@@ -653,58 +457,5 @@ function PreviewDialog({ link }: { link: PL }) {
   );
 }
 
-function ImageUploader({ value, onChange }: { value: string; onChange: (url: string) => void }) {
-  const [uploading, setUploading] = useState(false);
-  const handleFile = async (file: File) => {
-    if (!file.type.startsWith("image/")) { toast.error("Format d'image invalide"); return; }
-    if (file.size > 2 * 1024 * 1024) { toast.error("Max 2 Mo"); return; }
-    setUploading(true);
-    try {
-      const { data: u } = await supabase.auth.getUser();
-      if (!u.user) throw new Error("Non connecté");
-      const ext = file.name.split(".").pop() || "jpg";
-      const path = `${u.user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-      const { error } = await supabase.storage.from("payment-link-images").upload(path, file, { upsert: false, contentType: file.type });
-      if (error) throw error;
-      const { data: signed, error: sErr } = await supabase.storage
-        .from("payment-link-images")
-        .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
-      if (sErr || !signed) throw sErr ?? new Error("URL indisponible");
-      onChange(signed.signedUrl);
-      toast.success("Image téléversée");
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Échec du téléversement");
-    } finally {
-      setUploading(false);
-    }
-  };
-  return (
-    <div>
-      <Label>Image de couverture (max 2 Mo)</Label>
-      {value ? (
-        <div className="relative mt-1 overflow-hidden rounded-xl border border-border">
-          <img src={value} alt="" className="h-40 w-full object-cover" />
-          <Button
-            type="button" size="sm" variant="secondary"
-            className="absolute right-2 top-2 h-7"
-            onClick={() => onChange("")}
-          >
-            Retirer
-          </Button>
-        </div>
-      ) : (
-        <label className={cn(
-          "mt-1 flex h-32 cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border/70 bg-background/40 text-sm text-muted-foreground transition-all hover:border-primary/60 hover:bg-primary/5",
-          uploading && "pointer-events-none opacity-60",
-        )}>
-          <ImageIcon className="h-6 w-6" />
-          <span>{uploading ? "Téléversement…" : "Cliquez pour importer une image"}</span>
-          <input
-            type="file" accept="image/*" className="hidden"
-            onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ""; }}
-          />
-        </label>
-      )}
-    </div>
-  );
-}
+
+
