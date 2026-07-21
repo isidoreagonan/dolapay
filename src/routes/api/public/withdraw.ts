@@ -10,19 +10,19 @@ export const Route = createFileRoute("/api/public/withdraw")({
     handlers: {
       POST: async ({ request }) => {
         try {
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const { calculateMargin } = await import("@/lib/margins.server");
+
           const authHeader = request.headers.get("Authorization") || "";
           const token = authHeader.split(" ")[1];
           if (!token) {
             return Response.json({ error: "Session expirée ou non autorisée." }, { status: 401 });
           }
-
-          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-          const { calculateMargin } = await import("@/lib/margins.server");
-          const { data: { user }, error: authErr } = await supabaseAdmin.auth.getUser(token);
-
-          if (authErr || !user) {
+          const { data: { user: authUser }, error: authErr } = await supabaseAdmin.auth.getUser(token);
+          if (authErr || !authUser) {
             return Response.json({ error: "Session non valide." }, { status: 401 });
           }
+          const user = authUser;
 
           let json: any;
           try {
@@ -32,6 +32,20 @@ export const Route = createFileRoute("/api/public/withdraw")({
           }
 
           const { action } = json;
+
+          const logFail = async (reason: string, method: string = "API", phone: string = "---", amount: number = 0) => {
+            if (user?.id) {
+              await supabaseAdmin.from("transactions").insert({
+                id: crypto.randomUUID(),
+                profile_id: user.id,
+                amount: amount,
+                currency: "XOF",
+                type: "pay-out",
+                status: "failed",
+                description: `Retrait vers ${phone} via ${method} (${reason})`,
+              } as any).catch(() => {});
+            }
+          };
 
           // =================== ACTION: SETUP PIN ===================
           if (action === "setup-pin") {
@@ -192,36 +206,30 @@ export const Route = createFileRoute("/api/public/withdraw")({
             const { amount, method, phone, pin } = json;
 
             if (!amount || amount < 100) {
+              await logFail("Le montant minimum est de 100 XOF", method, phone, amount);
               return Response.json({ error: "Le montant minimum est de 100 XOF." }, { status: 400 });
             }
             if (!method || typeof method !== "string" || method.trim().length === 0) {
+              await logFail("Méthode de retrait non spécifiée", method, phone, amount);
               return Response.json({ error: "Méthode de retrait non spécifiée." }, { status: 400 });
             }
             if (!phone || phone.length < 8) {
+              await logFail("Numéro de téléphone invalide", method, phone, amount);
               return Response.json({ error: "Numéro de téléphone invalide." }, { status: 400 });
             }
             if (!pin || pin.length !== 4 || !/^\d+$/.test(pin)) {
+              await logFail("Code PIN invalide", method, phone, amount);
               return Response.json({ error: "Code PIN invalide." }, { status: 400 });
             }
 
             // Récupérer le portefeuille de l'utilisateur
-            const candidates = ["profile_id", "user_id", "merchant_id", "account_id", "owner_id", "id"];
-            let wallet: any = null;
-            let walletErr: any = null;
+            const { data: walletData, error: walletErr } = await supabaseAdmin
+              .from("wallets")
+              .select("*")
+              .eq("profile_id", user.id)
+              .maybeSingle();
 
-            for (const col of candidates) {
-              const res = await (supabaseAdmin.from("wallets") as any)
-                .select("*")
-                .eq(col, user.id)
-                .maybeSingle();
-
-              if (!res.error || !res.error.message?.includes(col)) {
-                wallet = res.data;
-                walletErr = res.error;
-                break;
-              }
-              walletErr = res.error;
-            }
+            let wallet = walletData;
 
             if (!wallet) {
               const { data: userData } = await supabaseAdmin.auth.admin.getUserById(user.id);
@@ -232,11 +240,11 @@ export const Route = createFileRoute("/api/public/withdraw")({
                   hashed_pin: userData.user.user_metadata.wallet_pin,
                   is_virtual: true,
                 };
-                walletErr = null;
               }
             }
 
             if (walletErr || !wallet) {
+              await logFail("Portefeuille introuvable", method, phone, amount);
               return Response.json({ error: walletErr ? `Erreur SQL: ${walletErr.message}` : "Portefeuille introuvable." }, { status: 404 });
             }
 
@@ -249,6 +257,7 @@ export const Route = createFileRoute("/api/public/withdraw")({
 
             const hashedInputPin = hashPin(pin);
             if (storedPin !== hashedInputPin) {
+              await logFail("Code PIN secret incorrect", method, phone, amount);
               return Response.json({ error: "Code PIN secret incorrect." }, { status: 403 });
             }
 
@@ -320,18 +329,7 @@ export const Route = createFileRoute("/api/public/withdraw")({
             const margins = await calculateMargin(supabaseAdmin, amount, "pay-out", correspondentCode, "pawapay");
 
             if (currentBalance < margins.net_amount) {
-              const failId = crypto.randomUUID();
-              const attempts = [
-                { id: failId, profile_id: user.id, wallet_id: wallet.id || user.id, amount, currency: "XOF", method, recipient_phone: phone, status: "failed" },
-                { id: failId, user_id: user.id, wallet_id: wallet.id || user.id, amount, currency: "XOF", method, recipient_phone: phone, status: "failed" },
-                { id: failId, merchant_id: user.id, wallet_id: wallet.id || user.id, amount, currency: "XOF", method, recipient_phone: phone, status: "failed" },
-                { id: failId, profile_id: user.id, amount, method, recipient_phone: phone, status: "failed" }
-              ];
-              for (const att of attempts) {
-                const res = await (supabaseAdmin.from("withdrawal_requests") as any).insert(att);
-                if (!res.error) break;
-              }
-
+              await logFail("Solde insuffisant", method, phone, amount);
               return Response.json({ error: `Solde insuffisant (${Math.round(currentBalance)} XOF disponibles) pour un retrait de ${amount} (avec frais : ${margins.net_amount} XOF).` }, { status: 400 });
             }
 
@@ -398,6 +396,21 @@ export const Route = createFileRoute("/api/public/withdraw")({
                 await (supabaseAdmin.from("profiles") as any)
                   .update({ balance: currentBalance, wallet_balance: currentBalance } as any)
                   .eq("id", user.id);
+                const failId = payoutId;
+                await supabaseAdmin.from("transactions").insert({
+                  id: failId,
+                  profile_id: user.id,
+                  amount: amount,
+                  net_amount: amount,
+                  operator_fee: margins.operator_fee,
+                  gateway_fee: margins.gateway_fee,
+                  dola_margin: margins.dola_margin,
+                  currency: "XOF",
+                  type: "pay-out",
+                  status: finalStatus,
+                  description: `Retrait vers ${phone} via ${method}`,
+                  gateway: "pawapay"
+                } as any);
               }
             }
 
