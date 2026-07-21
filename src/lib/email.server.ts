@@ -440,7 +440,7 @@ export async function sendWelcomeEmail(params: {
       Nous sommes ravis de vous compter parmi les utilisateurs de la plateforme de paiement nouvelle génération pour l'Afrique de l'Ouest.
     </p>
     <p class="text">
-      DolaPay vous permet d'accepter en toute simplicité les paiements par <strong>Mobile Money (MTN, Orange, Moov, Wave)</strong> et <strong>Cartes Bancaires (Visa / Mastercard)</strong> au Bénin, Burkina Faso, Côte d'Ivoire, Sénégal, Togo et dans plus de 15 pays.
+      DolaPay vous permet d'accepter en toute simplicité les paiements par <strong>Mobile Money (MTN, Orange, Moov, Airtel, M-Pesa, etc.)</strong> et <strong>Cartes Bancaires (Visa / Mastercard)</strong> au Bénin, Burkina Faso, Côte d'Ivoire, Sénégal, RDC et dans 9 autres pays.
     </p>
 
     <div class="card-box" style="background-color: #eff6ff; border-color: #bfdbfe;">

@@ -9,18 +9,19 @@ import { Button } from "@/components/ui/button";
 import Flag from "@/components/ui/flag";
 
 const countries = [
-  { name: "Côte d'Ivoire", flag: "🇨🇮", zone: "UEMOA", ops: ["MTN", "Orange", "Moov", "Wave"] },
-  { name: "Sénégal", flag: "🇸🇳", zone: "UEMOA", ops: ["Orange", "Free", "Wave", "Wizall"] },
-  { name: "Mali", flag: "🇲🇱", zone: "UEMOA", ops: ["Orange", "Moov", "Wave"] },
+  { name: "Bénin", flag: "🇧🇯", zone: "UEMOA", ops: ["MTN", "Moov"] },
   { name: "Burkina Faso", flag: "🇧🇫", zone: "UEMOA", ops: ["Orange", "Moov"] },
-  { name: "Bénin", flag: "🇧🇯", zone: "UEMOA", ops: ["MTN", "Moov", "Celtiis"] },
-  { name: "Togo", flag: "🇹🇬", zone: "UEMOA", ops: ["T-Money", "Flooz"] },
-  { name: "Cameroun", flag: "🇨🇲", zone: "CEMAC", ops: ["MTN", "Orange"] },
-  { name: "Gabon", flag: "🇬🇦", zone: "CEMAC", ops: ["Airtel", "Moov"] },
-  { name: "Nigeria", flag: "🇳🇬", zone: "Afrique de l'Ouest", ops: ["MTN", "Airtel", "Cartes"] },
-  { name: "Ghana", flag: "🇬🇭", zone: "Afrique de l'Ouest", ops: ["MTN", "Vodafone", "AirtelTigo"] },
-  { name: "Kenya", flag: "🇰🇪", zone: "Afrique de l'Est", ops: ["M-Pesa", "Airtel"] },
+  { name: "Côte d'Ivoire", flag: "🇨🇮", zone: "UEMOA", ops: ["MTN", "Orange"] },
+  { name: "Sénégal", flag: "🇸🇳", zone: "UEMOA", ops: ["Orange", "Free"] },
+  { name: "Cameroun", flag: "🇨🇲", zone: "CEMAC", ops: ["MTN"] },
+  { name: "Congo", flag: "🇨🇬", zone: "CEMAC", ops: ["MTN", "Airtel"] },
+  { name: "Gabon", flag: "🇬🇦", zone: "CEMAC", ops: ["Airtel"] },
   { name: "RDC", flag: "🇨🇩", zone: "Afrique Centrale", ops: ["Orange", "Airtel", "Vodacom M-Pesa"] },
+  { name: "Kenya", flag: "🇰🇪", zone: "Afrique de l'Est", ops: ["M-Pesa"] },
+  { name: "Rwanda", flag: "🇷🇼", zone: "Afrique de l'Est", ops: ["MTN", "Airtel"] },
+  { name: "Ouganda", flag: "🇺🇬", zone: "Afrique de l'Est", ops: ["MTN", "Airtel"] },
+  { name: "Zambie", flag: "🇿🇲", zone: "Afrique Australe", ops: ["MTN", "Zamtel"] },
+  { name: "Sierra Leone", flag: "🇸🇱", zone: "Afrique de l'Ouest", ops: ["Orange"] },
 ];
 
 const CoveragePage = () => (

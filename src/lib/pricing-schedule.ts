@@ -24,7 +24,6 @@ export const PAYIN_OPERATORS: PayinOperator[] = [
   { id: "free_sn", network: "Free", country: "Sénégal", countryCode: "SN", currency: "XOF", operatorFee: 0.01, payoutFee: 0.005 },
   { id: "orange_bf", network: "Orange", country: "Burkina Faso", countryCode: "BF", currency: "XOF", operatorFee: 0.015, payoutFee: 0.008 },
   { id: "moov_bf", network: "Moov", country: "Burkina Faso", countryCode: "BF", currency: "XOF", operatorFee: 0.012, payoutFee: 0.005 },
-  { id: "mtn_gh", network: "MTN", country: "Ghana", countryCode: "GH", currency: "GHS", operatorFee: 0.01, payoutFee: 0.005 },
 
   // Central Africa — XAF / CDF
   { id: "mtn_cm", network: "MTN", country: "Cameroun", countryCode: "CM", currency: "XAF", operatorFee: 0.0075, payoutFee: 0.003 },
@@ -37,7 +36,6 @@ export const PAYIN_OPERATORS: PayinOperator[] = [
   { id: "airtel_rw", network: "Airtel", country: "Rwanda", countryCode: "RW", currency: "RWF", operatorFee: 0.015, payoutFee: 0.0 },
   { id: "mtn_ug", network: "MTN", country: "Ouganda", countryCode: "UG", currency: "UGX", operatorFee: 0.02, payoutFee: 0.01 },
   { id: "airtel_ug", network: "Airtel", country: "Ouganda", countryCode: "UG", currency: "UGX", operatorFee: 0.015, payoutFee: 0.01 },
-  { id: "mpesa_tz", network: "M-Pesa", country: "Tanzanie", countryCode: "TZ", currency: "TZS", operatorFee: 0.018, payoutFee: 0.012 },
   { id: "airtel_zm", network: "Airtel", country: "Zambie", countryCode: "ZM", currency: "ZMW", operatorFee: 0.012, payoutFee: 0.008 },
 ];
 

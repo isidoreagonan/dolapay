@@ -230,13 +230,13 @@ const Features = () => {
               <p className="mt-4 text-white/70 max-w-md">
                 Zone UEMOA{" "}
                 <span className="inline-flex items-center gap-1 align-middle">
-                  {["ci","sn","ml","bf","bj","tg"].map((c) => <Flag key={c} code={c} size={12} />)}
+                  {["ci","sn","bf","bj"].map((c) => <Flag key={c} code={c} size={12} />)}
                 </span>
                 , CEMAC{" "}
                 <span className="inline-flex items-center gap-1 align-middle">
-                  {["cm","ga"].map((c) => <Flag key={c} code={c} size={12} />)}
+                  {["cm","ga","cg"].map((c) => <Flag key={c} code={c} size={12} />)}
                 </span>
-                , Afrique de l'Est et Australe. MTN, Orange, Moov, Wave, Airtel, M-Pesa — tous branchés.
+                , Afrique de l'Est et Australe (RDC, Kenya, Rwanda, Ouganda, Zambie...). MTN, Orange, Moov, Airtel, M-Pesa — tous branchés.
               </p>
               <Link to="/coverage" className="mt-6 inline-flex items-center gap-2 text-sm text-electric-glow group-hover:gap-3 transition-all">
                 Voir la couverture <ArrowRight className="h-4 w-4" />
