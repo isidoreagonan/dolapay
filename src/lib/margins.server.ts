@@ -13,11 +13,29 @@ export async function calculateMargin(
   let dolaMarginPct = 0.01; 
   let fixedFee = 0;
 
+  let normalizedProvider = provider.toLowerCase();
+  if (normalizedProvider.includes("mtn")) normalizedProvider = "mtn";
+  else if (normalizedProvider.includes("moov")) normalizedProvider = "moov";
+  else if (normalizedProvider.includes("orange")) normalizedProvider = "orange";
+  else if (normalizedProvider.includes("airtel")) normalizedProvider = "airtel";
+  else if (normalizedProvider.includes("vodacom")) normalizedProvider = "vodacom";
+  else if (normalizedProvider.includes("mpesa") || normalizedProvider.includes("m-pesa")) normalizedProvider = "mpesa";
+  else if (normalizedProvider.includes("ethio")) normalizedProvider = "ethio";
+  else if (normalizedProvider.includes("telecel")) normalizedProvider = "telecel";
+  else if (normalizedProvider.includes("wave")) normalizedProvider = "wave";
+  else if (normalizedProvider.includes("halopesa") || normalizedProvider.includes("halo")) normalizedProvider = "halopesa";
+  else if (normalizedProvider.includes("zamtel")) normalizedProvider = "zamtel";
+  else if (normalizedProvider.includes("tnm")) normalizedProvider = "tnm";
+  else if (normalizedProvider.includes("yas")) normalizedProvider = "yas";
+  else if (normalizedProvider.includes("at")) normalizedProvider = "at";
+  else if (normalizedProvider.includes("free")) normalizedProvider = "free";
+  else normalizedProvider = normalizedProvider.split(" ")[0];
+
   try {
     const { data } = await supabaseAdmin
       .from("fee_structures")
       .select("*")
-      .eq("provider", provider.toLowerCase())
+      .eq("provider", normalizedProvider)
       .eq("gateway", gateway)
       .eq("transaction_type", transactionType)
       .maybeSingle();
