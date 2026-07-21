@@ -78,7 +78,7 @@ function WithdrawPage() {
   });
 
   return (
-    <div className="mx-auto max-w-2xl py-8 space-y-6 animate-in fade-in zoom-in-95 duration-300">
+    <div className="mx-auto max-w-4xl py-8 space-y-6 animate-in fade-in zoom-in-95 duration-300">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" onClick={() => navigate({ to: "/dashboard/wallet" })} className="rounded-full hover:bg-slate-100 dark:hover:bg-slate-800">
           <ArrowLeft className="h-5 w-5" />
@@ -137,8 +137,11 @@ function WithdrawPage() {
             </div>
           )}
 
-          <div className="space-y-4">
-            <Label className="text-sm font-bold uppercase tracking-wider text-slate-500">Pays de retrait</Label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
+            {/* Colonne de gauche : Configuration */}
+            <div className="space-y-6">
+              <div className="space-y-4">
+                <Label className="text-sm font-bold uppercase tracking-wider text-slate-500">Pays de retrait</Label>
             <div className="relative">
               <select
                 value={withdrawCountry}
@@ -202,7 +205,10 @@ function WithdrawPage() {
               })}
             </div>
           </div>
+        </div>
 
+        {/* Colonne de droite : Exécution */}
+        <div className="space-y-6">
           <div className="space-y-4">
             <Label className="text-sm font-bold uppercase tracking-wider text-slate-500">Numéro de téléphone</Label>
             <div className="relative flex items-center">
@@ -260,8 +266,10 @@ function WithdrawPage() {
               </button>
             </div>
           </div>
+        </div>
+      </div>
 
-          <div className="pt-4 border-t border-slate-100 dark:border-slate-800/80">
+      <div className="pt-6 mt-4 border-t border-slate-100 dark:border-slate-800/80 max-w-md mx-auto">
             <Button
               type="submit"
               disabled={withdrawMutation.isPending || !withdrawMethod || !withdrawPhone || !withdrawAmount || !withdrawPin}
