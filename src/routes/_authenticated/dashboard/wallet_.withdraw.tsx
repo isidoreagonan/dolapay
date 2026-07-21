@@ -77,6 +77,8 @@ function WithdrawPage() {
     },
     onError: (err: any) => {
       setWithdrawError(err.message);
+      qc.invalidateQueries({ queryKey: ["my-wallet"] });
+      qc.invalidateQueries({ queryKey: ["my-withdrawals"] });
     },
   });
 
