@@ -23,6 +23,8 @@ async function handleTestTx() {
 
   let livePayin = 0, livePayout = 0;
   const seenIds = new Set<string>();
+  const contributingPayins: any[] = [];
+  const contributingPayouts: any[] = [];
 
   if (txs) {
     txs.forEach((t: any) => {
@@ -35,8 +37,13 @@ async function handleTestTx() {
         if (!isTestTx) {
           if (t.id) seenIds.add(String(t.id));
           const isPayout = String(t.type || "").toLowerCase().includes("payout") || String(t.type || "").toLowerCase().includes("withdraw");
-          if (isPayout) livePayout += amt;
-          else livePayin += amt;
+          if (isPayout) {
+            livePayout += amt;
+            contributingPayouts.push(t);
+          } else {
+            livePayin += amt;
+            contributingPayins.push(t);
+          }
         }
       }
     });
@@ -49,7 +56,10 @@ async function handleTestTx() {
         if (!seenIds.has(String(w.id))) {
           seenIds.add(String(w.id));
           const amt = Number(w.amount || 0);
-          if (amt > 0) livePayout += amt;
+          if (amt > 0) {
+            livePayout += amt;
+            contributingPayouts.push(w);
+          }
         }
       }
     });
@@ -64,7 +74,10 @@ async function handleTestTx() {
             if (!seenIds.has(String(item.id))) {
               seenIds.add(String(item.id));
               const amt = Number(item.amount || b.total_amount || 0);
-              if (amt > 0) livePayout += amt;
+              if (amt > 0) {
+                livePayout += amt;
+                contributingPayouts.push(item);
+              }
             }
           }
         });
@@ -72,7 +85,7 @@ async function handleTestTx() {
     });
   }
 
-  return Response.json({ livePayin, livePayout, bestBalance: Math.max(0, livePayin - livePayout), txs, wrs, batches });
+  return Response.json({ livePayin, livePayout, bestBalance: Math.max(0, livePayin - livePayout), contributingPayins, contributingPayouts });
 }
 
 export const Route = createFileRoute("/api/public/test-tx")({
