@@ -10,49 +10,13 @@ import pmVodacom from "@/assets/pm-vodacom.png.asset.json";
 
 export const WITHDRAW_COUNTRIES = [
   {
-    code: "BF",
-    name: "Burkina Faso",
-    flag: "🇧🇫",
-    prefix: "226",
-    methods: [
-      { id: "Orange Money", name: "Orange Money", logoUrl: pmOrange.url, color: "border-orange-500/80 text-orange-600 bg-orange-500/10 dark:bg-orange-500/20" },
-      { id: "Moov Money", name: "Moov Money", logoUrl: pmMoov.url, color: "border-blue-500/80 text-blue-600 bg-blue-500/10 dark:bg-blue-500/20" },
-      { id: "Telecel", name: "Telecel", logoUrl: pmZamtel.url, color: "border-red-500/80 text-red-600 bg-red-500/10 dark:bg-red-500/20" },
-      { id: "Coris Money", name: "Coris Money", logoUrl: null, color: "border-amber-500/80 text-amber-600 bg-amber-500/10 dark:bg-amber-500/20" },
-    ]
-  },
-  {
     code: "BJ",
     name: "Bénin",
     flag: "🇧🇯",
     prefix: "229",
     methods: [
-      { id: "MTN MoMo", name: "MTN MoMo", logoUrl: pmMtn.url, color: "border-yellow-500/80 text-yellow-600 bg-yellow-500/10 dark:bg-yellow-500/20" },
       { id: "Moov Money", name: "Moov Money", logoUrl: pmMoov.url, color: "border-blue-500/80 text-blue-600 bg-blue-500/10 dark:bg-blue-500/20" },
-      { id: "Celtiis Cash", name: "Celtiis Cash", logoUrl: pmCeltiis.url, color: "border-pink-500/80 text-pink-600 bg-pink-500/10 dark:bg-pink-500/20" },
-    ]
-  },
-  {
-    code: "CI",
-    name: "Côte d'Ivoire",
-    flag: "🇨🇮",
-    prefix: "225",
-    methods: [
-      { id: "Orange Money", name: "Orange Money", logoUrl: pmOrange.url, color: "border-orange-500/80 text-orange-600 bg-orange-500/10 dark:bg-orange-500/20" },
       { id: "MTN MoMo", name: "MTN MoMo", logoUrl: pmMtn.url, color: "border-yellow-500/80 text-yellow-600 bg-yellow-500/10 dark:bg-yellow-500/20" },
-      { id: "Moov Money", name: "Moov Money", logoUrl: pmMoov.url, color: "border-blue-500/80 text-blue-600 bg-blue-500/10 dark:bg-blue-500/20" },
-      { id: "Wave Money", name: "Wave Money", logoUrl: null, color: "border-sky-500/80 text-sky-600 bg-sky-500/10 dark:bg-sky-500/20" },
-    ]
-  },
-  {
-    code: "SN",
-    name: "Sénégal",
-    flag: "🇸🇳",
-    prefix: "221",
-    methods: [
-      { id: "Orange Money", name: "Orange Money", logoUrl: pmOrange.url, color: "border-orange-500/80 text-orange-600 bg-orange-500/10 dark:bg-orange-500/20" },
-      { id: "Free Money", name: "Free Money", logoUrl: pmFreeMoney.url, color: "border-red-500/80 text-red-600 bg-red-500/10 dark:bg-red-500/20" },
-      { id: "Wave Money", name: "Wave Money", logoUrl: null, color: "border-sky-500/80 text-sky-600 bg-sky-500/10 dark:bg-sky-500/20" },
     ]
   },
   {
@@ -62,6 +26,15 @@ export const WITHDRAW_COUNTRIES = [
     prefix: "237",
     methods: [
       { id: "MTN MoMo", name: "MTN MoMo", logoUrl: pmMtn.url, color: "border-yellow-500/80 text-yellow-600 bg-yellow-500/10 dark:bg-yellow-500/20" },
+    ]
+  },
+  {
+    code: "CI",
+    name: "Côte d'Ivoire",
+    flag: "🇨🇮",
+    prefix: "225",
+    methods: [
+      { id: "Moov Money", name: "Moov Money", logoUrl: pmMoov.url, color: "border-blue-500/80 text-blue-600 bg-blue-500/10 dark:bg-blue-500/20" },
       { id: "Orange Money", name: "Orange Money", logoUrl: pmOrange.url, color: "border-orange-500/80 text-orange-600 bg-orange-500/10 dark:bg-orange-500/20" },
     ]
   },
@@ -115,6 +88,16 @@ export const WITHDRAW_COUNTRIES = [
     ]
   },
   {
+    code: "SN",
+    name: "Sénégal",
+    flag: "🇸🇳",
+    prefix: "221",
+    methods: [
+      { id: "Free Money", name: "Free Money", logoUrl: pmFreeMoney.url, color: "border-red-500/80 text-red-600 bg-red-500/10 dark:bg-red-500/20" },
+      { id: "Orange Money", name: "Orange Money", logoUrl: pmOrange.url, color: "border-orange-500/80 text-orange-600 bg-orange-500/10 dark:bg-orange-500/20" },
+    ]
+  },
+  {
     code: "SL",
     name: "Sierra Leone",
     flag: "🇸🇱",
@@ -139,60 +122,19 @@ export const WITHDRAW_COUNTRIES = [
     flag: "🇿🇲",
     prefix: "260",
     methods: [
-      { id: "Airtel Money", name: "Airtel Money", logoUrl: pmAirtel.url, color: "border-red-500/80 text-red-600 bg-red-500/10 dark:bg-red-500/20" },
       { id: "MTN MoMo", name: "MTN MoMo", logoUrl: pmMtn.url, color: "border-yellow-500/80 text-yellow-600 bg-yellow-500/10 dark:bg-yellow-500/20" },
       { id: "Zamtel", name: "Zamtel", logoUrl: pmZamtel.url, color: "border-emerald-500/80 text-emerald-600 bg-emerald-500/10 dark:bg-emerald-500/20" },
     ]
   },
   {
-    code: "TG",
-    name: "Togo",
-    flag: "🇹🇬",
-    prefix: "228",
+    code: "BF",
+    name: "Burkina Faso",
+    flag: "🇧🇫",
+    prefix: "226",
     methods: [
-      { id: "T-Money", name: "T-Money", logoUrl: null, color: "border-amber-500/80 text-amber-600 bg-amber-500/10 dark:bg-amber-500/20" },
       { id: "Moov Money", name: "Moov Money", logoUrl: pmMoov.url, color: "border-blue-500/80 text-blue-600 bg-blue-500/10 dark:bg-blue-500/20" },
-    ]
-  },
-  {
-    code: "ML",
-    name: "Mali",
-    flag: "🇲🇱",
-    prefix: "223",
-    methods: [
       { id: "Orange Money", name: "Orange Money", logoUrl: pmOrange.url, color: "border-orange-500/80 text-orange-600 bg-orange-500/10 dark:bg-orange-500/20" },
-      { id: "Moov Money", name: "Moov Money", logoUrl: pmMoov.url, color: "border-blue-500/80 text-blue-600 bg-blue-500/10 dark:bg-blue-500/20" },
-      { id: "Telecel", name: "Telecel", logoUrl: null, color: "border-red-500/80 text-red-600 bg-red-500/10 dark:bg-red-500/20" },
+      { id: "Coris Money", name: "Coris Money", logoUrl: null, color: "border-amber-500/80 text-amber-600 bg-amber-500/10 dark:bg-amber-500/20" },
     ]
-  },
-  {
-    code: "GN",
-    name: "Guinée",
-    flag: "🇬🇳",
-    prefix: "224",
-    methods: [
-      { id: "Orange Money", name: "Orange Money", logoUrl: pmOrange.url, color: "border-orange-500/80 text-orange-600 bg-orange-500/10 dark:bg-orange-500/20" },
-      { id: "MTN MoMo", name: "MTN MoMo", logoUrl: pmMtn.url, color: "border-yellow-500/80 text-yellow-600 bg-yellow-500/10 dark:bg-yellow-500/20" },
-    ]
-  },
-  {
-    code: "GW",
-    name: "Guinée-Bissau",
-    flag: "🇬🇼",
-    prefix: "245",
-    methods: [
-      { id: "Orange Money", name: "Orange Money", logoUrl: pmOrange.url, color: "border-orange-500/80 text-orange-600 bg-orange-500/10 dark:bg-orange-500/20" },
-      { id: "MTN MoMo", name: "MTN MoMo", logoUrl: pmMtn.url, color: "border-yellow-500/80 text-yellow-600 bg-yellow-500/10 dark:bg-yellow-500/20" },
-    ]
-  },
-  {
-    code: "NE",
-    name: "Niger",
-    flag: "🇳🇪",
-    prefix: "227",
-    methods: [
-      { id: "Airtel Money", name: "Airtel Money", logoUrl: pmAirtel.url, color: "border-red-500/80 text-red-600 bg-red-500/10 dark:bg-red-500/20" },
-      { id: "Moov Money", name: "Moov Money", logoUrl: pmMoov.url, color: "border-blue-500/80 text-blue-600 bg-blue-500/10 dark:bg-blue-500/20" },
-    ]
-  },
+  }
 ];
