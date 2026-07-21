@@ -46,11 +46,9 @@ export const Route = createFileRoute("/api/public/checkout-pay")({
 
           // In test mode, bypass real gateways
           if (isTest) {
-            const txId = `ch_${crypto.randomUUID().slice(0, 12)}`;
-            const { error: txErr } = await supabaseAdmin
+            const { data: tx, error: txErr } = await supabaseAdmin
               .from("transactions")
               .insert({
-                id: txId,
                 profile_id: session.profile_id,
                 amount: session.amount,
                 currency: session.currency,
@@ -61,24 +59,24 @@ export const Route = createFileRoute("/api/public/checkout-pay")({
                 customer_phone,
                 provider: gateway,
                 payment_method: provider,
-              } as any);
+              } as any)
+              .select("id")
+              .single();
 
-            if (!txErr) {
-              await supabaseAdmin.from("checkout_sessions").update({ transaction_id: txId }).eq("id", sessionId);
+            if (!txErr && tx) {
+              await supabaseAdmin.from("checkout_sessions").update({ transaction_id: tx.id }).eq("id", sessionId);
             }
 
-            return Response.json({ id: txId, status: "success" });
+            return Response.json({ id: tx?.id, status: "success" });
           }
 
           // Calculate fees for real transaction
           const margins = await calculateMargin(supabaseAdmin, session.amount, "pay-in", correspondent, gateway as any);
 
           // Create transaction
-          const txId = `ch_${crypto.randomUUID().slice(0, 12)}`;
-          const { error: txErr } = await supabaseAdmin
+          const { data: tx, error: txErr } = await supabaseAdmin
             .from("transactions")
             .insert({
-              id: txId,
               profile_id: session.profile_id,
               amount: session.amount,
               currency: session.currency,
@@ -89,12 +87,15 @@ export const Route = createFileRoute("/api/public/checkout-pay")({
               customer_phone,
               provider: gateway,
               payment_method: provider,
-            } as any);
+            } as any)
+            .select("id")
+            .single();
 
-          if (txErr) {
+          if (txErr || !tx) {
             console.error("DB Insert error:", txErr);
             return Response.json({ error: { message: "Erreur base de données." } }, { status: 500 });
           }
+          const txId = tx.id;
 
           // Link transaction to session
           await supabaseAdmin.from("checkout_sessions").update({ transaction_id: txId }).eq("id", sessionId);
