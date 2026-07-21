@@ -11,6 +11,7 @@ import {
   Menu,
   Send,
   Users,
+  Webhook,
   Lock as LockIcon,
   Crown,
   Wallet,
@@ -270,7 +271,10 @@ function DashboardLayout() {
     },
     { to: "/dashboard/team", icon: Users, label: "Équipe" },
     ...(profile?.account_type === "enterprise"
-      ? [{ to: "/dashboard/api-keys", icon: KeyRound, label: "Clés API" }]
+      ? [
+          { to: "/dashboard/api-keys", icon: KeyRound, label: "Clés API" },
+          { to: "/dashboard/webhooks", icon: Webhook, label: "Webhooks" },
+        ]
       : []),
     { to: "/dashboard/settings", icon: SettingsIcon, label: "Compte & KYC" },
     ...(isAdmin ? [{ to: "/admin", icon: Crown, label: "Système Admin" }] : []),

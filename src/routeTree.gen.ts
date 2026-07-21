@@ -50,6 +50,7 @@ import { Route as ApiPublicRestoreAdminRouteImport } from './routes/api/public/r
 import { Route as ApiPublicQuoteRouteImport } from './routes/api/public/quote'
 import { Route as ApiPublicPawapayWebhookRouteImport } from './routes/api/public/pawapay-webhook'
 import { Route as ApiPublicLigdicashWebhookRouteImport } from './routes/api/public/ligdicash-webhook'
+import { Route as AuthenticatedDashboardWebhooksRouteImport } from './routes/_authenticated/dashboard/webhooks'
 import { Route as AuthenticatedDashboardWalletRouteImport } from './routes/_authenticated/dashboard/wallet'
 import { Route as AuthenticatedDashboardVerifyRouteImport } from './routes/_authenticated/dashboard/verify'
 import { Route as AuthenticatedDashboardTransactionsRouteImport } from './routes/_authenticated/dashboard/transactions'
@@ -284,6 +285,12 @@ const ApiPublicLigdicashWebhookRoute =
     path: '/api/public/ligdicash-webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedDashboardWebhooksRoute =
+  AuthenticatedDashboardWebhooksRouteImport.update({
+    id: '/webhooks',
+    path: '/webhooks',
+    getParentRoute: () => AuthenticatedDashboardRouteRoute,
+  } as any)
 const AuthenticatedDashboardWalletRoute =
   AuthenticatedDashboardWalletRouteImport.update({
     id: '/wallet',
@@ -464,6 +471,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/transactions': typeof AuthenticatedDashboardTransactionsRoute
   '/dashboard/verify': typeof AuthenticatedDashboardVerifyRoute
   '/dashboard/wallet': typeof AuthenticatedDashboardWalletRoute
+  '/dashboard/webhooks': typeof AuthenticatedDashboardWebhooksRoute
   '/api/public/ligdicash-webhook': typeof ApiPublicLigdicashWebhookRoute
   '/api/public/pawapay-webhook': typeof ApiPublicPawapayWebhookRoute
   '/api/public/quote': typeof ApiPublicQuoteRoute
@@ -528,6 +536,7 @@ export interface FileRoutesByTo {
   '/dashboard/transactions': typeof AuthenticatedDashboardTransactionsRoute
   '/dashboard/verify': typeof AuthenticatedDashboardVerifyRoute
   '/dashboard/wallet': typeof AuthenticatedDashboardWalletRoute
+  '/dashboard/webhooks': typeof AuthenticatedDashboardWebhooksRoute
   '/api/public/ligdicash-webhook': typeof ApiPublicLigdicashWebhookRoute
   '/api/public/pawapay-webhook': typeof ApiPublicPawapayWebhookRoute
   '/api/public/quote': typeof ApiPublicQuoteRoute
@@ -596,6 +605,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/transactions': typeof AuthenticatedDashboardTransactionsRoute
   '/_authenticated/dashboard/verify': typeof AuthenticatedDashboardVerifyRoute
   '/_authenticated/dashboard/wallet': typeof AuthenticatedDashboardWalletRoute
+  '/_authenticated/dashboard/webhooks': typeof AuthenticatedDashboardWebhooksRoute
   '/api/public/ligdicash-webhook': typeof ApiPublicLigdicashWebhookRoute
   '/api/public/pawapay-webhook': typeof ApiPublicPawapayWebhookRoute
   '/api/public/quote': typeof ApiPublicQuoteRoute
@@ -664,6 +674,7 @@ export interface FileRouteTypes {
     | '/dashboard/transactions'
     | '/dashboard/verify'
     | '/dashboard/wallet'
+    | '/dashboard/webhooks'
     | '/api/public/ligdicash-webhook'
     | '/api/public/pawapay-webhook'
     | '/api/public/quote'
@@ -728,6 +739,7 @@ export interface FileRouteTypes {
     | '/dashboard/transactions'
     | '/dashboard/verify'
     | '/dashboard/wallet'
+    | '/dashboard/webhooks'
     | '/api/public/ligdicash-webhook'
     | '/api/public/pawapay-webhook'
     | '/api/public/quote'
@@ -795,6 +807,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/transactions'
     | '/_authenticated/dashboard/verify'
     | '/_authenticated/dashboard/wallet'
+    | '/_authenticated/dashboard/webhooks'
     | '/api/public/ligdicash-webhook'
     | '/api/public/pawapay-webhook'
     | '/api/public/quote'
@@ -1149,6 +1162,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicLigdicashWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/dashboard/webhooks': {
+      id: '/_authenticated/dashboard/webhooks'
+      path: '/webhooks'
+      fullPath: '/dashboard/webhooks'
+      preLoaderRoute: typeof AuthenticatedDashboardWebhooksRouteImport
+      parentRoute: typeof AuthenticatedDashboardRouteRoute
+    }
     '/_authenticated/dashboard/wallet': {
       id: '/_authenticated/dashboard/wallet'
       path: '/wallet'
@@ -1361,6 +1381,7 @@ interface AuthenticatedDashboardRouteRouteChildren {
   AuthenticatedDashboardTransactionsRoute: typeof AuthenticatedDashboardTransactionsRoute
   AuthenticatedDashboardVerifyRoute: typeof AuthenticatedDashboardVerifyRoute
   AuthenticatedDashboardWalletRoute: typeof AuthenticatedDashboardWalletRoute
+  AuthenticatedDashboardWebhooksRoute: typeof AuthenticatedDashboardWebhooksRoute
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
   AuthenticatedDashboardPaymentLinksNewRoute: typeof AuthenticatedDashboardPaymentLinksNewRoute
   AuthenticatedDashboardWalletWithdrawRoute: typeof AuthenticatedDashboardWalletWithdrawRoute
@@ -1380,6 +1401,7 @@ const AuthenticatedDashboardRouteRouteChildren: AuthenticatedDashboardRouteRoute
       AuthenticatedDashboardTransactionsRoute,
     AuthenticatedDashboardVerifyRoute: AuthenticatedDashboardVerifyRoute,
     AuthenticatedDashboardWalletRoute: AuthenticatedDashboardWalletRoute,
+    AuthenticatedDashboardWebhooksRoute: AuthenticatedDashboardWebhooksRoute,
     AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
     AuthenticatedDashboardPaymentLinksNewRoute:
       AuthenticatedDashboardPaymentLinksNewRoute,

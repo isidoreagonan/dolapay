@@ -115,6 +115,15 @@ export const Route = createFileRoute("/api/public/pawapay-webhook")({
                   }
                 }
 
+                if (newStatus === "success" || newStatus === "failed") {
+                  try {
+                    const { dispatchWebhook } = await import("@/lib/webhooks.server");
+                    await dispatchWebhook(supabaseAdmin, tx.profile_id, `transaction.${newStatus}`, tx);
+                  } catch (e) {
+                    console.error("[PawaPay Webhook] Error dispatching webhook:", e);
+                  }
+                }
+
                 console.log(`[PawaPay Webhook] Transaction ${event.depositId} updated to ${newStatus}`);
               }
             }
@@ -155,6 +164,16 @@ export const Route = createFileRoute("/api/public/pawapay-webhook")({
                 await notifyWithdrawalRequestStatus(supabaseAdmin, pid, newStatus, event.failureReason?.failureMessage);
               } catch (e) {
                 console.error("[PawaPay Webhook] Error notifying payout email:", e);
+              }
+
+              if (newStatus === "success" || newStatus === "failed") {
+                try {
+                  const { data: item } = await supabaseAdmin.from("transactions").select("*").eq("id", pid).maybeSingle();
+                  if (item && item.profile_id) {
+                    const { dispatchWebhook } = await import("@/lib/webhooks.server");
+                    await dispatchWebhook(supabaseAdmin, item.profile_id, `payout.${newStatus}`, item);
+                  }
+                } catch (e) {}
               }
 
               // Optionnel : vérifier si tout le lot (batch) est terminé

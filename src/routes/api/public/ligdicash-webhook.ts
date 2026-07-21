@@ -85,6 +85,15 @@ export const Route = createFileRoute("/api/public/ligdicash-webhook")({
               }
             }
 
+            if (verifiedStatus === "success" || verifiedStatus === "failed") {
+              try {
+                const { dispatchWebhook } = await import("@/lib/webhooks.server");
+                await dispatchWebhook(supabaseAdmin, tx.profile_id, `transaction.${verifiedStatus}`, tx);
+              } catch (eWebhook) {
+                console.warn("[ligdicash-webhook] Error dispatching webhook:", eWebhook);
+              }
+            }
+
             return Response.json({ received: true, processed: "payin", status: verifiedStatus });
           }
         }
@@ -168,6 +177,16 @@ export const Route = createFileRoute("/api/public/ligdicash-webhook")({
                 .update({ status: verifiedStatus })
                 .eq("id", itemId)
                 .eq("type", "pay-out");
+
+              if (verifiedStatus === "success" || verifiedStatus === "failed") {
+                try {
+                  const { data: txItem } = await supabaseAdmin.from("transactions").select("*").eq("id", itemId).maybeSingle();
+                  if (txItem && txItem.profile_id) {
+                    const { dispatchWebhook } = await import("@/lib/webhooks.server");
+                    await dispatchWebhook(supabaseAdmin, txItem.profile_id, `payout.${verifiedStatus}`, txItem);
+                  }
+                } catch (eWebhook) {}
+              }
 
               return Response.json({ received: true, processed: "payout", status: verifiedStatus });
           }
