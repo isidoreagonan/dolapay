@@ -143,7 +143,7 @@ export const Route = createFileRoute("/api/public/withdraw")({
                     if (match && match[1]) {
                       const cName = match[1];
                       if (cName.includes("phone") || cName.includes("number")) payload[cName] = "00000000";
-                      else if (cName.includes("email")) payload[cName] = user.email || "wallet@dolapay.com";
+                      else if (cName.includes("email")) payload[cName] = user.email || "wallet@dola-pay.com";
                       else if (cName.includes("type")) payload[cName] = "INTERNAL";
                       else if (cName.includes("status")) payload[cName] = "ACTIVE";
                       else if (cName.includes("provider")) payload[cName] = "DOLAPAY";

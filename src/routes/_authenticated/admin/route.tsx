@@ -60,7 +60,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
       throw redirect({ to: "/onboarding" });
     }
 
-    if (email === "support@dolapay.co" || email === "isidoreagonan@gmail.com") return;
+    if (email === "support@dola-pay.com" || email === "isidoreagonan@gmail.com") return;
     const { data, error } = await supabase
       .from("user_roles")
       .select("role")

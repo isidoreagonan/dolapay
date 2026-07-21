@@ -27,7 +27,7 @@ serve(async (req) => {
 
     const { data: invite, error: inviteErr } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
       data: { role },
-      redirectTo: "https://dolapay.co/auth/callback"
+      redirectTo: "https://dola-pay.com/auth/callback"
     });
 
     if (inviteErr) throw inviteErr;

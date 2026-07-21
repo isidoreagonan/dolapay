@@ -86,7 +86,7 @@ function TeamPage() {
             <div className="relative">
               <Mail className="absolute left-3 top-2.5 h-4 w-4 text-slate-500" />
               <Input 
-                placeholder="prenom@dolapay.co" 
+                placeholder="prenom@dola-pay.com" 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="pl-9 border-white/10 bg-black/20 text-white"

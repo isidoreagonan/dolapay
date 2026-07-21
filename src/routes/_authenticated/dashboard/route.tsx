@@ -186,7 +186,7 @@ export function useIsAdmin() {
         return false;
       }
 
-      if (email === "support@dolapay.co" || email === "isidoreagonan@gmail.com") return true;
+      if (email === "support@dola-pay.com" || email === "isidoreagonan@gmail.com") return true;
       try {
         const { data, error } = await supabase
           .from("user_roles")
