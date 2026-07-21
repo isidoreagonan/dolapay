@@ -1,12 +1,12 @@
 // Fichier de test: test-checkout.js
 // Ce script simule le backend d'un marchand (par ex: une boutique e-commerce)
 
-const TEST_API_KEY = "sk_test_REMPLACE_CECI_PAR_TA_VRAIE_CLE"; // 🔴 Mets ta vraie clé ici
+const TEST_API_KEY = "dp_live_93dbfb85272948cc8e3b3a323c6393ff"; // 🔴 Mets ta vraie clé ici
 const API_URL = "https://dola-pay.com/api/v1/checkout/sessions";
 
 async function createCheckoutSession() {
   console.log("🚀 Création de la session de paiement DolaPay...");
-  
+
   try {
     const response = await fetch(API_URL, {
       method: "POST",

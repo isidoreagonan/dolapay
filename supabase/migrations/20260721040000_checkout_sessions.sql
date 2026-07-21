@@ -1,3 +1,11 @@
+CREATE OR REPLACE FUNCTION public.handle_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = timezone('utc'::text, now());
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 CREATE TABLE IF NOT EXISTS public.checkout_sessions (
     id text PRIMARY KEY,
     profile_id uuid REFERENCES public.profiles(id) ON DELETE CASCADE,
