@@ -14,8 +14,8 @@ import {
   Lock as LockIcon,
   Crown,
   Wallet,
-  ArrowLeft,
-  ArrowRight,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -297,9 +297,19 @@ function DashboardLayout() {
           )}
         >
           <div className="mb-6 flex shrink-0 items-center justify-between">
-            <Link to="/dashboard" className="flex items-center">
-              <img src={logoFull.url} alt="DolaPay" className={cn("transition-all duration-300", isCollapsed ? "h-6" : "h-8")} />
+            <Link to="/dashboard" className={cn("flex items-center", isCollapsed && "hidden")}>
+              <img src={logoFull.url} alt="DolaPay" className="h-8" />
             </Link>
+            <button 
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className={cn(
+                "flex h-8 w-8 items-center justify-center rounded-lg text-blue-300 hover:bg-white/10 hover:text-white transition-colors",
+                isCollapsed && "mx-auto"
+              )}
+              title={isCollapsed ? "Déplier le menu" : "Réduire le menu"}
+            >
+              {isCollapsed ? <PanelLeftOpen className="h-5 w-5" /> : <PanelLeftClose className="h-5 w-5" />}
+            </button>
           </div>
 
           {!isCollapsed && (
@@ -392,14 +402,6 @@ function DashboardLayout() {
             {!isCollapsed && "Déconnexion"}
           </button>
           
-          {/* Collapse Toggle Button (PC only) */}
-          <button 
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            className="hidden lg:flex absolute -right-3 top-8 h-6 w-6 items-center justify-center rounded-full border border-blue-900 bg-blue-950 text-white shadow-md hover:bg-blue-900 z-50 transition-transform"
-            title={isCollapsed ? "Déplier le menu" : "Réduire le menu"}
-          >
-            {isCollapsed ? <ArrowRight className="h-3 w-3" /> : <ArrowLeft className="h-3 w-3" />}
-          </button>
         </aside>
 
         {/* Overlay */}
