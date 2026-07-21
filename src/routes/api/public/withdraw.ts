@@ -348,6 +348,7 @@ export const Route = createFileRoute("/api/public/withdraw")({
             // Connexion API PawaPay pour effectuer le décaissement automatique (Payout API)
             const isVirtualWithdraw = Boolean(json.testMode);
             let finalStatus = isVirtualWithdraw ? "success" : "processing";
+            let payoutError: string | null = null;
             const { pawapay } = await import("@/lib/pawapay.server");
             const payoutId = crypto.randomUUID(); // Exigence stricte PawaPay : exactement 36 caractères (UUID v4)
 
@@ -364,23 +365,20 @@ export const Route = createFileRoute("/api/public/withdraw")({
                 });
                 if (payoutRes && payoutRes.status) {
                   if (payoutRes.status === "REJECTED") {
-                    // Rollback du solde si refusé immédiatement par PawaPay / Opérateur
-                    await supabaseAdmin
-                      .from("wallets")
-                      .update({ balance: currentBalance, updated_at: new Date().toISOString() } as any)
-                      .eq("id", wallet.id);
-                    await (supabaseAdmin.from("profiles") as any)
-                      .update({ balance: currentBalance, wallet_balance: currentBalance } as any)
-                      .eq("id", user.id);
-                    return Response.json({
-                      error: `Retrait refusé par l'opérateur Mobile Money (${correspondentCode}) : ${payoutRes.rejectionReason?.rejectionMessage || "Refus PawaPay."}`,
-                    }, { status: 400 });
+                    payoutError = `Retrait refusé par l'opérateur Mobile Money (${correspondentCode}) : ${payoutRes.rejectionReason?.rejectionMessage || "Refus PawaPay."}`;
+                    finalStatus = "failed";
+                  } else {
+                    finalStatus = payoutRes.status === "ACCEPTED" ? "processing" : "pending";
                   }
-                  finalStatus = payoutRes.status === "ACCEPTED" ? "processing" : "pending";
                 }
               } catch (pwErr: any) {
                 console.error("[PawaPay API] Erreur lors de l'appel initiatePayout :", pwErr);
-                // Rollback du solde car PawaPay n'a pas pu traiter le décaissement
+                payoutError = `Échec d'envoi API PawaPay (${correspondentCode}) : ${pwErr.message || "Erreur réseau ou solde opérateur insuffisant."}`;
+                finalStatus = "failed";
+              }
+
+              if (finalStatus === "failed") {
+                // Rollback du solde si refusé immédiatement par PawaPay ou en cas d'erreur
                 await supabaseAdmin
                   .from("wallets")
                   .update({ balance: currentBalance, updated_at: new Date().toISOString() } as any)
@@ -388,9 +386,6 @@ export const Route = createFileRoute("/api/public/withdraw")({
                 await (supabaseAdmin.from("profiles") as any)
                   .update({ balance: currentBalance, wallet_balance: currentBalance } as any)
                   .eq("id", user.id);
-                return Response.json({
-                  error: `Échec d'envoi API PawaPay (${correspondentCode}) : ${pwErr.message || "Erreur réseau ou solde opérateur insuffisant."}`,
-                }, { status: 400 });
               }
             }
 
@@ -424,7 +419,7 @@ export const Route = createFileRoute("/api/public/withdraw")({
             if (true) {
               console.log("[Withdraw] Enregistrement dans transactions (pay-out) et payout_batches...");
               
-              const txStatus = (finalStatus === "success" || finalStatus === "completed" || finalStatus === "processing") ? finalStatus : "pending";
+              const txStatus = (finalStatus === "success" || finalStatus === "completed" || finalStatus === "processing" || finalStatus === "failed") ? finalStatus : "pending";
               // Transaction type "pay-out" ensures sync-wallet will calculate the updated balance properly
               const txAttempt = await supabaseAdmin.from("transactions").insert({
                 id: payoutId,
@@ -512,6 +507,10 @@ export const Route = createFileRoute("/api/public/withdraw")({
 
               const errDetail = reqErr.message || reqErr.details || reqErr.code || JSON.stringify(reqErr);
               return Response.json({ error: `Échec SQL lors de la création de la demande de retrait : ${errDetail}` }, { status: 500 });
+            }
+
+            if (payoutError) {
+              return Response.json({ error: payoutError }, { status: 400 });
             }
 
             return Response.json({ success: true, new_balance: newBalance });
