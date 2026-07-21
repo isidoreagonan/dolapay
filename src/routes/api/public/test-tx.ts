@@ -4,19 +4,24 @@ import { createClient } from "@supabase/supabase-js";
 async function handleTestTx() {
   const supabaseAdmin = createClient(
     process.env.SUPABASE_URL || "",
-    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY || ""
+    process.env.SUPABASE_SERVICE_ROLE_KEY || ""
   );
 
-  // Delete the accidental test transactions I generated during debugging
-  const { data, error } = await supabaseAdmin
-    .from("transactions")
-    .delete()
-    .eq("status", "pending")
-    .eq("amount", 380)
-    .eq("description", "[RETRAIT_UI] BEN_MTN · 2290157385885")
-    .select("id");
+  const userId = "46179a95-999b-469d-915d-718bae54a844";
 
-  return Response.json({ success: true, deleted: data, error });
+  const { data: wallets } = await supabaseAdmin.from("wallets").select("*").eq("profile_id", userId);
+  const { data: profiles } = await supabaseAdmin.from("profiles").select("*").eq("id", userId);
+  const { data: txs } = await supabaseAdmin.from("transactions").select("*").or(`profile_id.eq.${userId},merchant_id.eq.${userId}`);
+  const { data: wrs } = await supabaseAdmin.from("withdrawal_requests").select("*").or(`profile_id.eq.${userId},merchant_id.eq.${userId}`);
+  const { data: batches } = await supabaseAdmin.from("payout_batches").select("*, payout_batch_items(*)").eq("owner_id", userId);
+
+  return Response.json({
+    wallets,
+    profiles,
+    txs,
+    wrs,
+    batches
+  });
 }
 
 export const Route = createFileRoute("/api/public/test-tx")({
