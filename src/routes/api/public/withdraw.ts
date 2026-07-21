@@ -227,11 +227,23 @@ export const Route = createFileRoute("/api/public/withdraw")({
             }
 
             // Récupérer le portefeuille de l'utilisateur
-            const { data: walletData, error: walletErr } = await supabaseAdmin
-              .from("wallets")
-              .select("*")
-              .eq("profile_id", user.id)
-              .maybeSingle();
+            const candidates = ["profile_id", "user_id", "merchant_id", "account_id", "owner_id", "id"];
+            let walletData: any = null;
+            let walletErr: any = null;
+
+            for (const col of candidates) {
+              const res = await (supabaseAdmin.from("wallets") as any)
+                .select("*")
+                .eq(col, user.id)
+                .maybeSingle();
+
+              if (!res.error || !res.error.message?.includes(col)) {
+                walletData = res.data;
+                walletErr = res.error;
+                break;
+              }
+              walletErr = res.error;
+            }
 
             let wallet = walletData;
 
