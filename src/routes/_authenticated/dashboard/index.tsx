@@ -222,7 +222,7 @@ function Overview() {
       <ApprovedBanner />
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Bonjour {profile?.full_name?.split(" ")[0] ?? ""} 👋</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{new Date().getHours() >= 18 || new Date().getHours() < 5 ? "Bonsoir" : "Bonjour"} {profile?.full_name?.split(" ")[0] ?? ""} 👋</h1>
           <p className="text-sm text-muted-foreground">Aperçu des 30 derniers jours.</p>
         </div>
         <div className="flex items-center gap-4">
