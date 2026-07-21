@@ -23,6 +23,7 @@ function WithdrawPage() {
   const { data: profile } = useProfileHook();
 
   const [withdrawCountry, setWithdrawCountry] = useState("BF");
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [withdrawMethod, setWithdrawMethod] = useState("");
   const [withdrawPhone, setWithdrawPhone] = useState("");
   const [withdrawAmount, setWithdrawAmount] = useState("");
@@ -143,24 +144,42 @@ function WithdrawPage() {
               <div className="space-y-4">
                 <Label className="text-sm font-bold uppercase tracking-wider text-slate-500">Pays de retrait</Label>
             <div className="relative">
-              <select
-                value={withdrawCountry}
-                onChange={(e) => {
-                  setWithdrawCountry(e.target.value);
-                  setWithdrawMethod("");
-                }}
-                className="w-full appearance-none rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 px-4 py-3.5 text-sm font-medium pr-10 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+              <button
+                type="button"
+                onClick={() => setShowCountryDropdown(!showCountryDropdown)}
+                className="w-full appearance-none rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 px-4 py-3.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all flex items-center justify-between"
               >
-                {WITHDRAW_COUNTRIES.map((c) => (
-                  <option key={c.code} value={c.code}>
-                    {c.flag} {c.name}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-3.5 top-3.5 h-5 w-5 text-slate-400 pointer-events-none" />
-              <div className="absolute right-12 top-3.5 text-sm font-bold text-slate-400 pointer-events-none">
-                +{activeCountry.prefix}
-              </div>
+                <div className="flex items-center gap-3">
+                  <FlagIcon code={activeCountry.code} flag={activeCountry.flag} name={activeCountry.name} className="w-6 h-4 shadow-sm" />
+                  <span>{activeCountry.name}</span>
+                </div>
+                <div className="flex items-center gap-2 text-slate-400">
+                  <span className="font-bold text-xs opacity-75">+{activeCountry.prefix}</span>
+                  <ChevronDown className="h-5 w-5" />
+                </div>
+              </button>
+
+              {showCountryDropdown && (
+                <div className="absolute top-[calc(100%+4px)] left-0 w-full z-10 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl shadow-xl p-1.5 max-h-60 overflow-y-auto">
+                  {WITHDRAW_COUNTRIES.map((c) => (
+                    <button
+                      key={c.code}
+                      type="button"
+                      onClick={() => {
+                        setWithdrawCountry(c.code);
+                        setWithdrawMethod("");
+                        setShowCountryDropdown(false);
+                      }}
+                      className={cn("w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-sm text-left hover:bg-slate-100 dark:hover:bg-slate-800", withdrawCountry === c.code ? "bg-primary/10 text-primary font-bold" : "text-slate-700 dark:text-slate-300")}
+                    >
+                      <div className="flex items-center gap-3">
+                        <FlagIcon code={c.code} flag={c.flag} name={c.name} className="w-6 h-4 shadow-sm" />
+                        <span>{c.name}</span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
