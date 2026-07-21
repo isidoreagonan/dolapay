@@ -58,9 +58,9 @@ function WithdrawPage() {
         },
         body: JSON.stringify({
           action: "withdraw",
-          amount: Number(withdrawAmount),
-          method: `${withdrawMethod} (${activeCountry.name})`,
-          phone: withdrawPhone,
+          amount: parseFloat(withdrawAmount),
+          method: withdrawMethod,
+          phone: activeCountry.prefix + withdrawPhone,
           pin: withdrawPin, // We pass the PIN to the API now
           testMode: false,
         }),
