@@ -356,8 +356,7 @@ export const Route = createFileRoute("/api/public/withdraw")({
                 }
               }
             }
-
-            const baseDeposit = livePayin > 0 ? livePayin : Math.max(currentBalance + livePayout, profBalance + livePayout, metaBalance + livePayout, 0);
+            const baseDeposit = livePayin > 0 ? livePayin : Math.max(currentBalance + livePayout, profBalance + livePayout, 0);
             currentBalance = Math.max(0, baseDeposit - livePayout);
 
             const { getCorrespondentCode } = await import("@/lib/pawapay.server");

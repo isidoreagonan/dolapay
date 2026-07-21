@@ -198,7 +198,6 @@ function WalletPage() {
       const { data: profData } = await supabase.from("profiles").select("*").eq("id", profile!.id).maybeSingle();
       const profBalance = Number((profData as any)?.balance ?? (profData as any)?.wallet_balance ?? (profData as any)?.solde ?? (profData as any)?.amount ?? 0);
       const { data: authData } = await supabase.auth.getUser();
-      const metaBalance = Number(authData?.user?.user_metadata?.wallet_balance || 0);
       const metaPin = authData?.user?.user_metadata?.wallet_pin;
 
       let bestBalance = 0;
@@ -207,7 +206,7 @@ function WalletPage() {
         bestBalance = Math.max(0, livePayin - livePayout);
       } else {
         // If there are no pay-ins in the ledger, the balance must have been injected manually (e.g. testing)
-        bestBalance = Math.max(storedBalance, profBalance, metaBalance, 0);
+        bestBalance = Math.max(storedBalance, profBalance, 0);
       }
 
       if (!data) {
