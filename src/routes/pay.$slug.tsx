@@ -165,6 +165,21 @@ function PayPage() {
     },
   });
 
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [selectedCountryCode, setSelectedCountryCode] = useState("BFA");
+  const [provider, setProvider] = useState("Orange");
+  const [userSelectedProvider, setUserSelectedProvider] = useState(false);
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
+  const [txId, setTxId] = useState<string | null>(null);
+  const [status, setStatus] = useState<TxStatus | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [idemKey] = useState(() => crypto.randomUUID());
+  const [redirectUrls, setRedirectUrls] = useState<{ success_url?: string | null; failure_url?: string | null }>({});
+  const [redirectCountdown, setRedirectCountdown] = useState<number | null>(null);
+  const [failureReason, setFailureReason] = useState<{ code: string; message: string } | null>(null);
+
   const { data: quote, isLoading: isQuoteLoading } = useQuery({
     queryKey: ["fee_quote", link?.amount, provider],
     queryFn: async () => {
@@ -182,21 +197,6 @@ function PayPage() {
 
   const customerFee = link?.fees_paid_by === "customer" && quote ? quote.totalFees : 0;
   const finalAmount = link ? link.amount + customerFee : 0;
-
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [selectedCountryCode, setSelectedCountryCode] = useState("BFA");
-  const [provider, setProvider] = useState("Orange");
-  const [userSelectedProvider, setUserSelectedProvider] = useState(false);
-  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
-  const [txId, setTxId] = useState<string | null>(null);
-  const [status, setStatus] = useState<TxStatus | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [idemKey] = useState(() => crypto.randomUUID());
-  const [redirectUrls, setRedirectUrls] = useState<{ success_url?: string | null; failure_url?: string | null }>({});
-  const [redirectCountdown, setRedirectCountdown] = useState<number | null>(null);
-  const [failureReason, setFailureReason] = useState<{ code: string; message: string } | null>(null);
 
   const activeCountry = useMemo(() => {
     return COUNTRIES.find((c) => c.code === selectedCountryCode) || COUNTRIES[0];
