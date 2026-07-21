@@ -204,6 +204,7 @@ function DashboardLayout() {
   const { data: profile, isLoading: profileLoading } = useProfile();
   const { data: isAdmin, isLoading: adminLoading } = useIsAdmin();
   const [open, setOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [showPayoutsModal, setShowPayoutsModal] = useState(false);
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -288,38 +289,43 @@ function DashboardLayout() {
         {/* Sidebar */}
         <aside
           className={cn(
-            "fixed inset-y-0 left-0 z-50 flex h-screen w-72 transform flex-col border-r border-blue-900 bg-blue-950 px-4 py-6 text-slate-300 transition-transform lg:translate-x-0 shadow-2xl",
-            open ? "translate-x-0" : "-translate-x-full",
+            "fixed inset-y-0 left-0 z-50 flex h-screen transform flex-col border-r border-blue-900 bg-blue-950 px-4 py-6 text-slate-300 transition-all duration-300 shadow-2xl",
+            isCollapsed ? "w-20" : "w-72",
+            open ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
           )}
         >
-          <Link to="/dashboard" className="mb-6 flex shrink-0 items-center">
-            <img src={logoFull.url} alt="DolaPay" className="h-8 brightness-0 invert" />
-          </Link>
-
-          <div className="mb-6 shrink-0 rounded-xl border border-blue-800/60 bg-blue-900/30 p-3">
-            <div className="text-xs text-blue-300/80">Connecté en tant que</div>
-            <div className="truncate text-sm font-semibold text-white">{profile?.full_name || profile?.email}</div>
-            {profile?.id && (
-              <button
-                type="button"
-                onClick={() => {
-                  const accId = `acc_${profile.id.replace(/-/g, "").slice(0, 16)}`;
-                  navigator.clipboard?.writeText(accId);
-                  toast.success("Identifiant copié");
-                }}
-                className="mt-1 block truncate font-mono text-[10px] text-blue-300/60 transition-colors hover:text-white"
-                title="Cliquer pour copier"
-              >
-                acc_{profile.id.replace(/-/g, "").slice(0, 16)}
-              </button>
-            )}
-            <div className="mt-2 flex flex-wrap items-center gap-1.5">
-              <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold", tier.badgeClass)}>
-                <span>{tier.icon}</span> {tier.short} Tier
-              </span>
-              <KycBadge status={profile?.kyc_status ?? "pending"} />
-            </div>
+          <div className="mb-6 flex shrink-0 items-center justify-between">
+            <Link to="/dashboard" className="flex items-center">
+              <img src={logoFull.url} alt="DolaPay" className={cn("transition-all duration-300", isCollapsed ? "h-6" : "h-8")} />
+            </Link>
           </div>
+
+          {!isCollapsed && (
+            <div className="mb-6 shrink-0 rounded-xl border border-blue-800/60 bg-blue-900/30 p-3">
+              <div className="text-xs text-blue-300/80">Connecté en tant que</div>
+              <div className="truncate text-sm font-semibold text-white">{profile?.full_name || profile?.email}</div>
+              {profile?.id && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const accId = `acc_${profile.id.replace(/-/g, "").slice(0, 16)}`;
+                    navigator.clipboard?.writeText(accId);
+                    toast.success("Identifiant copié");
+                  }}
+                  className="mt-1 block truncate font-mono text-[10px] text-blue-300/60 transition-colors hover:text-white"
+                  title="Cliquer pour copier"
+                >
+                  acc_{profile.id.replace(/-/g, "").slice(0, 16)}
+                </button>
+              )}
+              <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold", tier.badgeClass)}>
+                  <span>{tier.icon}</span> {tier.short} Tier
+                </span>
+                <KycBadge status={profile?.kyc_status ?? "pending"} />
+              </div>
+            </div>
+          )}
 
           <nav className="flex-1 space-y-1 overflow-y-auto">
             {navItems.map((it) => {
@@ -331,8 +337,11 @@ function DashboardLayout() {
               );
               const inner = (
                 <>
-                  <span className="flex items-center gap-3"><it.icon className="h-4 w-4" /> {it.label}</span>
-                  {it.locked && <LockIcon className="h-3.5 w-3.5 opacity-80" />}
+                  <span className="flex items-center gap-3">
+                    <it.icon className={cn("shrink-0 transition-all duration-300", isCollapsed ? "h-5 w-5 mx-auto" : "h-4 w-4")} /> 
+                    {!isCollapsed && <span className="truncate">{it.label}</span>}
+                  </span>
+                  {it.locked && !isCollapsed && <LockIcon className="h-3.5 w-3.5 opacity-80 shrink-0" />}
                 </>
               );
               if (it.locked) {
@@ -371,9 +380,23 @@ function DashboardLayout() {
 
           <button
             onClick={handleSignOut}
-            className="mt-4 flex shrink-0 items-center gap-3 rounded-xl border border-white/10 px-3 py-2.5 text-sm font-medium text-white/80 hover:bg-white/5"
+            className={cn(
+              "mt-4 flex shrink-0 items-center rounded-xl border border-white/10 text-sm font-medium text-white/80 hover:bg-white/5 transition-all duration-300",
+              isCollapsed ? "justify-center p-2.5 mx-auto" : "gap-3 px-3 py-2.5 w-full"
+            )}
+            title={isCollapsed ? "Déconnexion" : undefined}
           >
-            <LogOut className="h-4 w-4" /> Déconnexion
+            <LogOut className={cn("shrink-0", isCollapsed ? "h-5 w-5" : "h-4 w-4")} /> 
+            {!isCollapsed && "Déconnexion"}
+          </button>
+          
+          {/* Collapse Toggle Button (PC only) */}
+          <button 
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="hidden lg:flex absolute -right-3 top-8 h-6 w-6 items-center justify-center rounded-full border border-blue-900 bg-blue-950 text-white shadow-md hover:bg-blue-900 z-50 transition-transform"
+            title={isCollapsed ? "Déplier le menu" : "Réduire le menu"}
+          >
+            {isCollapsed ? <ArrowRight className="h-3 w-3" /> : <ArrowLeft className="h-3 w-3" />}
           </button>
         </aside>
 
@@ -381,7 +404,7 @@ function DashboardLayout() {
         {open && <button onClick={() => setOpen(false)} className="fixed inset-0 z-40 bg-background/50 backdrop-blur-sm lg:hidden" />}
 
         {/* Main */}
-        <main className="min-w-0 flex-1 px-4 py-6 sm:px-8 sm:py-10 lg:ml-72">
+        <main className={cn("min-w-0 flex-1 px-4 py-6 sm:px-8 sm:py-10 transition-all duration-300", isCollapsed ? "lg:ml-20" : "lg:ml-72")}>
           {locked && profile?.kyc_status === "pending" && pathname !== "/dashboard/settings" && pathname !== "/dashboard/admin" && pathname !== "/dashboard/verify" && pathname !== "/dashboard" && (
             <div className="mb-6 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-900 dark:text-amber-200">
               <strong>Vérification en cours.</strong> Complétez votre dossier KYC dans{" "}

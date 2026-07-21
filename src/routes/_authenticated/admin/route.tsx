@@ -201,7 +201,7 @@ function AdminLayout() {
         >
           <div className="mb-6 flex shrink-0 items-center px-2">
             <Link to="/admin">
-              <img src={logoFull.url} alt="DolaPay" className="h-7 brightness-0 invert" />
+              <img src={logoFull.url} alt="DolaPay" className="h-7" />
             </Link>
           </div>
 
