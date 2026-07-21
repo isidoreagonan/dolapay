@@ -13,7 +13,7 @@ const tiers = [
     label: "Encaissement Mobile Money", price: "2%", detail: "+ frais opérateur réels",
     icon: Smartphone, highlight: true,
     features: [
-      "MTN, Orange, Wave, Moov, M-Pesa, Airtel",
+      "MTN, Orange, Free, Moov, M-Pesa, Airtel",
       "STK Push, USSD, QR",
       "Réconciliation automatique",
       "Dégressif à 1,5% au-delà de 50M FCFA/mois",

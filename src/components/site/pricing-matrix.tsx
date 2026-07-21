@@ -47,7 +47,7 @@ export const COUNTRY_RATES: CountryRate[] = [
   {
     code: "CI", name: "Côte d'Ivoire", flag: "🇨🇮", currency: "XOF",
     operators: [
-      { operator: "Moov Africa", payin: "Sur demande", payout: "Sur demande" },
+      { operator: "MTN", payin: 2.80, payout: 2.30 },
       { operator: "Orange", payin: 3.50, payout: 3.00 }
     ],
   },
