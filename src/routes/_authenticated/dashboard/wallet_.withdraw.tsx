@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Send, ArrowLeft, Loader2, Landmark, Check, ChevronDown, Lock, Eye, EyeOff } from "lucide-react";
+import { Send, ArrowLeft, Loader2, Landmark, Check, ChevronDown, Lock, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { WITHDRAW_COUNTRIES } from "@/lib/withdraw";
 import { cn } from "@/lib/utils";
 import { useProfile as useProfileHook } from "./route";
@@ -29,6 +29,7 @@ function WithdrawPage() {
   const [withdrawAmount, setWithdrawAmount] = useState("");
   const [withdrawPin, setWithdrawPin] = useState("");
   const [showPin, setShowPin] = useState(false);
+  const [withdrawError, setWithdrawError] = useState<string | null>(null);
 
   const { data: savedMethods = [] } = useQuery({
     queryKey: ["saved_payout_methods", profile?.id],
@@ -45,6 +46,7 @@ function WithdrawPage() {
 
   const withdrawMutation = useMutation({
     mutationFn: async () => {
+      setWithdrawError(null);
       if (!withdrawPin) throw new Error("Le code PIN est requis.");
       
       const { data: { session } } = await supabase.auth.getSession();
@@ -74,7 +76,7 @@ function WithdrawPage() {
       navigate({ to: "/dashboard/wallet" });
     },
     onError: (err: any) => {
-      toast.error(err.message);
+      setWithdrawError(err.message);
     },
   });
 
@@ -98,6 +100,18 @@ function WithdrawPage() {
       <Card className="p-6 md:p-8 rounded-2xl border-slate-200/60 dark:border-slate-800/60 shadow-xl bg-white dark:bg-slate-950">
         <form onSubmit={(e) => { e.preventDefault(); withdrawMutation.mutate(); }} className="space-y-8">
           
+          {withdrawError && (
+            <div className="flex items-start gap-4 p-5 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 animate-in fade-in slide-in-from-top-2">
+              <AlertCircle className="w-6 h-6 text-red-500 shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <h3 className="text-sm font-bold text-red-800 dark:text-red-400">Échec du retrait</h3>
+                <p className="text-sm text-red-600 dark:text-red-300 mt-1 leading-relaxed">
+                  {withdrawError}
+                </p>
+              </div>
+            </div>
+          )}
+
           {savedMethods.length > 0 && (
             <div className="space-y-3 pb-4 border-b border-slate-100 dark:border-slate-800">
               <Label className="text-sm font-bold uppercase tracking-wider text-slate-500">
