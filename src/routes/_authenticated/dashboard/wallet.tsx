@@ -294,7 +294,8 @@ function WalletPage() {
             
             const amt = Number(t.amount || 0);
             const netAmt = Number(t.net_amount || amt);
-            const fee = amt - netAmt > 0 ? amt - netAmt : undefined;
+            // Pour un retrait (pay-out), le netAmt (déduit du wallet) est > amt (envoyé). Les frais sont netAmt - amt.
+            const fee = netAmt > amt ? netAmt - amt : undefined;
 
             results.push({
               id: t.id,

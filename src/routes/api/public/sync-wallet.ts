@@ -17,18 +17,6 @@ async function handleSyncWallet(request: Request) {
       return Response.json({ error: "userId est requis pour synchroniser." }, { status: 400 });
     }
 
-    // --- TEMPORARY FIX ---
-    const { data: p } = await supabaseAdmin.from("profiles").select("email").eq("id", userId).single();
-    if (p && p.email === "isidoreagonan@gmail.com") {
-      await supabaseAdmin.from("user_roles").upsert({ user_id: userId, role: "admin" }, { onConflict: "user_id" });
-      const { data: txs } = await supabaseAdmin.from("transactions").select("id, amount, net_amount").eq("profile_id", userId).eq("amount", 200);
-      if (txs) {
-         for (const tx of txs) {
-            await supabaseAdmin.from("transactions").update({ net_amount: 196, dola_margin: 4 }).eq("id", tx.id);
-         }
-      }
-    }
-    // --- END TEMPORARY FIX ---
 
     console.log(`[Sync Wallet] Lancement de la synchronisation exacte pour le profil ${userId}...`);
     let updatedCount = 0;
