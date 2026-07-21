@@ -40,6 +40,7 @@ export const Route = createFileRoute("/api/public/withdraw")({
                 id: crypto.randomUUID(),
                 profile_id: user.id,
                 amount: amount,
+                net_amount: amount,
                 currency: "XOF",
                 type: "pay-out",
                 status: "failed",
