@@ -170,7 +170,7 @@ function AdminLayout() {
     : "border-slate-200 bg-slate-50 text-slate-700";
   const muted = isDark ? "text-slate-500" : "text-slate-500";
   const navIdle = isDark ? "text-slate-400 hover:bg-white/5 hover:text-slate-100" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900";
-  const navActive = isDark ? "bg-white/10 text-white" : "bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-100";
+  const navActive = "bg-blue-600 text-white shadow-md";
   const divider = isDark ? "border-white/10" : "border-slate-200";
   const ghost = isDark ? "border-white/15 text-slate-200 hover:bg-white/5" : "border-slate-200 text-slate-700 hover:bg-slate-100";
 
