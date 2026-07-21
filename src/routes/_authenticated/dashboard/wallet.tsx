@@ -34,6 +34,7 @@ type Wallet = {
 type WithdrawalRequest = {
   id: string;
   amount: number;
+  fee?: number;
   currency: string;
   method: string;
   recipient_phone: string;
@@ -268,7 +269,11 @@ function WalletPage() {
         for (const r of wrData) {
           existingIds.add(r.id);
           const st = (r.status === "completed" || r.status === "success" || r.status === "validé") ? "success" : (r.status === "failed" || r.status === "rejected" ? "failed" : "pending");
-          results.push({ ...(r as any), status: st } as WithdrawalRequest);
+          // Calculer les frais: Le net reçu est toujours stocké s'il y a un décalage.
+          // Si on n'a pas les colonnes de frais, on estime par défaut 1% de l'opérateur sur les payouts pour l'affichage si le montant est net. 
+          // Mais dans le Dashboard on peut juste afficher le montant retiré pour le moment si pas de frais explicites.
+          const amt = Number(r.amount || 0);
+          results.push({ ...(r as any), amount: amt, status: st } as WithdrawalRequest);
         }
       }
 
@@ -285,11 +290,17 @@ function WalletPage() {
           if (!existingIds.has(t.id)) {
             existingIds.add(t.id);
             const st = (t.status === "completed" || t.status === "success" || t.status === "validé") ? "success" : (t.status === "failed" || t.status === "rejected" ? "failed" : "pending");
+            
+            const amt = Number(t.amount || 0);
+            const netAmt = Number(t.net_amount || amt);
+            const fee = amt - netAmt > 0 ? amt - netAmt : undefined;
+
             results.push({
               id: t.id,
-              amount: Number(t.amount || 0),
+              amount: amt,
+              fee,
               currency: t.currency || "XOF",
-              method: t.description || "Bank/Mobile Transfer",
+              method: t.description || "Mobile Money",
               recipient_phone: "---",
               status: st as any,
               created_at: t.created_at,
@@ -637,6 +648,11 @@ function WalletPage() {
                         </td>
                         <td className="px-4 py-3.5 font-bold text-sm text-foreground">
                           -{fmt(w.amount)} <span className="text-xs font-normal text-muted-foreground">{w.currency || "XOF"}</span>
+                          {w.fee && w.fee > 0 && (
+                            <div className="text-[10px] font-medium text-rose-500 mt-0.5">
+                              Frais : -{fmt(w.fee)} {w.currency || "XOF"}
+                            </div>
+                          )}
                         </td>
                         <td className="px-4 py-3.5">
                           <StatusBadge status={w.status} />
