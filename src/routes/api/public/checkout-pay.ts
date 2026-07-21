@@ -114,6 +114,8 @@ export const Route = createFileRoute("/api/public/checkout-pay")({
             if (res.status === "REJECTED") {
               await supabaseAdmin.from("transactions").update({ status: "failed" }).eq("id", txId);
               return Response.json({ error: { message: res.rejectionReason?.rejectionMessage || "Rejeté par PawaPay." } }, { status: 400 });
+            } else {
+              await supabaseAdmin.from("transactions").update({ provider_tx_id: txId }).eq("id", txId);
             }
           } else if (gateway === "ligdicash") {
             const ligdiRes = await createLigdiCashPayin({
