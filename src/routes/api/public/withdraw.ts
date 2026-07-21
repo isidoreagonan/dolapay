@@ -209,9 +209,9 @@ export const Route = createFileRoute("/api/public/withdraw")({
           if (action === "withdraw") {
             const { amount, method, phone, pin } = json;
 
-            if (!amount || amount < 100) {
-              const err = await logFail("Le montant minimum est de 100 XOF", method, phone, amount);
-              return Response.json({ error: "Le montant minimum est de 100 XOF." + (err ? ` (DB Error: ${err.message})` : "") }, { status: 400 });
+            if (!amount || amount < 200) {
+              const err = await logFail("Le montant minimum est de 200 XOF", method, phone, amount);
+              return Response.json({ error: "Le montant minimum est de 200 XOF." + (err ? ` (DB Error: ${err.message})` : "") }, { status: 400 });
             }
             if (!method || typeof method !== "string" || method.trim().length === 0) {
               await logFail("Méthode de retrait non spécifiée", method, phone, amount);
@@ -307,7 +307,6 @@ export const Route = createFileRoute("/api/public/withdraw")({
               if (isPayout) livePayout += amt;
               else livePayin += amt;
             }
-            const computedLiveBalance = Math.max(0, livePayin - livePayout);
 
             const { data: profData } = await supabaseAdmin.from("profiles").select("*").eq("id", user.id).maybeSingle();
             const profBalance = Number((profData as any)?.balance ?? (profData as any)?.wallet_balance ?? (profData as any)?.solde ?? (profData as any)?.amount ?? 0);
@@ -335,7 +334,7 @@ export const Route = createFileRoute("/api/public/withdraw")({
               }
             }
 
-            const baseDeposit = livePayin > 0 ? livePayin : Math.max(currentBalance + livePayout, profBalance + livePayout, metaBalance + livePayout, 300);
+            const baseDeposit = livePayin > 0 ? livePayin : Math.max(currentBalance + livePayout, profBalance + livePayout, metaBalance + livePayout, 0);
             currentBalance = Math.max(0, baseDeposit - livePayout);
 
             const { getCorrespondentCode } = await import("@/lib/pawapay.server");
@@ -459,7 +458,8 @@ export const Route = createFileRoute("/api/public/withdraw")({
             }
 
             // Toujours enregistrer dans transactions (pay-out) et payout_batches en parallèle pour garantir une visibilité totale dans le ledger des flux !
-            if (true) {
+            // On ne le fait que si finalStatus n'est pas failed, car si failed, on l'a déjà inséré plus haut (ligne 418)
+            if (finalStatus !== "failed") {
               console.log("[Withdraw] Enregistrement dans transactions (pay-out) et payout_batches...");
               
               const txStatus = (finalStatus === "success" || finalStatus === "completed" || finalStatus === "processing" || finalStatus === "failed") ? finalStatus : "pending";
