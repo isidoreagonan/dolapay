@@ -31,6 +31,7 @@ import { Route as CompanyPricingRouteImport } from './routes/company.pricing'
 import { Route as CompanyCoverageRouteImport } from './routes/company.coverage'
 import { Route as CompanyContactRouteImport } from './routes/company.contact'
 import { Route as CompanyAboutRouteImport } from './routes/company.about'
+import { Route as CheckoutSessionIdRouteImport } from './routes/checkout.$sessionId'
 import { Route as AuthSignUpRouteImport } from './routes/auth.sign-up'
 import { Route as AuthSignInRouteImport } from './routes/auth.sign-in'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
@@ -50,6 +51,7 @@ import { Route as ApiPublicRestoreAdminRouteImport } from './routes/api/public/r
 import { Route as ApiPublicQuoteRouteImport } from './routes/api/public/quote'
 import { Route as ApiPublicPawapayWebhookRouteImport } from './routes/api/public/pawapay-webhook'
 import { Route as ApiPublicLigdicashWebhookRouteImport } from './routes/api/public/ligdicash-webhook'
+import { Route as ApiPublicCheckoutPayRouteImport } from './routes/api/public/checkout-pay'
 import { Route as AuthenticatedDashboardWebhooksRouteImport } from './routes/_authenticated/dashboard/webhooks'
 import { Route as AuthenticatedDashboardWalletRouteImport } from './routes/_authenticated/dashboard/wallet'
 import { Route as AuthenticatedDashboardVerifyRouteImport } from './routes/_authenticated/dashboard/verify'
@@ -67,6 +69,7 @@ import { Route as AuthenticatedAdminFinanceRouteImport } from './routes/_authent
 import { Route as AuthenticatedAdminComplianceRouteImport } from './routes/_authenticated/admin/compliance'
 import { Route as AuthenticatedAdminAuditRouteImport } from './routes/_authenticated/admin/audit'
 import { Route as AuthenticatedAdminMerchantsIndexRouteImport } from './routes/_authenticated/admin/merchants.index'
+import { Route as ApiV1CheckoutSessionsRouteImport } from './routes/api/v1/checkout/sessions'
 import { Route as ApiV1ChargesIdRouteImport } from './routes/api/v1/charges.$id'
 import { Route as ApiPublicTxTimeoutIdRouteImport } from './routes/api/public/tx-timeout.$id'
 import { Route as ApiPublicTxStatusIdRouteImport } from './routes/api/public/tx-status.$id'
@@ -185,6 +188,11 @@ const CompanyAboutRoute = CompanyAboutRouteImport.update({
   path: '/company/about',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CheckoutSessionIdRoute = CheckoutSessionIdRouteImport.update({
+  id: '/checkout/$sessionId',
+  path: '/checkout/$sessionId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthSignUpRoute = AuthSignUpRouteImport.update({
   id: '/auth/sign-up',
   path: '/auth/sign-up',
@@ -285,6 +293,11 @@ const ApiPublicLigdicashWebhookRoute =
     path: '/api/public/ligdicash-webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicCheckoutPayRoute = ApiPublicCheckoutPayRouteImport.update({
+  id: '/api/public/checkout-pay',
+  path: '/api/public/checkout-pay',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedDashboardWebhooksRoute =
   AuthenticatedDashboardWebhooksRouteImport.update({
     id: '/webhooks',
@@ -383,6 +396,11 @@ const AuthenticatedAdminMerchantsIndexRoute =
     path: '/merchants/',
     getParentRoute: () => AuthenticatedAdminRouteRoute,
   } as any)
+const ApiV1CheckoutSessionsRoute = ApiV1CheckoutSessionsRouteImport.update({
+  id: '/api/v1/checkout/sessions',
+  path: '/api/v1/checkout/sessions',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiV1ChargesIdRoute = ApiV1ChargesIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -437,6 +455,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
+  '/checkout/$sessionId': typeof CheckoutSessionIdRoute
   '/company/about': typeof CompanyAboutRoute
   '/company/contact': typeof CompanyContactRoute
   '/company/coverage': typeof CompanyCoverageRoute
@@ -472,6 +491,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/verify': typeof AuthenticatedDashboardVerifyRoute
   '/dashboard/wallet': typeof AuthenticatedDashboardWalletRoute
   '/dashboard/webhooks': typeof AuthenticatedDashboardWebhooksRoute
+  '/api/public/checkout-pay': typeof ApiPublicCheckoutPayRoute
   '/api/public/ligdicash-webhook': typeof ApiPublicLigdicashWebhookRoute
   '/api/public/pawapay-webhook': typeof ApiPublicPawapayWebhookRoute
   '/api/public/quote': typeof ApiPublicQuoteRoute
@@ -492,6 +512,7 @@ export interface FileRoutesByFullPath {
   '/api/public/tx-status/$id': typeof ApiPublicTxStatusIdRoute
   '/api/public/tx-timeout/$id': typeof ApiPublicTxTimeoutIdRoute
   '/api/v1/charges/$id': typeof ApiV1ChargesIdRoute
+  '/api/v1/checkout/sessions': typeof ApiV1CheckoutSessionsRoute
   '/admin/merchants/': typeof AuthenticatedAdminMerchantsIndexRoute
   '/dashboard/payment-links/$id/edit': typeof AuthenticatedDashboardPaymentLinksIdEditRoute
 }
@@ -502,6 +523,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
+  '/checkout/$sessionId': typeof CheckoutSessionIdRoute
   '/company/about': typeof CompanyAboutRoute
   '/company/contact': typeof CompanyContactRoute
   '/company/coverage': typeof CompanyCoverageRoute
@@ -537,6 +559,7 @@ export interface FileRoutesByTo {
   '/dashboard/verify': typeof AuthenticatedDashboardVerifyRoute
   '/dashboard/wallet': typeof AuthenticatedDashboardWalletRoute
   '/dashboard/webhooks': typeof AuthenticatedDashboardWebhooksRoute
+  '/api/public/checkout-pay': typeof ApiPublicCheckoutPayRoute
   '/api/public/ligdicash-webhook': typeof ApiPublicLigdicashWebhookRoute
   '/api/public/pawapay-webhook': typeof ApiPublicPawapayWebhookRoute
   '/api/public/quote': typeof ApiPublicQuoteRoute
@@ -557,6 +580,7 @@ export interface FileRoutesByTo {
   '/api/public/tx-status/$id': typeof ApiPublicTxStatusIdRoute
   '/api/public/tx-timeout/$id': typeof ApiPublicTxTimeoutIdRoute
   '/api/v1/charges/$id': typeof ApiV1ChargesIdRoute
+  '/api/v1/checkout/sessions': typeof ApiV1CheckoutSessionsRoute
   '/admin/merchants': typeof AuthenticatedAdminMerchantsIndexRoute
   '/dashboard/payment-links/$id/edit': typeof AuthenticatedDashboardPaymentLinksIdEditRoute
 }
@@ -571,6 +595,7 @@ export interface FileRoutesById {
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
+  '/checkout/$sessionId': typeof CheckoutSessionIdRoute
   '/company/about': typeof CompanyAboutRoute
   '/company/contact': typeof CompanyContactRoute
   '/company/coverage': typeof CompanyCoverageRoute
@@ -606,6 +631,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/verify': typeof AuthenticatedDashboardVerifyRoute
   '/_authenticated/dashboard/wallet': typeof AuthenticatedDashboardWalletRoute
   '/_authenticated/dashboard/webhooks': typeof AuthenticatedDashboardWebhooksRoute
+  '/api/public/checkout-pay': typeof ApiPublicCheckoutPayRoute
   '/api/public/ligdicash-webhook': typeof ApiPublicLigdicashWebhookRoute
   '/api/public/pawapay-webhook': typeof ApiPublicPawapayWebhookRoute
   '/api/public/quote': typeof ApiPublicQuoteRoute
@@ -626,6 +652,7 @@ export interface FileRoutesById {
   '/api/public/tx-status/$id': typeof ApiPublicTxStatusIdRoute
   '/api/public/tx-timeout/$id': typeof ApiPublicTxTimeoutIdRoute
   '/api/v1/charges/$id': typeof ApiV1ChargesIdRoute
+  '/api/v1/checkout/sessions': typeof ApiV1CheckoutSessionsRoute
   '/_authenticated/admin/merchants/': typeof AuthenticatedAdminMerchantsIndexRoute
   '/_authenticated/dashboard/payment-links_/$id/edit': typeof AuthenticatedDashboardPaymentLinksIdEditRoute
 }
@@ -640,6 +667,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/auth/sign-in'
     | '/auth/sign-up'
+    | '/checkout/$sessionId'
     | '/company/about'
     | '/company/contact'
     | '/company/coverage'
@@ -675,6 +703,7 @@ export interface FileRouteTypes {
     | '/dashboard/verify'
     | '/dashboard/wallet'
     | '/dashboard/webhooks'
+    | '/api/public/checkout-pay'
     | '/api/public/ligdicash-webhook'
     | '/api/public/pawapay-webhook'
     | '/api/public/quote'
@@ -695,6 +724,7 @@ export interface FileRouteTypes {
     | '/api/public/tx-status/$id'
     | '/api/public/tx-timeout/$id'
     | '/api/v1/charges/$id'
+    | '/api/v1/checkout/sessions'
     | '/admin/merchants/'
     | '/dashboard/payment-links/$id/edit'
   fileRoutesByTo: FileRoutesByTo
@@ -705,6 +735,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/auth/sign-in'
     | '/auth/sign-up'
+    | '/checkout/$sessionId'
     | '/company/about'
     | '/company/contact'
     | '/company/coverage'
@@ -740,6 +771,7 @@ export interface FileRouteTypes {
     | '/dashboard/verify'
     | '/dashboard/wallet'
     | '/dashboard/webhooks'
+    | '/api/public/checkout-pay'
     | '/api/public/ligdicash-webhook'
     | '/api/public/pawapay-webhook'
     | '/api/public/quote'
@@ -760,6 +792,7 @@ export interface FileRouteTypes {
     | '/api/public/tx-status/$id'
     | '/api/public/tx-timeout/$id'
     | '/api/v1/charges/$id'
+    | '/api/v1/checkout/sessions'
     | '/admin/merchants'
     | '/dashboard/payment-links/$id/edit'
   id:
@@ -773,6 +806,7 @@ export interface FileRouteTypes {
     | '/_authenticated/onboarding'
     | '/auth/sign-in'
     | '/auth/sign-up'
+    | '/checkout/$sessionId'
     | '/company/about'
     | '/company/contact'
     | '/company/coverage'
@@ -808,6 +842,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/verify'
     | '/_authenticated/dashboard/wallet'
     | '/_authenticated/dashboard/webhooks'
+    | '/api/public/checkout-pay'
     | '/api/public/ligdicash-webhook'
     | '/api/public/pawapay-webhook'
     | '/api/public/quote'
@@ -828,6 +863,7 @@ export interface FileRouteTypes {
     | '/api/public/tx-status/$id'
     | '/api/public/tx-timeout/$id'
     | '/api/v1/charges/$id'
+    | '/api/v1/checkout/sessions'
     | '/_authenticated/admin/merchants/'
     | '/_authenticated/dashboard/payment-links_/$id/edit'
   fileRoutesById: FileRoutesById
@@ -838,6 +874,7 @@ export interface RootRouteChildren {
   SettingsRoute: typeof SettingsRoute
   AuthSignInRoute: typeof AuthSignInRoute
   AuthSignUpRoute: typeof AuthSignUpRoute
+  CheckoutSessionIdRoute: typeof CheckoutSessionIdRoute
   CompanyAboutRoute: typeof CompanyAboutRoute
   CompanyContactRoute: typeof CompanyContactRoute
   CompanyCoverageRoute: typeof CompanyCoverageRoute
@@ -857,6 +894,7 @@ export interface RootRouteChildren {
   ResourcesFaqRoute: typeof ResourcesFaqRoute
   ResourcesSupportRoute: typeof ResourcesSupportRoute
   ResourcesUseCasesRoute: typeof ResourcesUseCasesRoute
+  ApiPublicCheckoutPayRoute: typeof ApiPublicCheckoutPayRoute
   ApiPublicLigdicashWebhookRoute: typeof ApiPublicLigdicashWebhookRoute
   ApiPublicPawapayWebhookRoute: typeof ApiPublicPawapayWebhookRoute
   ApiPublicQuoteRoute: typeof ApiPublicQuoteRoute
@@ -871,6 +909,7 @@ export interface RootRouteChildren {
   ApiPublicPaySlugRoute: typeof ApiPublicPaySlugRoute
   ApiPublicTxStatusIdRoute: typeof ApiPublicTxStatusIdRoute
   ApiPublicTxTimeoutIdRoute: typeof ApiPublicTxTimeoutIdRoute
+  ApiV1CheckoutSessionsRoute: typeof ApiV1CheckoutSessionsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1029,6 +1068,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CompanyAboutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/checkout/$sessionId': {
+      id: '/checkout/$sessionId'
+      path: '/checkout/$sessionId'
+      fullPath: '/checkout/$sessionId'
+      preLoaderRoute: typeof CheckoutSessionIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth/sign-up': {
       id: '/auth/sign-up'
       path: '/auth/sign-up'
@@ -1162,6 +1208,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicLigdicashWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/checkout-pay': {
+      id: '/api/public/checkout-pay'
+      path: '/api/public/checkout-pay'
+      fullPath: '/api/public/checkout-pay'
+      preLoaderRoute: typeof ApiPublicCheckoutPayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/dashboard/webhooks': {
       id: '/_authenticated/dashboard/webhooks'
       path: '/webhooks'
@@ -1280,6 +1333,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/merchants/'
       preLoaderRoute: typeof AuthenticatedAdminMerchantsIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRouteRoute
+    }
+    '/api/v1/checkout/sessions': {
+      id: '/api/v1/checkout/sessions'
+      path: '/api/v1/checkout/sessions'
+      fullPath: '/api/v1/checkout/sessions'
+      preLoaderRoute: typeof ApiV1CheckoutSessionsRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/v1/charges/$id': {
       id: '/api/v1/charges/$id'
@@ -1452,6 +1512,7 @@ const rootRouteChildren: RootRouteChildren = {
   SettingsRoute: SettingsRoute,
   AuthSignInRoute: AuthSignInRoute,
   AuthSignUpRoute: AuthSignUpRoute,
+  CheckoutSessionIdRoute: CheckoutSessionIdRoute,
   CompanyAboutRoute: CompanyAboutRoute,
   CompanyContactRoute: CompanyContactRoute,
   CompanyCoverageRoute: CompanyCoverageRoute,
@@ -1471,6 +1532,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResourcesFaqRoute: ResourcesFaqRoute,
   ResourcesSupportRoute: ResourcesSupportRoute,
   ResourcesUseCasesRoute: ResourcesUseCasesRoute,
+  ApiPublicCheckoutPayRoute: ApiPublicCheckoutPayRoute,
   ApiPublicLigdicashWebhookRoute: ApiPublicLigdicashWebhookRoute,
   ApiPublicPawapayWebhookRoute: ApiPublicPawapayWebhookRoute,
   ApiPublicQuoteRoute: ApiPublicQuoteRoute,
@@ -1485,6 +1547,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicPaySlugRoute: ApiPublicPaySlugRoute,
   ApiPublicTxStatusIdRoute: ApiPublicTxStatusIdRoute,
   ApiPublicTxTimeoutIdRoute: ApiPublicTxTimeoutIdRoute,
+  ApiV1CheckoutSessionsRoute: ApiV1CheckoutSessionsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

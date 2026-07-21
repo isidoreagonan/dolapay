@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { pawapay, getCorrespondentCode } from "@/lib/pawapay.server";
-import { initiateLigdiCashPayin, type LigdiCashMethod } from "@/lib/ligdicash.server";
+import { createLigdiCashPayin, type LigdiCashMethod } from "@/lib/ligdicash.server";
 import { calculateMargin } from "@/lib/margins.server";
 
 const bodySchema = z.object({
@@ -123,11 +123,15 @@ export const Route = createFileRoute("/api/public/checkout-pay")({
               return Response.json({ error: { message: res.rejectionReason?.rejectionMessage || "Rejeté par PawaPay." } }, { status: 400 });
             }
           } else if (gateway === "ligdicash") {
-            const ligdiRes = await initiateLigdiCashPayin({
+            const ligdiRes = await createLigdiCashPayin({
               amount: session.amount,
-              custom_data: { transaction_id: txId, session_id: sessionId },
-              customer: customer_phone,
-              method: provider.toUpperCase() as LigdiCashMethod,
+              description: `Checkout ${sessionId}`,
+              customData: { transaction_id: txId, session_id: sessionId },
+              customer: {
+                firstname: session.customer_name?.split(" ")[0] || "Client",
+                lastname: session.customer_name?.split(" ").slice(1).join(" ") || "DolaPay",
+                phone: customer_phone,
+              },
             });
             if (ligdiRes.response_text !== "success") {
               await supabaseAdmin.from("transactions").update({ status: "failed" }).eq("id", txId);
