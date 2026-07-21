@@ -322,16 +322,18 @@ function WalletPage() {
         for (const b of batches) {
           if (b.payout_batch_items && Array.isArray(b.payout_batch_items)) {
             for (const item of b.payout_batch_items) {
-              if (!existingIds.has(item.id)) {
-                existingIds.add(item.id);
+              const realId = item.payout_id || item.id;
+              if (!existingIds.has(realId)) {
+                existingIds.add(realId);
                 const amt = Number(item.amount || b.total_amount || 0);
                 const st = (item.status === "completed" || item.status === "success" || item.status === "validé") ? "success" : (item.status === "failed" || item.status === "rejected" ? "failed" : "pending");
                 results.push({
                   id: item.id,
                   amount: amt,
-                  currency: (item.currency || b.currency || "XOF") as any,
-                  method: item.provider || b.name?.replace("[Retrait Wallet] ", "")?.split(" (")[0] || "Mobile Money",
-                  recipient_phone: item.recipient_phone || b.name?.split(" (")[1]?.replace(")", "") || "N/A",
+                  fee: undefined,
+                  currency: item.currency || b.currency || "XOF",
+                  method: `Virement de masse (Batch: ${b.name || b.id})`,
+                  recipient_phone: item.recipient_phone || "---",
                   status: st as any,
                   created_at: item.created_at || b.created_at,
                 });
