@@ -47,19 +47,8 @@ function WalletPage() {
   const [pin, setPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
   const [showPin, setShowPin] = useState(false);
-  const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [pinModalOpen, setPinModalOpen] = useState(false);
   const [tableSearch, setTableSearch] = useState("");
-
-  // Form State for Withdrawal
-  const [withdrawCountry, setWithdrawCountry] = useState("BF");
-  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
-  const [withdrawAmount, setWithdrawAmount] = useState("");
-  const [withdrawMethod, setWithdrawMethod] = useState("Orange Money");
-  const [withdrawPhone, setWithdrawPhone] = useState("");
-  const [withdrawPin, setWithdrawPin] = useState("");
-  const [showWithdrawPin, setShowWithdrawPin] = useState(false);
-  const activeCountry = WITHDRAW_COUNTRIES.find((c) => c.code === withdrawCountry) || WITHDRAW_COUNTRIES[0];
 
   // Saved Payout Methods State
   const [addMethodModalOpen, setAddMethodModalOpen] = useState(false);
@@ -371,40 +360,7 @@ function WalletPage() {
     },
   });
 
-  const withdrawMutation = useMutation({
-    mutationFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const response = await fetch("/api/public/withdraw", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${session?.access_token || ""}`,
-        },
-        body: JSON.stringify({
-          action: "withdraw",
-          amount: Number(withdrawAmount),
-          method: `${withdrawMethod} (${activeCountry.name})`,
-          phone: withdrawPhone,
-          testMode: false,
-        }),
-      });
-      const body = await response.json();
-      if (!response.ok) throw new Error(body.error || "Le retrait a échoué.");
-      return body;
-    },
-    onSuccess: () => {
-      toast.success("Demande de retrait enregistrée et traitée avec succès !");
-      setWithdrawOpen(false);
-      setWithdrawAmount("");
-      setWithdrawPhone("");
-      setWithdrawPin("");
-      qc.invalidateQueries({ queryKey: ["my-wallet"] });
-      qc.invalidateQueries({ queryKey: ["my-withdrawals"] });
-    },
-    onError: (err: any) => {
-      toast.error(err.message);
-    },
-  });
+
 
   if (walletLoading || withdrawalsLoading) {
     return (
@@ -715,12 +671,11 @@ function WalletPage() {
               <p className="text-xs text-slate-300 leading-relaxed">
                 Le délai de retrait est automatique ou max 24h. Passé ce délai, contactez le support.
               </p>
-              <Button
-                onClick={() => setWithdrawOpen(true)}
-                className="w-full mt-4 bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-11 rounded-xl shadow-lg shadow-primary/25 transition-transform active:scale-[0.98]"
-              >
-                Demander un retrait
-              </Button>
+              <Link to="/dashboard/wallet/withdraw">
+                <Button className="w-full mt-4 bg-primary hover:bg-primary/90 text-primary-foreground font-bold h-11 rounded-xl shadow-lg shadow-primary/25 transition-transform active:scale-[0.98]">
+                  Demander un retrait
+                </Button>
+              </Link>
             </div>
           </Card>
 
