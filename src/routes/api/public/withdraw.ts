@@ -273,7 +273,7 @@ export const Route = createFileRoute("/api/public/withdraw")({
               const st = String(t.status || "").toLowerCase();
               const isSuccess = st === "completed" || st === "successful" || st === "success" || st === "paid" || st === "validé" || st === "validated" || st === "settled" || st === "ok" || st === "confirmed";
               if (!isSuccess) continue;
-              const amt = Number(t.amount || 0);
+              const amt = Number(t.net_amount || t.amount || 0);
               const desc = String(t.description || "").toLowerCase();
               const mode = String((t as any).mode || "").toLowerCase();
               const isTestTx = desc.includes("_test") || desc.includes("sandbox") || mode === "test" || mode === "sandbox";
