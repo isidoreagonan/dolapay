@@ -49,7 +49,9 @@ import { Route as DevelopersApiAuthRouteImport } from './routes/developers/api/a
 import { Route as ApiV1PayoutsRouteImport } from './routes/api/v1/payouts'
 import { Route as ApiV1ChargesRouteImport } from './routes/api/v1/charges'
 import { Route as ApiPublicWithdrawRouteImport } from './routes/api/public/withdraw'
+import { Route as ApiPublicTestTxRouteImport } from './routes/api/public/test-tx'
 import { Route as ApiPublicTestNotifyRouteImport } from './routes/api/public/test-notify'
+import { Route as ApiPublicTestFeesRouteImport } from './routes/api/public/test-fees'
 import { Route as ApiPublicTestEmailRouteImport } from './routes/api/public/test-email'
 import { Route as ApiPublicSyncWalletRouteImport } from './routes/api/public/sync-wallet'
 import { Route as ApiPublicSendNotificationRouteImport } from './routes/api/public/send-notification'
@@ -289,9 +291,19 @@ const ApiPublicWithdrawRoute = ApiPublicWithdrawRouteImport.update({
   path: '/api/public/withdraw',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicTestTxRoute = ApiPublicTestTxRouteImport.update({
+  id: '/api/public/test-tx',
+  path: '/api/public/test-tx',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicTestNotifyRoute = ApiPublicTestNotifyRouteImport.update({
   id: '/api/public/test-notify',
   path: '/api/public/test-notify',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicTestFeesRoute = ApiPublicTestFeesRouteImport.update({
+  id: '/api/public/test-fees',
+  path: '/api/public/test-fees',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicTestEmailRoute = ApiPublicTestEmailRouteImport.update({
@@ -537,7 +549,9 @@ export interface FileRoutesByFullPath {
   '/api/public/send-notification': typeof ApiPublicSendNotificationRoute
   '/api/public/sync-wallet': typeof ApiPublicSyncWalletRoute
   '/api/public/test-email': typeof ApiPublicTestEmailRoute
+  '/api/public/test-fees': typeof ApiPublicTestFeesRoute
   '/api/public/test-notify': typeof ApiPublicTestNotifyRoute
+  '/api/public/test-tx': typeof ApiPublicTestTxRoute
   '/api/public/withdraw': typeof ApiPublicWithdrawRoute
   '/api/v1/charges': typeof ApiV1ChargesRouteWithChildren
   '/api/v1/payouts': typeof ApiV1PayoutsRoute
@@ -610,7 +624,9 @@ export interface FileRoutesByTo {
   '/api/public/send-notification': typeof ApiPublicSendNotificationRoute
   '/api/public/sync-wallet': typeof ApiPublicSyncWalletRoute
   '/api/public/test-email': typeof ApiPublicTestEmailRoute
+  '/api/public/test-fees': typeof ApiPublicTestFeesRoute
   '/api/public/test-notify': typeof ApiPublicTestNotifyRoute
+  '/api/public/test-tx': typeof ApiPublicTestTxRoute
   '/api/public/withdraw': typeof ApiPublicWithdrawRoute
   '/api/v1/charges': typeof ApiV1ChargesRouteWithChildren
   '/api/v1/payouts': typeof ApiV1PayoutsRoute
@@ -688,7 +704,9 @@ export interface FileRoutesById {
   '/api/public/send-notification': typeof ApiPublicSendNotificationRoute
   '/api/public/sync-wallet': typeof ApiPublicSyncWalletRoute
   '/api/public/test-email': typeof ApiPublicTestEmailRoute
+  '/api/public/test-fees': typeof ApiPublicTestFeesRoute
   '/api/public/test-notify': typeof ApiPublicTestNotifyRoute
+  '/api/public/test-tx': typeof ApiPublicTestTxRoute
   '/api/public/withdraw': typeof ApiPublicWithdrawRoute
   '/api/v1/charges': typeof ApiV1ChargesRouteWithChildren
   '/api/v1/payouts': typeof ApiV1PayoutsRoute
@@ -766,7 +784,9 @@ export interface FileRouteTypes {
     | '/api/public/send-notification'
     | '/api/public/sync-wallet'
     | '/api/public/test-email'
+    | '/api/public/test-fees'
     | '/api/public/test-notify'
+    | '/api/public/test-tx'
     | '/api/public/withdraw'
     | '/api/v1/charges'
     | '/api/v1/payouts'
@@ -839,7 +859,9 @@ export interface FileRouteTypes {
     | '/api/public/send-notification'
     | '/api/public/sync-wallet'
     | '/api/public/test-email'
+    | '/api/public/test-fees'
     | '/api/public/test-notify'
+    | '/api/public/test-tx'
     | '/api/public/withdraw'
     | '/api/v1/charges'
     | '/api/v1/payouts'
@@ -916,7 +938,9 @@ export interface FileRouteTypes {
     | '/api/public/send-notification'
     | '/api/public/sync-wallet'
     | '/api/public/test-email'
+    | '/api/public/test-fees'
     | '/api/public/test-notify'
+    | '/api/public/test-tx'
     | '/api/public/withdraw'
     | '/api/v1/charges'
     | '/api/v1/payouts'
@@ -974,7 +998,9 @@ export interface RootRouteChildren {
   ApiPublicSendNotificationRoute: typeof ApiPublicSendNotificationRoute
   ApiPublicSyncWalletRoute: typeof ApiPublicSyncWalletRoute
   ApiPublicTestEmailRoute: typeof ApiPublicTestEmailRoute
+  ApiPublicTestFeesRoute: typeof ApiPublicTestFeesRoute
   ApiPublicTestNotifyRoute: typeof ApiPublicTestNotifyRoute
+  ApiPublicTestTxRoute: typeof ApiPublicTestTxRoute
   ApiPublicWithdrawRoute: typeof ApiPublicWithdrawRoute
   ApiV1ChargesRoute: typeof ApiV1ChargesRouteWithChildren
   ApiV1PayoutsRoute: typeof ApiV1PayoutsRoute
@@ -1266,11 +1292,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicWithdrawRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/test-tx': {
+      id: '/api/public/test-tx'
+      path: '/api/public/test-tx'
+      fullPath: '/api/public/test-tx'
+      preLoaderRoute: typeof ApiPublicTestTxRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/test-notify': {
       id: '/api/public/test-notify'
       path: '/api/public/test-notify'
       fullPath: '/api/public/test-notify'
       preLoaderRoute: typeof ApiPublicTestNotifyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/test-fees': {
+      id: '/api/public/test-fees'
+      path: '/api/public/test-fees'
+      fullPath: '/api/public/test-fees'
+      preLoaderRoute: typeof ApiPublicTestFeesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/test-email': {
@@ -1675,7 +1715,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicSendNotificationRoute: ApiPublicSendNotificationRoute,
   ApiPublicSyncWalletRoute: ApiPublicSyncWalletRoute,
   ApiPublicTestEmailRoute: ApiPublicTestEmailRoute,
+  ApiPublicTestFeesRoute: ApiPublicTestFeesRoute,
   ApiPublicTestNotifyRoute: ApiPublicTestNotifyRoute,
+  ApiPublicTestTxRoute: ApiPublicTestTxRoute,
   ApiPublicWithdrawRoute: ApiPublicWithdrawRoute,
   ApiV1ChargesRoute: ApiV1ChargesRouteWithChildren,
   ApiV1PayoutsRoute: ApiV1PayoutsRoute,

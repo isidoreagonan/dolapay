@@ -334,6 +334,27 @@ export const Route = createFileRoute("/api/public/withdraw")({
               }
             }
 
+            // Sommation exhaustive des virements de masse
+            const { data: batches } = await (supabaseAdmin.from("payout_batches") as any)
+              .select("*, payout_batch_items(*)")
+              .eq("owner_id", user.id);
+            if (batches && batches.length > 0) {
+              for (const b of batches) {
+                if (b.payout_batch_items && Array.isArray(b.payout_batch_items)) {
+                  for (const item of b.payout_batch_items) {
+                    const st = String(item.status || "").toLowerCase();
+                    if (st === "success" || st === "completed" || st === "validé" || st === "validated" || st === "processing" || st === "pending") {
+                      if (!seenWIds.has(String(item.id))) {
+                        seenWIds.add(String(item.id));
+                        const amt = Number(item.amount || b.total_amount || 0);
+                        if (amt > 0) livePayout += amt;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+
             const baseDeposit = livePayin > 0 ? livePayin : Math.max(currentBalance + livePayout, profBalance + livePayout, metaBalance + livePayout, 0);
             currentBalance = Math.max(0, baseDeposit - livePayout);
 

@@ -202,7 +202,13 @@ function WalletPage() {
       const metaPin = authData?.user?.user_metadata?.wallet_pin;
 
       let bestBalance = 0;
-      bestBalance = Math.max(0, livePayin - livePayout);
+      if (livePayin > 0) {
+        // If the user has active transaction flows, the ledger is the source of truth
+        bestBalance = Math.max(0, livePayin - livePayout);
+      } else {
+        // If there are no pay-ins in the ledger, the balance must have been injected manually (e.g. testing)
+        bestBalance = Math.max(storedBalance, profBalance, metaBalance, 0);
+      }
 
       if (!data) {
         if (bestBalance > 0 || authData?.user?.user_metadata?.wallet_created || metaPin) {
