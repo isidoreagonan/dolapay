@@ -436,14 +436,11 @@ function PayPage() {
 
           {/* Product Info */}
           <div className="space-y-6">
-            {link.image_url ? (
-              <div className="relative aspect-video w-full rounded-2xl overflow-hidden shadow-md">
-                <img src={link.image_url} alt="" className="h-full w-full object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 to-transparent" />
-              </div>
-            ) : (
-              <div className="h-44 w-full rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 dark:from-primary/20 dark:to-transparent flex items-center justify-center border border-primary/10">
-                <CreditCard className="h-16 w-16 text-primary/40" />
+            {link.image_url && (
+              <div className="relative w-full rounded-3xl overflow-hidden shadow-xl bg-white/50 dark:bg-slate-950/50 border border-slate-200/60 dark:border-slate-800/60 backdrop-blur-sm">
+                <div className="flex items-center justify-center bg-slate-50/50 dark:bg-slate-900/50 p-2">
+                  <img src={link.image_url} alt="" className="max-h-72 w-auto object-contain rounded-2xl shadow-sm" />
+                </div>
               </div>
             )}
 
@@ -468,12 +465,12 @@ function PayPage() {
         {/* Pricing Summary */}
         <div className="mt-10 pt-8 border-t border-slate-200 dark:border-slate-800 space-y-4">
           <div className="flex justify-between items-baseline">
-            <span className="text-sm text-slate-500 dark:text-slate-400 font-medium">Montant à régler</span>
+            <span className="text-sm text-slate-500 dark:text-slate-400 font-semibold tracking-wide uppercase">Montant à régler</span>
             <div className="text-right">
-              <span className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+              <span className="text-4xl md:text-5xl font-black tracking-tighter text-slate-900 dark:text-white">
                 {fmt(link.amount)}
               </span>
-              <span className="ml-1.5 text-sm font-bold text-slate-500 dark:text-slate-400 uppercase">
+              <span className="ml-2 text-lg font-bold text-slate-500 dark:text-slate-400 uppercase">
                 {link.currency}
               </span>
             </div>
@@ -520,7 +517,7 @@ function PayPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="nom@exemple.com"
-                    className="pl-9 h-11 border-slate-200 dark:border-slate-800 focus-visible:ring-primary rounded-xl"
+                    className="pl-10 h-12 bg-slate-50/50 hover:bg-slate-100/50 dark:bg-slate-900/50 dark:hover:bg-slate-900 border-slate-200 dark:border-slate-800 focus-visible:ring-4 focus-visible:ring-primary/10 focus-visible:border-primary rounded-xl transition-all shadow-sm"
                   />
                 </div>
               </div>
@@ -539,7 +536,7 @@ function PayPage() {
                     required
                     maxLength={100}
                     placeholder="Votre nom complet"
-                    className="pl-9 h-11 border-slate-200 dark:border-slate-800 focus-visible:ring-primary rounded-xl"
+                    className="pl-10 h-12 bg-slate-50/50 hover:bg-slate-100/50 dark:bg-slate-900/50 dark:hover:bg-slate-900 border-slate-200 dark:border-slate-800 focus-visible:ring-4 focus-visible:ring-primary/10 focus-visible:border-primary rounded-xl transition-all shadow-sm"
                   />
                 </div>
               </div>
@@ -552,14 +549,14 @@ function PayPage() {
                 <button
                   type="button"
                   onClick={() => setShowCountryDropdown(!showCountryDropdown)}
-                  className="w-full flex items-center justify-between px-3.5 h-11 border border-slate-200 dark:border-slate-800 bg-background hover:bg-slate-50 dark:hover:bg-slate-900 rounded-xl text-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full flex items-center justify-between px-4 h-12 border border-slate-200 dark:border-slate-800 bg-slate-50/50 hover:bg-slate-100/50 dark:bg-slate-900/50 dark:hover:bg-slate-900 rounded-xl text-sm transition-all focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary shadow-sm"
                 >
-                  <div className="flex items-center gap-2.5">
-                    <FlagIcon code={activeCountry.code} flag={activeCountry.flag} name={activeCountry.name} className="w-5 h-3.5" />
+                  <div className="flex items-center gap-3">
+                    <FlagIcon code={activeCountry.code} flag={activeCountry.flag} name={activeCountry.name} className="w-5 h-3.5 shadow-sm" />
                     <span className="font-medium text-slate-900 dark:text-white">{activeCountry.name}</span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-slate-400 text-xs">
-                    <span>+{activeCountry.prefix}</span>
+                  <div className="flex items-center gap-2 text-slate-400 text-xs">
+                    <span className="font-bold opacity-75">+{activeCountry.prefix}</span>
                     <ChevronDown className="h-4 w-4 shrink-0" />
                   </div>
                 </button>
@@ -645,7 +642,7 @@ function PayPage() {
                     required
                     maxLength={20}
                     placeholder={`+${activeCountry.prefix} ...`}
-                    className="pl-9 h-11 border-slate-200 dark:border-slate-800 focus-visible:ring-primary rounded-xl font-mono text-sm"
+                    className="pl-10 h-12 bg-slate-50/50 hover:bg-slate-100/50 dark:bg-slate-900/50 dark:hover:bg-slate-900 border-slate-200 dark:border-slate-800 focus-visible:ring-4 focus-visible:ring-primary/10 focus-visible:border-primary rounded-xl font-mono text-sm transition-all shadow-sm"
                   />
                 </div>
                 <p className="text-[10px] text-slate-400 leading-normal">
@@ -656,7 +653,7 @@ function PayPage() {
               {/* Pay Button */}
               <Button
                 type="submit"
-                className="w-full h-11 rounded-xl font-bold shadow-lg shadow-primary/20 text-sm flex items-center justify-center gap-2"
+                className="w-full h-14 rounded-xl font-bold shadow-xl shadow-primary/25 text-base flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all mt-4"
                 disabled={submitting}
               >
                 {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Lock className="h-3.5 w-3.5" />}
