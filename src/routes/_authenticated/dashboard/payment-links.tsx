@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -63,9 +63,9 @@ function genInvoice() {
 
 function PaymentLinksPage() {
   const qc = useQueryClient();
+  const navigate = useNavigate();
   const { data: profile } = useProfile();
   const locked = profile?.kyc_status !== "approved";
-  const [createOpen, setCreateOpen] = useState(false);
   const [editLink, setEditLink] = useState<PL | null>(null);
   const [previewLink, setPreviewLink] = useState<PL | null>(null);
   const [deleteLink, setDeleteLink] = useState<PL | null>(null);
@@ -193,7 +193,7 @@ function PaymentLinksPage() {
           size="lg"
           disabled={locked}
           className="gap-2 shadow-lg shadow-primary/30"
-          onClick={() => setCreateOpen(true)}
+          onClick={() => navigate({ to: "/dashboard/payment-links/new" })}
         >
           <Plus className="h-4 w-4" /> Nouveau lien
         </Button>
@@ -275,11 +275,6 @@ function PaymentLinksPage() {
           </div>
         )}
       </AnimatePresence>
-
-      {/* Create Dialog */}
-      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <LinkFormDialog onClose={() => setCreateOpen(false)} />
-      </Dialog>
 
       {/* Edit Dialog */}
       <Dialog open={!!editLink} onOpenChange={(v) => !v && setEditLink(null)}>

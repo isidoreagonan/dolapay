@@ -69,6 +69,7 @@ import { Route as ApiV1ChargesIdRouteImport } from './routes/api/v1/charges.$id'
 import { Route as ApiPublicTxTimeoutIdRouteImport } from './routes/api/public/tx-timeout.$id'
 import { Route as ApiPublicTxStatusIdRouteImport } from './routes/api/public/tx-status.$id'
 import { Route as ApiPublicPaySlugRouteImport } from './routes/api/public/pay.$slug'
+import { Route as AuthenticatedDashboardPaymentLinksNewRouteImport } from './routes/_authenticated/dashboard/payment-links_.new'
 import { Route as AuthenticatedAdminMerchantsIdRouteImport } from './routes/_authenticated/admin/merchants.$id'
 
 const SettingsRoute = SettingsRouteImport.update({
@@ -387,6 +388,12 @@ const ApiPublicPaySlugRoute = ApiPublicPaySlugRouteImport.update({
   path: '/api/public/pay/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedDashboardPaymentLinksNewRoute =
+  AuthenticatedDashboardPaymentLinksNewRouteImport.update({
+    id: '/payment-links_/new',
+    path: '/payment-links/new',
+    getParentRoute: () => AuthenticatedDashboardRouteRoute,
+  } as any)
 const AuthenticatedAdminMerchantsIdRoute =
   AuthenticatedAdminMerchantsIdRouteImport.update({
     id: '/merchants/$id',
@@ -450,6 +457,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/admin/merchants/$id': typeof AuthenticatedAdminMerchantsIdRoute
+  '/dashboard/payment-links/new': typeof AuthenticatedDashboardPaymentLinksNewRoute
   '/api/public/pay/$slug': typeof ApiPublicPaySlugRoute
   '/api/public/tx-status/$id': typeof ApiPublicTxStatusIdRoute
   '/api/public/tx-timeout/$id': typeof ApiPublicTxTimeoutIdRoute
@@ -510,6 +518,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/admin/merchants/$id': typeof AuthenticatedAdminMerchantsIdRoute
+  '/dashboard/payment-links/new': typeof AuthenticatedDashboardPaymentLinksNewRoute
   '/api/public/pay/$slug': typeof ApiPublicPaySlugRoute
   '/api/public/tx-status/$id': typeof ApiPublicTxStatusIdRoute
   '/api/public/tx-timeout/$id': typeof ApiPublicTxTimeoutIdRoute
@@ -574,6 +583,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/_authenticated/admin/merchants/$id': typeof AuthenticatedAdminMerchantsIdRoute
+  '/_authenticated/dashboard/payment-links_/new': typeof AuthenticatedDashboardPaymentLinksNewRoute
   '/api/public/pay/$slug': typeof ApiPublicPaySlugRoute
   '/api/public/tx-status/$id': typeof ApiPublicTxStatusIdRoute
   '/api/public/tx-timeout/$id': typeof ApiPublicTxTimeoutIdRoute
@@ -638,6 +648,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/dashboard/'
     | '/admin/merchants/$id'
+    | '/dashboard/payment-links/new'
     | '/api/public/pay/$slug'
     | '/api/public/tx-status/$id'
     | '/api/public/tx-timeout/$id'
@@ -698,6 +709,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/admin/merchants/$id'
+    | '/dashboard/payment-links/new'
     | '/api/public/pay/$slug'
     | '/api/public/tx-status/$id'
     | '/api/public/tx-timeout/$id'
@@ -761,6 +773,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/'
     | '/_authenticated/dashboard/'
     | '/_authenticated/admin/merchants/$id'
+    | '/_authenticated/dashboard/payment-links_/new'
     | '/api/public/pay/$slug'
     | '/api/public/tx-status/$id'
     | '/api/public/tx-timeout/$id'
@@ -1230,6 +1243,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPaySlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/dashboard/payment-links_/new': {
+      id: '/_authenticated/dashboard/payment-links_/new'
+      path: '/payment-links/new'
+      fullPath: '/dashboard/payment-links/new'
+      preLoaderRoute: typeof AuthenticatedDashboardPaymentLinksNewRouteImport
+      parentRoute: typeof AuthenticatedDashboardRouteRoute
+    }
     '/_authenticated/admin/merchants/$id': {
       id: '/_authenticated/admin/merchants/$id'
       path: '/merchants/$id'
@@ -1282,6 +1302,7 @@ interface AuthenticatedDashboardRouteRouteChildren {
   AuthenticatedDashboardVerifyRoute: typeof AuthenticatedDashboardVerifyRoute
   AuthenticatedDashboardWalletRoute: typeof AuthenticatedDashboardWalletRoute
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
+  AuthenticatedDashboardPaymentLinksNewRoute: typeof AuthenticatedDashboardPaymentLinksNewRoute
 }
 
 const AuthenticatedDashboardRouteRouteChildren: AuthenticatedDashboardRouteRouteChildren =
@@ -1298,6 +1319,8 @@ const AuthenticatedDashboardRouteRouteChildren: AuthenticatedDashboardRouteRoute
     AuthenticatedDashboardVerifyRoute: AuthenticatedDashboardVerifyRoute,
     AuthenticatedDashboardWalletRoute: AuthenticatedDashboardWalletRoute,
     AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
+    AuthenticatedDashboardPaymentLinksNewRoute:
+      AuthenticatedDashboardPaymentLinksNewRoute,
   }
 
 const AuthenticatedDashboardRouteRouteWithChildren =
