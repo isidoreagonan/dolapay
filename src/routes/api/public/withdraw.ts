@@ -303,7 +303,7 @@ export const Route = createFileRoute("/api/public/withdraw")({
               const mode = String((t as any).mode || "").toLowerCase();
               const isTestTx = desc.includes("_test") || desc.includes("sandbox") || mode === "test" || mode === "sandbox";
               if (isTestTx) continue;
-              const isPayout = String(t.type || "").toLowerCase().includes("payout") || String(t.type || "").toLowerCase().includes("withdraw");
+              const isPayout = String(t.type || "").toLowerCase().includes("payout") || String(t.type || "").toLowerCase().includes("pay-out") || String(t.type || "").toLowerCase().includes("withdraw");
               if (isPayout) livePayout += amt;
               else livePayin += amt;
             }
