@@ -15,7 +15,7 @@ async function createCheckoutSession() {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        amount: 5000,
+        amount: 200,
         currency: "XOF",
         success_url: "https://dola-pay.com", // Redirection après succès
         cancel_url: "https://dola-pay.com", // Redirection si annulé
