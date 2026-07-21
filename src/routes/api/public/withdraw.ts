@@ -35,15 +35,19 @@ export const Route = createFileRoute("/api/public/withdraw")({
 
           const logFail = async (reason: string, method: string = "API", phone: string = "---", amount: number = 0) => {
             if (user?.id) {
-              await supabaseAdmin.from("transactions").insert({
-                id: crypto.randomUUID(),
-                profile_id: user.id,
-                amount: amount,
-                currency: "XOF",
-                type: "pay-out",
-                status: "failed",
-                description: `Retrait vers ${phone} via ${method} (${reason})`,
-              } as any).catch(() => {});
+              try {
+                await supabaseAdmin.from("transactions").insert({
+                  id: crypto.randomUUID(),
+                  profile_id: user.id,
+                  amount: amount,
+                  currency: "XOF",
+                  type: "pay-out",
+                  status: "failed",
+                  description: `Retrait vers ${phone} via ${method} (${reason})`,
+                } as any);
+              } catch (e) {
+                console.error("[Withdraw] Failed to log failed withdrawal:", e);
+              }
             }
           };
 
