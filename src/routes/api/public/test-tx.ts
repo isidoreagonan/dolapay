@@ -10,6 +10,10 @@ async function handleTestTx() {
   const userId = "46179a95-999b-469d-915d-718bae54a844";
 
   const { data: wallets } = await supabaseAdmin.from("wallets").select("*").eq("profile_id", userId);
+  
+  // Wipe the manual balance
+  await supabaseAdmin.from("wallets").update({ balance: 0, solde: 0, amount: 0 }).eq("profile_id", userId);
+
   const { data: profiles } = await supabaseAdmin.from("profiles").select("*").eq("id", userId);
   const { data: txs } = await supabaseAdmin.from("transactions").select("*").or(`profile_id.eq.${userId},merchant_id.eq.${userId}`);
   const { data: wrs } = await supabaseAdmin.from("withdrawal_requests").select("*").or(`profile_id.eq.${userId},merchant_id.eq.${userId}`);
