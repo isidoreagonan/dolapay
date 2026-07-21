@@ -14,8 +14,11 @@ async function handleTestTx() {
     user_metadata: { wallet_balance: 0 }
   });
 
+  const { data: uData } = await supabaseAdmin.auth.admin.getUserById(userId);
+
   return Response.json({
-    uError: uRes.error
+    uError: uRes.error,
+    metadata: uData?.user?.user_metadata
   });
 }
 
