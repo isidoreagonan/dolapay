@@ -245,8 +245,7 @@ function WalletPage() {
   const { data: withdrawals = [], isLoading: withdrawalsLoading } = useQuery({
     queryKey: ["my-withdrawals", profile?.id],
     enabled: !!profile?.id,
-    staleTime: 1000 * 60 * 5,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
     queryFn: async (): Promise<WithdrawalRequest[]> => {
       // Synchronisation automatique en tâche de fond pour corriger les statuts et soldes
       fetch("/api/public/sync-wallet", {
