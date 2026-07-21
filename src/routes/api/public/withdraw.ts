@@ -34,21 +34,20 @@ export const Route = createFileRoute("/api/public/withdraw")({
           const { action } = json;
 
           const logFail = async (reason: string, method: string = "API", phone: string = "---", amount: number = 0) => {
+            let dbErr = null;
             if (user?.id) {
-              try {
-                await supabaseAdmin.from("transactions").insert({
-                  id: crypto.randomUUID(),
-                  profile_id: user.id,
-                  amount: amount,
-                  currency: "XOF",
-                  type: "pay-out",
-                  status: "failed",
-                  description: `Retrait vers ${phone} via ${method} (${reason})`,
-                } as any);
-              } catch (e) {
-                console.error("[Withdraw] Failed to log failed withdrawal:", e);
-              }
+              const { error } = await supabaseAdmin.from("transactions").insert({
+                id: crypto.randomUUID(),
+                profile_id: user.id,
+                amount: amount,
+                currency: "XOF",
+                type: "pay-out",
+                status: "failed",
+                description: `Retrait vers ${phone} via ${method} (${reason})`,
+              } as any);
+              dbErr = error;
             }
+            return dbErr;
           };
 
           // =================== ACTION: SETUP PIN ===================
@@ -210,8 +209,8 @@ export const Route = createFileRoute("/api/public/withdraw")({
             const { amount, method, phone, pin } = json;
 
             if (!amount || amount < 100) {
-              await logFail("Le montant minimum est de 100 XOF", method, phone, amount);
-              return Response.json({ error: "Le montant minimum est de 100 XOF." }, { status: 400 });
+              const err = await logFail("Le montant minimum est de 100 XOF", method, phone, amount);
+              return Response.json({ error: "Le montant minimum est de 100 XOF." + (err ? ` (DB Error: ${err.message})` : "") }, { status: 400 });
             }
             if (!method || typeof method !== "string" || method.trim().length === 0) {
               await logFail("Méthode de retrait non spécifiée", method, phone, amount);
@@ -345,8 +344,10 @@ export const Route = createFileRoute("/api/public/withdraw")({
             const margins = await calculateMargin(supabaseAdmin, amount, "pay-out", correspondentCode, "pawapay");
 
             if (currentBalance < margins.net_amount) {
-              await logFail("Solde insuffisant", method, phone, amount);
-              return Response.json({ error: `Solde insuffisant (${Math.round(currentBalance)} XOF disponibles) pour un retrait de ${amount} (avec frais : ${margins.net_amount} XOF).` }, { status: 400 });
+              const dbErr = await logFail("Solde insuffisant", method, phone, amount);
+              let msg = `Solde insuffisant (${Math.round(currentBalance)} XOF disponibles) pour un retrait de ${amount} (avec frais : ${margins.net_amount} XOF).`;
+              if (dbErr) msg += ` [ERR SQL: ${dbErr.message}]`;
+              return Response.json({ error: msg }, { status: 400 });
             }
 
             // Mettre à jour le solde (DÉDUCTION) sur l'ensemble des emplacements connus pour garder la synchro parfaite
