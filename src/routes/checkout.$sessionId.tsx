@@ -212,6 +212,28 @@ function CheckoutPage() {
     return () => { supabase.removeChannel(chan); };
   }, [txId, session?.success_url, sessionId]);
 
+  // Fallback polling (in case real-time is disabled on the table)
+  useEffect(() => {
+    if (!txId || status === "success" || status === "failed") return;
+
+    const interval = setInterval(async () => {
+      const { data } = await supabase.from("transactions").select("status").eq("id", txId).maybeSingle();
+      if (data && (data.status === "success" || data.status === "failed")) {
+        setStatus(data.status);
+        setSubmitting(false);
+        if (data.status === "success") {
+          supabase.from("checkout_sessions").update({ status: "completed" }).eq("id", sessionId).then(() => {
+            if (session?.success_url) {
+              setTimeout(() => window.location.href = session.success_url, 3000);
+            }
+          });
+        }
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [txId, status, session?.success_url, sessionId]);
+
   if (isLoading) return <div className="flex min-h-screen items-center justify-center bg-[#F9FAFB]"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
   if (!session || error) return <div className="flex min-h-screen items-center justify-center bg-[#F9FAFB]"><div className="text-center text-red-500 text-lg font-medium">Session de paiement introuvable ou expirée.</div></div>;
 
