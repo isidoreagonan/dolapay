@@ -69,6 +69,7 @@ import { Route as ApiV1ChargesIdRouteImport } from './routes/api/v1/charges.$id'
 import { Route as ApiPublicTxTimeoutIdRouteImport } from './routes/api/public/tx-timeout.$id'
 import { Route as ApiPublicTxStatusIdRouteImport } from './routes/api/public/tx-status.$id'
 import { Route as ApiPublicPaySlugRouteImport } from './routes/api/public/pay.$slug'
+import { Route as AuthenticatedDashboardWalletWithdrawRouteImport } from './routes/_authenticated/dashboard/wallet_.withdraw'
 import { Route as AuthenticatedDashboardPaymentLinksNewRouteImport } from './routes/_authenticated/dashboard/payment-links_.new'
 import { Route as AuthenticatedAdminMerchantsIdRouteImport } from './routes/_authenticated/admin/merchants.$id'
 import { Route as AuthenticatedDashboardPaymentLinksIdEditRouteImport } from './routes/_authenticated/dashboard/payment-links_.$id.edit'
@@ -389,6 +390,12 @@ const ApiPublicPaySlugRoute = ApiPublicPaySlugRouteImport.update({
   path: '/api/public/pay/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedDashboardWalletWithdrawRoute =
+  AuthenticatedDashboardWalletWithdrawRouteImport.update({
+    id: '/wallet_/withdraw',
+    path: '/wallet/withdraw',
+    getParentRoute: () => AuthenticatedDashboardRouteRoute,
+  } as any)
 const AuthenticatedDashboardPaymentLinksNewRoute =
   AuthenticatedDashboardPaymentLinksNewRouteImport.update({
     id: '/payment-links_/new',
@@ -465,6 +472,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/admin/merchants/$id': typeof AuthenticatedAdminMerchantsIdRoute
   '/dashboard/payment-links/new': typeof AuthenticatedDashboardPaymentLinksNewRoute
+  '/dashboard/wallet/withdraw': typeof AuthenticatedDashboardWalletWithdrawRoute
   '/api/public/pay/$slug': typeof ApiPublicPaySlugRoute
   '/api/public/tx-status/$id': typeof ApiPublicTxStatusIdRoute
   '/api/public/tx-timeout/$id': typeof ApiPublicTxTimeoutIdRoute
@@ -527,6 +535,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
   '/admin/merchants/$id': typeof AuthenticatedAdminMerchantsIdRoute
   '/dashboard/payment-links/new': typeof AuthenticatedDashboardPaymentLinksNewRoute
+  '/dashboard/wallet/withdraw': typeof AuthenticatedDashboardWalletWithdrawRoute
   '/api/public/pay/$slug': typeof ApiPublicPaySlugRoute
   '/api/public/tx-status/$id': typeof ApiPublicTxStatusIdRoute
   '/api/public/tx-timeout/$id': typeof ApiPublicTxTimeoutIdRoute
@@ -593,6 +602,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
   '/_authenticated/admin/merchants/$id': typeof AuthenticatedAdminMerchantsIdRoute
   '/_authenticated/dashboard/payment-links_/new': typeof AuthenticatedDashboardPaymentLinksNewRoute
+  '/_authenticated/dashboard/wallet_/withdraw': typeof AuthenticatedDashboardWalletWithdrawRoute
   '/api/public/pay/$slug': typeof ApiPublicPaySlugRoute
   '/api/public/tx-status/$id': typeof ApiPublicTxStatusIdRoute
   '/api/public/tx-timeout/$id': typeof ApiPublicTxTimeoutIdRoute
@@ -659,6 +669,7 @@ export interface FileRouteTypes {
     | '/dashboard/'
     | '/admin/merchants/$id'
     | '/dashboard/payment-links/new'
+    | '/dashboard/wallet/withdraw'
     | '/api/public/pay/$slug'
     | '/api/public/tx-status/$id'
     | '/api/public/tx-timeout/$id'
@@ -721,6 +732,7 @@ export interface FileRouteTypes {
     | '/dashboard'
     | '/admin/merchants/$id'
     | '/dashboard/payment-links/new'
+    | '/dashboard/wallet/withdraw'
     | '/api/public/pay/$slug'
     | '/api/public/tx-status/$id'
     | '/api/public/tx-timeout/$id'
@@ -786,6 +798,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/'
     | '/_authenticated/admin/merchants/$id'
     | '/_authenticated/dashboard/payment-links_/new'
+    | '/_authenticated/dashboard/wallet_/withdraw'
     | '/api/public/pay/$slug'
     | '/api/public/tx-status/$id'
     | '/api/public/tx-timeout/$id'
@@ -1256,6 +1269,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPaySlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/dashboard/wallet_/withdraw': {
+      id: '/_authenticated/dashboard/wallet_/withdraw'
+      path: '/wallet/withdraw'
+      fullPath: '/dashboard/wallet/withdraw'
+      preLoaderRoute: typeof AuthenticatedDashboardWalletWithdrawRouteImport
+      parentRoute: typeof AuthenticatedDashboardRouteRoute
+    }
     '/_authenticated/dashboard/payment-links_/new': {
       id: '/_authenticated/dashboard/payment-links_/new'
       path: '/payment-links/new'
@@ -1323,6 +1343,7 @@ interface AuthenticatedDashboardRouteRouteChildren {
   AuthenticatedDashboardWalletRoute: typeof AuthenticatedDashboardWalletRoute
   AuthenticatedDashboardIndexRoute: typeof AuthenticatedDashboardIndexRoute
   AuthenticatedDashboardPaymentLinksNewRoute: typeof AuthenticatedDashboardPaymentLinksNewRoute
+  AuthenticatedDashboardWalletWithdrawRoute: typeof AuthenticatedDashboardWalletWithdrawRoute
   AuthenticatedDashboardPaymentLinksIdEditRoute: typeof AuthenticatedDashboardPaymentLinksIdEditRoute
 }
 
@@ -1342,6 +1363,8 @@ const AuthenticatedDashboardRouteRouteChildren: AuthenticatedDashboardRouteRoute
     AuthenticatedDashboardIndexRoute: AuthenticatedDashboardIndexRoute,
     AuthenticatedDashboardPaymentLinksNewRoute:
       AuthenticatedDashboardPaymentLinksNewRoute,
+    AuthenticatedDashboardWalletWithdrawRoute:
+      AuthenticatedDashboardWalletWithdrawRoute,
     AuthenticatedDashboardPaymentLinksIdEditRoute:
       AuthenticatedDashboardPaymentLinksIdEditRoute,
   }
