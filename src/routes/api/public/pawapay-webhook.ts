@@ -93,13 +93,9 @@ export const Route = createFileRoute("/api/public/pawapay-webhook")({
                   try {
                     const amt = Number(tx.net_amount || tx.amount);
                     const { data: w } = await (supabaseAdmin.from("wallets") as any).select("balance").eq("profile_id", tx.profile_id).maybeSingle();
-                    if (w && typeof w.balance === "number") {
-                      await (supabaseAdmin.from("wallets") as any).update({ balance: w.balance + amt, updated_at: new Date().toISOString() }).eq("profile_id", tx.profile_id);
-                    }
-                    const { data: prof } = await (supabaseAdmin.from("profiles") as any).select("balance, wallet_balance").eq("id", tx.profile_id).maybeSingle();
-                    if (prof) {
-                      const currBal = Number(prof.balance || prof.wallet_balance || 0);
-                      await (supabaseAdmin.from("profiles") as any).update({ balance: currBal + amt, wallet_balance: currBal + amt }).eq("id", tx.profile_id);
+                    if (w) {
+                      const currBal = Number(w.balance || 0);
+                      await (supabaseAdmin.from("wallets") as any).update({ balance: currBal + amt, updated_at: new Date().toISOString() }).eq("profile_id", tx.profile_id);
                     }
                   } catch (e) {
                     console.error("[PawaPay Webhook] Error crediting merchant balance:", e);

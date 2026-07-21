@@ -77,6 +77,20 @@ export const Route = createFileRoute("/api/public/ligdicash-webhook")({
               .eq("id", txId);
 
             if (verifiedStatus === "success") {
+              // Update merchant wallet balance
+              if (tx.profile_id && Number(tx.amount) > 0) {
+                try {
+                  const amt = Number(tx.net_amount || tx.amount);
+                  const { data: w } = await (supabaseAdmin.from("wallets") as any).select("balance").eq("profile_id", tx.profile_id).maybeSingle();
+                  if (w) {
+                    const currBal = Number(w.balance || 0);
+                    await (supabaseAdmin.from("wallets") as any).update({ balance: currBal + amt, updated_at: new Date().toISOString() }).eq("profile_id", tx.profile_id);
+                  }
+                } catch (eWallet) {
+                  console.error("[ligdicash-webhook] Error crediting merchant balance:", eWallet);
+                }
+              }
+
               try {
                 const { notifyDepositSuccess } = await import("@/lib/email.server");
                 await notifyDepositSuccess(supabaseAdmin, txId);

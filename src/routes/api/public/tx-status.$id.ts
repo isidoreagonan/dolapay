@@ -95,13 +95,9 @@ export const Route = createFileRoute("/api/public/tx-status/$id")({
                   const amt = Number(data.amount);
                   // Mise à jour de la table wallets si possible
                   const { data: w } = await (supabaseAdmin.from("wallets") as any).select("balance").eq("profile_id", data.profile_id).maybeSingle();
-                  if (w && typeof w.balance === "number") {
-                    await (supabaseAdmin.from("wallets") as any).update({ balance: w.balance + amt, updated_at: new Date().toISOString() }).eq("profile_id", data.profile_id);
-                  }
-                  const { data: prof } = await (supabaseAdmin.from("profiles") as any).select("balance, wallet_balance").eq("id", data.profile_id).maybeSingle();
-                  if (prof) {
-                    const currBal = Number(prof.balance || prof.wallet_balance || 0);
-                    await (supabaseAdmin.from("profiles") as any).update({ balance: currBal + amt, wallet_balance: currBal + amt }).eq("id", data.profile_id);
+                  if (w) {
+                    const currBal = Number(w.balance || 0);
+                    await (supabaseAdmin.from("wallets") as any).update({ balance: currBal + amt, updated_at: new Date().toISOString() }).eq("profile_id", data.profile_id);
                   }
                 } catch (e) {
                   console.error("[tx-status] Error auto-crediting merchant balance:", e);
