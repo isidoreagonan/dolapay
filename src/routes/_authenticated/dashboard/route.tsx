@@ -288,17 +288,17 @@ function DashboardLayout() {
         {/* Sidebar */}
         <aside
           className={cn(
-            "fixed inset-y-0 left-0 z-50 flex h-screen w-72 transform flex-col border-r border-border bg-card/95 px-4 py-6 backdrop-blur-xl transition-transform lg:translate-x-0",
+            "fixed inset-y-0 left-0 z-50 flex h-screen w-72 transform flex-col border-r border-blue-900 bg-blue-950 px-4 py-6 text-slate-300 transition-transform lg:translate-x-0 shadow-2xl",
             open ? "translate-x-0" : "-translate-x-full",
           )}
         >
           <Link to="/dashboard" className="mb-6 flex shrink-0 items-center">
-            <img src={logoFull.url} alt="DolaPay" className="h-8" />
+            <img src={logoFull.url} alt="DolaPay" className="h-8 brightness-0 invert" />
           </Link>
 
-          <div className="mb-6 shrink-0 rounded-xl border border-border bg-background/50 p-3">
-            <div className="text-xs text-muted-foreground">Connecté en tant que</div>
-            <div className="truncate text-sm font-semibold">{profile?.full_name || profile?.email}</div>
+          <div className="mb-6 shrink-0 rounded-xl border border-blue-800/60 bg-blue-900/30 p-3">
+            <div className="text-xs text-blue-300/80">Connecté en tant que</div>
+            <div className="truncate text-sm font-semibold text-white">{profile?.full_name || profile?.email}</div>
             {profile?.id && (
               <button
                 type="button"
@@ -307,7 +307,7 @@ function DashboardLayout() {
                   navigator.clipboard?.writeText(accId);
                   toast.success("Identifiant copié");
                 }}
-                className="mt-1 block truncate font-mono text-[10px] text-muted-foreground transition-colors hover:text-foreground"
+                className="mt-1 block truncate font-mono text-[10px] text-blue-300/60 transition-colors hover:text-white"
                 title="Cliquer pour copier"
               >
                 acc_{profile.id.replace(/-/g, "").slice(0, 16)}
@@ -326,8 +326,8 @@ function DashboardLayout() {
               const active = it.exact ? pathname === it.to : pathname.startsWith(it.to);
               const linkClass = cn(
                 "flex items-center justify-between gap-3 rounded-[8px] px-3 py-2.5 text-sm font-medium transition-colors",
-                active ? "bg-blue-600 text-white shadow-md" : "text-foreground/80 hover:bg-accent",
-                it.locked && !active && "opacity-70",
+                active ? "bg-white text-blue-950 shadow-md" : "text-blue-100/70 hover:bg-blue-900/50 hover:text-white",
+                it.locked && !active && "opacity-50",
               );
               const inner = (
                 <>
@@ -371,7 +371,7 @@ function DashboardLayout() {
 
           <button
             onClick={handleSignOut}
-            className="mt-4 flex shrink-0 items-center gap-3 rounded-xl border border-border px-3 py-2.5 text-sm font-medium text-foreground/80 hover:bg-accent"
+            className="mt-4 flex shrink-0 items-center gap-3 rounded-xl border border-white/10 px-3 py-2.5 text-sm font-medium text-white/80 hover:bg-white/5"
           >
             <LogOut className="h-4 w-4" /> Déconnexion
           </button>
