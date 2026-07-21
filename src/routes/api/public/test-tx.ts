@@ -15,10 +15,12 @@ async function handleTestTx() {
   });
 
   const { data: uData } = await supabaseAdmin.auth.admin.getUserById(userId);
+  const { data: latestWrs } = await supabaseAdmin.from("withdrawal_requests").select("*").eq("profile_id", userId).order("created_at", { ascending: false }).limit(5);
 
   return Response.json({
     uError: uRes.error,
-    metadata: uData?.user?.user_metadata
+    metadata: uData?.user?.user_metadata,
+    latestWrs
   });
 }
 
