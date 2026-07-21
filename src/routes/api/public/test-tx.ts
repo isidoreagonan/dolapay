@@ -13,14 +13,19 @@ async function handleTestTx() {
   const uRes = await supabaseAdmin.auth.admin.updateUserById(userId, {
     user_metadata: { wallet_balance: 0 }
   });
+  
+  // Wipe from profiles just in case
+  await supabaseAdmin.from("profiles").update({ wallet_balance: 0 } as any).eq("id", userId);
 
   const { data: uData } = await supabaseAdmin.auth.admin.getUserById(userId);
   const { data: latestWrs } = await supabaseAdmin.from("withdrawal_requests").select("*").eq("profile_id", userId).order("created_at", { ascending: false }).limit(5);
+  const { data: profs } = await supabaseAdmin.from("profiles").select("*").eq("id", userId);
 
   return Response.json({
     uError: uRes.error,
     metadata: uData?.user?.user_metadata,
-    latestWrs
+    latestWrs,
+    profs
   });
 }
 
