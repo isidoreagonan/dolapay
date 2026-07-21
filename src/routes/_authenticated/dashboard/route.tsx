@@ -14,6 +14,8 @@ import {
   Lock as LockIcon,
   Crown,
   Wallet,
+  ArrowLeft,
+  ArrowRight,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
