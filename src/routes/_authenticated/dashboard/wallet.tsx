@@ -1001,7 +1001,7 @@ function WalletPage() {
                 <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl">
                   <div className="text-xs font-bold text-rose-600 dark:text-rose-400 mb-1">Raison de l'échec</div>
                   <div className="text-xs text-rose-600/80 dark:text-rose-400/80 font-medium">
-                    {selectedTx.method.match(/\((.*?)\)/)?.[1] || "Erreur interne"}
+                    {selectedTx.method.split('(').pop()?.replace(')', '') || "Erreur interne"}
                   </div>
                 </div>
               )}
