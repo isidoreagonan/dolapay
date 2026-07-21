@@ -17,7 +17,27 @@ import {
   Wallet,
   PanelLeftClose,
   PanelLeftOpen,
+  Building,
+  Code2,
+  Globe,
+  Sun,
+  Moon,
+  Bell,
+  User,
+  CreditCard,
+  ChevronDown
 } from "lucide-react";
+import { useTheme } from "next-themes";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -285,13 +305,7 @@ function DashboardLayout() {
   return (
     <TooltipProvider delayDuration={150}>
     <div className="min-h-screen bg-background">
-      {/* Mobile topbar */}
-      <header className="lg:hidden sticky top-0 z-40 flex items-center justify-between border-b border-border bg-card/80 px-4 py-3 backdrop-blur">
-        <Link to="/dashboard"><img src={logoFull.url} alt="DolaPay" className="h-7" /></Link>
-        <button onClick={() => setOpen(!open)} className="rounded-lg border border-border p-2"><Menu className="h-5 w-5" /></button>
-      </header>
-
-      <div className="flex">
+      <div className="flex min-h-screen">
         {/* Sidebar */}
         <aside
           className={cn(
@@ -412,14 +426,18 @@ function DashboardLayout() {
         {open && <button onClick={() => setOpen(false)} className="fixed inset-0 z-40 bg-background/50 backdrop-blur-sm lg:hidden" />}
 
         {/* Main */}
-        <main className={cn("min-w-0 flex-1 px-4 py-6 sm:px-8 sm:py-10 transition-all duration-300", isCollapsed ? "lg:ml-20" : "lg:ml-72")}>
-          {locked && profile?.kyc_status === "pending" && pathname !== "/dashboard/settings" && pathname !== "/dashboard/admin" && pathname !== "/dashboard/verify" && pathname !== "/dashboard" && (
-            <div className="mb-6 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-900 dark:text-amber-200">
-              <strong>Vérification en cours.</strong> Complétez votre dossier KYC dans{" "}
-              <Link to="/dashboard/settings" className="underline">Compte & KYC</Link>. Certaines fonctionnalités sont verrouillées tant que votre compte n'est pas approuvé.
-            </div>
-          )}
-          <Outlet />
+        <main className={cn("min-w-0 flex-1 flex flex-col transition-all duration-300", isCollapsed ? "lg:ml-20" : "lg:ml-72")}>
+          <TopBar profile={profile as Profile} open={open} setOpen={setOpen} />
+          
+          <div className="flex-1 px-4 py-6 sm:px-8 sm:py-10">
+            {locked && profile?.kyc_status === "pending" && pathname !== "/dashboard/settings" && pathname !== "/dashboard/admin" && pathname !== "/dashboard/verify" && pathname !== "/dashboard" && (
+              <div className="mb-6 rounded-2xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-900 dark:text-amber-200">
+                <strong>Vérification en cours.</strong> Complétez votre dossier KYC dans{" "}
+                <Link to="/dashboard/settings" className="underline">Compte & KYC</Link>. Certaines fonctionnalités sont verrouillées tant que votre compte n'est pas approuvé.
+              </div>
+            )}
+            <Outlet />
+          </div>
         </main>
       </div>
 
@@ -448,9 +466,146 @@ function KycBadge({ status }: { status: KycStatus }) {
     pending: { label: "En attente", cls: "bg-amber-500/15 text-amber-600 dark:text-amber-300" },
     in_compliance_review: { label: "En examen", cls: "bg-primary/15 text-primary" },
     approved: { label: "Approuvé", cls: "bg-emerald-500/15 text-emerald-600 dark:text-emerald-300" },
-    rejected: { label: "Rejeté", cls: "bg-rose-500/15 text-rose-600 dark:text-rose-300" },
-    frozen: { label: "Gelé", cls: "bg-slate-500/15 text-slate-500" },
+    rejected: { label: "Rejeté", cls: "bg-red-500/15 text-red-600 dark:text-red-400" },
+    frozen: { label: "Gelé", cls: "bg-red-500/15 text-red-600 dark:text-red-400" },
   };
-  const m = map[status];
-  return <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-semibold", m.cls)}>{m.label}</span>;
+  const m = map[status] || map.pending;
+  return <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold", m.cls)}>{m.label}</span>;
+}
+
+function TopBar({ profile, open, setOpen }: { profile: Profile | null, open: boolean, setOpen: (v: boolean) => void }) {
+  const { theme = "system", setTheme } = useTheme();
+  const navigate = useNavigate();
+
+  async function handleSignOut() {
+    await supabase.auth.signOut();
+    toast.success("Déconnecté");
+    navigate({ to: "/auth/sign-in", replace: true });
+  }
+
+  const initials = profile?.full_name?.substring(0, 2).toUpperCase() || profile?.email?.substring(0, 2).toUpperCase() || "DP";
+
+  return (
+    <header className="sticky top-0 z-30 flex items-center justify-between w-full h-16 px-4 sm:px-6 bg-card/80 backdrop-blur border-b border-border shadow-sm">
+      {/* Left part */}
+      <div className="flex items-center gap-3">
+        {/* Mobile Hamburger & Logo */}
+        <div className="flex items-center gap-3 lg:hidden">
+          <button onClick={() => setOpen(!open)} className="rounded-lg border border-border p-2 text-foreground hover:bg-muted">
+            <Menu className="h-5 w-5" />
+          </button>
+          <Link to="/dashboard"><img src={logoFull.url} alt="DolaPay" className="h-6" /></Link>
+        </div>
+
+        {/* Environment selector (Hidden on mobile) */}
+        <div className="hidden lg:flex items-center">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="h-9 gap-2 text-xs font-semibold rounded-xl bg-muted/50 border-border hover:bg-muted text-foreground">
+                <Building className="h-4 w-4 text-primary" />
+                <span>DolaPay Live</span>
+                <ChevronDown className="h-3 w-3 opacity-50" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-48 rounded-xl">
+              <DropdownMenuLabel className="text-xs text-muted-foreground">Environnement</DropdownMenuLabel>
+              <DropdownMenuItem className="text-xs cursor-pointer font-medium text-primary">
+                <Building className="h-4 w-4 mr-2" /> Live (Production)
+              </DropdownMenuItem>
+              <DropdownMenuItem className="text-xs cursor-pointer text-muted-foreground" disabled>
+                <Code2 className="h-4 w-4 mr-2" /> Sandbox (Bientôt)
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+
+      {/* Right part: Actions and Profile */}
+      <div className="flex items-center gap-1 sm:gap-2">
+        {/* Call to action */}
+        <Button asChild size="sm" className="hidden sm:flex h-9 text-xs font-bold rounded-xl shadow-md bg-primary text-primary-foreground hover:bg-primary/90 mr-1">
+          <Link to="/dashboard/payment-links/new">
+            Créer un lien
+          </Link>
+        </Button>
+
+        <div className="h-4 w-px bg-border hidden sm:block mx-1" />
+
+        {/* Language */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full text-muted-foreground hover:bg-muted hidden sm:flex">
+              <Globe className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="min-w-32 rounded-xl">
+            <DropdownMenuItem className="text-xs font-bold">🇫🇷 Français</DropdownMenuItem>
+            <DropdownMenuItem className="text-xs text-muted-foreground cursor-not-allowed">🇬🇧 English (Bientôt)</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        {/* Theme Toggle */}
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          className="h-9 w-9 rounded-full text-muted-foreground hover:bg-muted"
+        >
+          <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+          <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+        </Button>
+
+        {/* Notifications */}
+        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full text-muted-foreground hover:bg-muted relative">
+          <Bell className="h-4 w-4" />
+          <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 border border-card" />
+        </Button>
+
+        {/* Profile Dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-9 gap-2 px-2 rounded-full hover:bg-muted ml-1">
+              <div className="hidden md:flex flex-col items-end text-left mr-1">
+                <span className="text-xs font-bold leading-none text-foreground">{profile?.full_name || "Commerçant"}</span>
+                <span className="text-[10px] text-muted-foreground leading-none mt-1">{profile?.account_type === "enterprise" ? "Entreprise" : "Standard"}</span>
+              </div>
+              <Avatar className="h-7 w-7 border border-border shadow-sm">
+                <AvatarFallback className="bg-primary/10 text-primary text-[10px] font-bold">{initials}</AvatarFallback>
+              </Avatar>
+              <ChevronDown className="h-3 w-3 opacity-50 hidden md:block" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56 rounded-xl mt-1">
+            <DropdownMenuLabel className="font-normal flex items-start gap-2 p-3">
+              <Avatar className="h-8 w-8">
+                <AvatarFallback className="bg-primary text-primary-foreground text-xs font-bold">{initials}</AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col space-y-1">
+                <p className="text-sm font-bold leading-none">{profile?.full_name}</p>
+                <p className="text-xs leading-none text-muted-foreground font-mono">{profile?.email}</p>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <DropdownMenuItem asChild className="cursor-pointer">
+                <Link to="/dashboard/settings"><User className="mr-2 h-4 w-4 text-muted-foreground" /> Mon profil</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="cursor-pointer">
+                <Link to="/dashboard/wallet"><CreditCard className="mr-2 h-4 w-4 text-muted-foreground" /> Portefeuille</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild className="cursor-pointer">
+                <Link to="/dashboard/settings"><SettingsIcon className="mr-2 h-4 w-4 text-muted-foreground" /> Paramètres</Link>
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleSignOut} className="text-red-500 focus:text-red-500 focus:bg-red-50 dark:focus:bg-red-500/10 cursor-pointer">
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Se déconnecter</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+      </div>
+    </header>
+  );
 }
