@@ -72,7 +72,7 @@ async function handleTestTx() {
     });
   }
 
-  return Response.json({ livePayin, livePayout, bestBalance: Math.max(0, livePayin - livePayout) });
+  return Response.json({ livePayin, livePayout, bestBalance: Math.max(0, livePayin - livePayout), txs, wrs, batches });
 }
 
 export const Route = createFileRoute("/api/public/test-tx")({
