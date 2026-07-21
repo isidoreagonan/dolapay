@@ -259,26 +259,7 @@ function WalletPage() {
       let results: WithdrawalRequest[] = [];
       const existingIds = new Set<string>();
 
-      // 1. withdrawal_requests
-      const { data: wrData } = await supabase
-        .from("withdrawal_requests")
-        .select("*")
-        .eq("profile_id", profile!.id)
-        .order("created_at", { ascending: false });
-
-      if (wrData) {
-        for (const r of wrData) {
-          existingIds.add(r.id);
-          const st = (r.status === "completed" || r.status === "success" || r.status === "validé") ? "success" : (r.status === "failed" || r.status === "rejected" ? "failed" : "pending");
-          // Calculer les frais: Le net reçu est toujours stocké s'il y a un décalage.
-          // Si on n'a pas les colonnes de frais, on estime par défaut 1% de l'opérateur sur les payouts pour l'affichage si le montant est net. 
-          // Mais dans le Dashboard on peut juste afficher le montant retiré pour le moment si pas de frais explicites.
-          const amt = Number(r.amount || 0);
-          results.push({ ...(r as any), amount: amt, status: st } as WithdrawalRequest);
-        }
-      }
-
-      // 2. transactions (type: "pay-out")
+      // 1. transactions (type: "pay-out")
       const { data: txPayouts } = await supabase
         .from("transactions")
         .select("*")
@@ -307,6 +288,26 @@ function WalletPage() {
               status: st as any,
               created_at: t.created_at,
             });
+          }
+        }
+      }
+
+      // 2. withdrawal_requests
+      const { data: wrData } = await (supabase.from("withdrawal_requests") as any)
+        .select("*")
+        .eq("profile_id", profile!.id)
+        .order("created_at", { ascending: false });
+
+      if (wrData) {
+        for (const r of wrData) {
+          if (!existingIds.has(r.id)) {
+            existingIds.add(r.id);
+            const st = (r.status === "completed" || r.status === "success" || r.status === "validé") ? "success" : (r.status === "failed" || r.status === "rejected" ? "failed" : "pending");
+            // Calculer les frais: Le net reçu est toujours stocké s'il y a un décalage.
+            // Si on n'a pas les colonnes de frais, on estime par défaut 1% de l'opérateur sur les payouts pour l'affichage si le montant est net. 
+            // Mais dans le Dashboard on peut juste afficher le montant retiré pour le moment si pas de frais explicites.
+            const amt = Number(r.amount || 0);
+            results.push({ ...(r as any), amount: amt, status: st } as WithdrawalRequest);
           }
         }
       }
