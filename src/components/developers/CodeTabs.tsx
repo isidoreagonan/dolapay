@@ -15,7 +15,7 @@ export function CodeTabs({ snippets }: { snippets: Record<Lang, string> }) {
           <button
             key={l}
             onClick={() => setLang(l)}
-            className={\`px-3 py-1.5 rounded-lg font-medium transition-all duration-200 \${lang === l ? "bg-navy text-white shadow-md scale-105" : "text-navy/60 hover:bg-navy/5 hover:text-navy"}\`}
+            className={`px-3 py-1.5 rounded-lg font-medium transition-all duration-200 ${lang === l ? "bg-navy text-white shadow-md scale-105" : "text-navy/60 hover:bg-navy/5 hover:text-navy"}`}
           >
             {l === "node" ? "Node.js" : "cURL / JSON"}
           </button>

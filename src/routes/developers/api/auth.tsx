@@ -8,14 +8,14 @@ export const Route = createFileRoute("/developers/api/auth")({
 });
 
 const authSnippets: Record<Lang, string> = {
-  curl: \`curl https://api.dola-pay.com/v1/checkout/sessions \\\\
-  -H "Authorization: Bearer sk_live_votre_cle_secrete" \\\\
-  -H "Content-Type: application/json"\`,
-  node: \`// Authentification Bearer Token via Header HTTP
+  curl: `curl https://api.dola-pay.com/v1/checkout/sessions \
+  -H "Authorization: Bearer sk_live_votre_cle_secrete" \
+  -H "Content-Type: application/json"`,
+  node: `// Authentification Bearer Token via Header HTTP
 const headers = {
   "Authorization": "Bearer sk_live_votre_cle_secrete",
   "Content-Type": "application/json"
-};\`,
+};`,
 };
 
 function ApiAuthPage() {

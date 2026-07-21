@@ -8,9 +8,9 @@ export const Route = createFileRoute("/developers/api/checkout-pay")({
 });
 
 const paySnippets: Record<Lang, string> = {
-  curl: \`curl -X POST https://api.dola-pay.com/v1/checkout/pay \\\\
-  -H "Authorization: Bearer sk_live_votre_cle_secrete" \\\\
-  -H "Content-Type: application/json" \\\\
+  curl: `curl -X POST https://api.dola-pay.com/v1/checkout/pay \
+  -H "Authorization: Bearer sk_live_votre_cle_secrete" \
+  -H "Content-Type: application/json" \
   -d '{
     "amount": 2500,
     "currency": "XOF",
@@ -18,8 +18,8 @@ const paySnippets: Record<Lang, string> = {
     "country": "BJ",
     "phone_number": "22900000000",
     "client_reference_id": "INV-001"
-  }'\`,
-  node: \`const response = await fetch("https://api.dola-pay.com/v1/checkout/pay", {
+  }'`,
+  node: `const response = await fetch("https://api.dola-pay.com/v1/checkout/pay", {
   method: "POST",
   headers: {
     "Authorization": "Bearer sk_live_votre_cle_secrete",
@@ -35,7 +35,7 @@ const paySnippets: Record<Lang, string> = {
   })
 });
 const { data } = await response.json();
-console.log(data.status); // Statut initial: "pending"\`,
+console.log(data.status); // Statut initial: "pending"`,
 };
 
 function ApiCheckoutPayPage() {

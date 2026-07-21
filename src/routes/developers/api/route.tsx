@@ -37,13 +37,13 @@ function ApiDocsLayout() {
                   <Link
                     key={n.path}
                     to={n.path as any}
-                    className={\`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 \${
+                    className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
                       isActive 
                         ? "bg-primary/10 text-primary shadow-sm" 
                         : "text-navy/70 hover:bg-muted hover:text-navy"
-                    }\`}
+                    }`}
                   >
-                    <n.icon className={\`h-4 w-4 \${isActive ? "opacity-100" : "opacity-70"}\`} />
+                    <n.icon className={`h-4 w-4 ${isActive ? "opacity-100" : "opacity-70"}`} />
                     {n.label}
                   </Link>
                 );

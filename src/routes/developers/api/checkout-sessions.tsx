@@ -8,9 +8,9 @@ export const Route = createFileRoute("/developers/api/checkout-sessions")({
 });
 
 const sessionsSnippets: Record<Lang, string> = {
-  curl: \`curl -X POST https://api.dola-pay.com/v1/checkout/sessions \\\\
-  -H "Authorization: Bearer sk_live_votre_cle_secrete" \\\\
-  -H "Content-Type: application/json" \\\\
+  curl: `curl -X POST https://api.dola-pay.com/v1/checkout/sessions \
+  -H "Authorization: Bearer sk_live_votre_cle_secrete" \
+  -H "Content-Type: application/json" \
   -d '{
     "amount": 5000,
     "currency": "XOF",
@@ -19,8 +19,8 @@ const sessionsSnippets: Record<Lang, string> = {
     "client_reference_id": "CMD-10293",
     "customer_name": "Jean Dupont",
     "customer_email": "jean.dupont@email.com"
-  }'\`,
-  node: \`const response = await fetch("https://api.dola-pay.com/v1/checkout/sessions", {
+  }'`,
+  node: `const response = await fetch("https://api.dola-pay.com/v1/checkout/sessions", {
   method: "POST",
   headers: {
     "Authorization": "Bearer sk_live_votre_cle_secrete",
@@ -37,7 +37,7 @@ const sessionsSnippets: Record<Lang, string> = {
   })
 });
 const { data } = await response.json();
-console.log(data.url); // Redirigez l'utilisateur vers cette URL pour payer\`,
+console.log(data.url); // Redirigez l'utilisateur vers cette URL pour payer`,
 };
 
 function ApiSessionsPage() {

@@ -8,11 +8,11 @@ export const Route = createFileRoute("/developers/api/webhooks")({
 });
 
 const webhookSnippets: Record<Lang, string> = {
-  curl: \`# DolaPay envoie une requête POST à votre Webhook URL
+  curl: `# DolaPay envoie une requête POST à votre Webhook URL
 # Header inclus pour la sécurité : x-dolapay-signature
 
-curl -X POST https://votre-site.com/webhooks/dolapay \\\\
-  -H "x-dolapay-signature: t=1710000000,v1=ab23c4d5e6f7..." \\\\
+curl -X POST https://votre-site.com/webhooks/dolapay \
+  -H "x-dolapay-signature: t=1710000000,v1=ab23c4d5e6f7..." \
   -d '{
     "id": "evt_987654321",
     "type": "checkout.success",
@@ -23,8 +23,8 @@ curl -X POST https://votre-site.com/webhooks/dolapay \\\\
       "amount": 5000,
       "status": "success"
     }
-  }'\`,
-  node: \`import crypto from "crypto";
+  }'`,
+  node: `import crypto from "crypto";
 import express from "express";
 
 const app = express();
@@ -64,7 +64,7 @@ app.post("/webhooks/dolapay", express.raw({ type: "application/json" }), (req, r
   } else {
     res.status(401).send("Signature invalide");
   }
-});\`,
+});`,
 };
 
 function ApiWebhooksPage() {
