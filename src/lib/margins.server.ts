@@ -43,7 +43,7 @@ export async function calculateMargin(
   // We will simply return totalFees and net_amount.
   const net_amount = transactionType === "pay-in" 
     ? amount - totalFees 
-    : amount;
+    : amount + totalFees;
 
   return {
     operator_fee,
