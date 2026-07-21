@@ -37,7 +37,7 @@ export const Route = createFileRoute("/api/v1/charges")({
         }
 
         const { amount, currency, customer_phone, provider, description } = parsed.data;
-        const correspondent = getCorrespondentCode(provider);
+        const correspondent = getCorrespondentCode(provider, customer_phone);
 
         // Si le merchant utilise la clé de test sandbox illustrative (sans compte)
         if (auth.is_test && auth.profile_id === "00000000-0000-0000-0000-000000000000") {

@@ -36,7 +36,7 @@ export const Route = createFileRoute("/api/v1/payouts")({
         }
 
         const { amount, currency, recipient_phone, provider, reference } = parsed.data;
-        const correspondent = getCorrespondentCode(provider);
+        const correspondent = getCorrespondentCode(provider, recipient_phone);
 
         if (auth.is_test && auth.profile_id === "00000000-0000-0000-0000-000000000000") {
           return Response.json({

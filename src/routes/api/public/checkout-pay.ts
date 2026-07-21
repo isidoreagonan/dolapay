@@ -36,7 +36,7 @@ export const Route = createFileRoute("/api/public/checkout-pay")({
             return Response.json({ error: { message: "Session déjà traitée ou expirée." } }, { status: 400 });
           }
 
-          const correspondent = getCorrespondentCode(provider);
+          const correspondent = getCorrespondentCode(provider, customer_phone);
           
           // Default to PawaPay, but route LigdiCash if Burkina
           let gateway = "pawapay";
