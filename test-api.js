@@ -1,5 +1,5 @@
 // 🔑 Clé LIVE : ce test va déclencher un VRAI débit sur votre téléphone !
-const API_KEY = "dp_live_02daffd5a441422c94917522760025aa";
+const API_KEY = "dp_live_93dbfb85272948cc8e3b3a323c6393ff";
 const API_URL = "https://dola-pay.com/api/v1/charges";
 
 async function testerPaiement() {
