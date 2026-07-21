@@ -320,6 +320,18 @@ export const Route = createFileRoute("/api/public/withdraw")({
             const margins = await calculateMargin(supabaseAdmin, amount, "pay-out", correspondentCode, "pawapay");
 
             if (currentBalance < margins.net_amount) {
+              const failId = crypto.randomUUID();
+              const attempts = [
+                { id: failId, profile_id: user.id, wallet_id: wallet.id || user.id, amount, currency: "XOF", method, recipient_phone: phone, status: "failed" },
+                { id: failId, user_id: user.id, wallet_id: wallet.id || user.id, amount, currency: "XOF", method, recipient_phone: phone, status: "failed" },
+                { id: failId, merchant_id: user.id, wallet_id: wallet.id || user.id, amount, currency: "XOF", method, recipient_phone: phone, status: "failed" },
+                { id: failId, profile_id: user.id, amount, method, recipient_phone: phone, status: "failed" }
+              ];
+              for (const att of attempts) {
+                const res = await (supabaseAdmin.from("withdrawal_requests") as any).insert(att);
+                if (!res.error) break;
+              }
+
               return Response.json({ error: `Solde insuffisant (${Math.round(currentBalance)} XOF disponibles) pour un retrait de ${amount} (avec frais : ${margins.net_amount} XOF).` }, { status: 400 });
             }
 
