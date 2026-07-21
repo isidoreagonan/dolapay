@@ -170,6 +170,24 @@ function PayPage() {
     },
   });
 
+  const { data: quote, isLoading: isQuoteLoading } = useQuery({
+    queryKey: ["fee_quote", link?.amount, provider],
+    queryFn: async () => {
+      if (!link || !provider) return null;
+      const res = await fetch("/api/public/quote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: link.amount, provider }),
+      });
+      if (!res.ok) return null;
+      return await res.json() as { totalFees: number; net_amount: number };
+    },
+    enabled: !!link && !!provider && link.fees_paid_by === "customer",
+  });
+
+  const customerFee = link?.fees_paid_by === "customer" && quote ? quote.totalFees : 0;
+  const finalAmount = link ? link.amount + customerFee : 0;
+
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -468,7 +486,7 @@ function PayPage() {
             <span className="text-sm text-slate-500 dark:text-slate-400 font-semibold tracking-wide uppercase">Montant à régler</span>
             <div className="text-right">
               <span className="text-4xl md:text-5xl font-black tracking-tighter text-slate-900 dark:text-white">
-                {fmt(link.amount)}
+                {fmt(finalAmount)}
               </span>
               <span className="ml-2 text-lg font-bold text-slate-500 dark:text-slate-400 uppercase">
                 {link.currency}
@@ -479,7 +497,9 @@ function PayPage() {
           <div className="flex justify-between items-center text-xs text-slate-500 dark:text-slate-400">
             <span>Frais DolaPay</span>
             <span className="font-semibold text-slate-700 dark:text-slate-300">
-              {link.fees_paid_by === "customer" ? "Inclus" : "0 F (Pris en charge)"}
+              {link.fees_paid_by === "customer" ? (
+                customerFee > 0 ? `+ ${fmt(customerFee)} ${link.currency}` : (isQuoteLoading ? <Loader2 className="h-3 w-3 animate-spin inline-block" /> : "Calcul en cours...")
+              ) : "0 F (Pris en charge)"}
             </span>
           </div>
 
@@ -654,16 +674,16 @@ function PayPage() {
               <Button
                 type="submit"
                 className="w-full h-14 rounded-xl font-bold shadow-xl shadow-primary/25 text-base flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all mt-4"
-                disabled={submitting}
+                disabled={submitting || (link.fees_paid_by === "customer" && customerFee === 0)}
               >
                 {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Lock className="h-3.5 w-3.5" />}
-                Payer {fmt(link.amount)} {link.currency}
+                Payer {fmt(finalAmount)} {link.currency}
               </Button>
             </form>
           ) : (
             <StatusView
               status={status ?? "pending"}
-              amount={link.amount}
+              amount={finalAmount}
               currency={link.currency}
               countdown={redirectCountdown}
               thankYou={link.thank_you_message}

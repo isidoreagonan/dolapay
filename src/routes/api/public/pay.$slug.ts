@@ -51,7 +51,7 @@ export const Route = createFileRoute("/api/public/pay/$slug")({
 
           const { data: link, error: linkErr } = await supabaseAdmin
             .from("payment_links")
-            .select("id,profile_id,amount,currency,title,active,success_url,failure_url")
+            .select("id,profile_id,amount,currency,title,active,success_url,failure_url,fees_paid_by")
             .eq("slug", params.slug)
             .maybeSingle();
           if (linkErr || !link || !link.active) {
@@ -83,18 +83,26 @@ export const Route = createFileRoute("/api/public/pay/$slug")({
           const gatewayUsed = isLigdiCash ? "ligdicash" : "pawapay";
           const margins = await calculateMargin(supabaseAdmin, link.amount, "pay-in", parsed.data.provider, gatewayUsed);
           
+          let finalAmount = link.amount;
+          let netAmount = margins.net_amount;
+
+          if (link.fees_paid_by === "customer") {
+            finalAmount = link.amount + margins.totalFees;
+            netAmount = link.amount;
+          }
+          
           const { data: tx, error: txErr } = await supabaseAdmin
             .from("transactions")
             .insert({
               profile_id: link.profile_id,
-              amount: link.amount,
+              amount: finalAmount,
               currency: link.currency,
               type: "payment_link",
               status: "pending",
               idempotency_key: idemKey,
               description: `[${params.slug}] ${link.title} · ${parsed.data.customer_name} (${emailStr}) · ${parsed.data.provider} ${parsed.data.customer_phone}`,
               // Add required live DB columns
-              net_amount: margins.net_amount,
+              net_amount: netAmount,
               operator_fee: margins.operator_fee,
               gateway_fee: margins.gateway_fee,
               dola_margin: margins.dola_margin,
@@ -142,7 +150,7 @@ export const Route = createFileRoute("/api/public/pay/$slug")({
               const { createLigdiCashPayin } = await import("@/lib/ligdicash.server");
               const cleanPhone = parsed.data.customer_phone.replace(/\D/g, "");
               const payinRes = await createLigdiCashPayin({
-                amount: Number(link.amount),
+                amount: Number(finalAmount),
                 currency: (link.currency || "XOF").toLowerCase(),
                 description: `${link.title} · ${parsed.data.customer_name}`,
                 customer: {
@@ -204,7 +212,7 @@ export const Route = createFileRoute("/api/public/pay/$slug")({
           try {
             const depositRes = await pawapay.initiateDeposit({
               depositId: tx!.id,
-              amount: Number(link.amount),
+              amount: Number(finalAmount),
               currency: link.currency || "XOF",
               phone: parsed.data.customer_phone,
               provider: parsed.data.provider,

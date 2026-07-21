@@ -47,6 +47,7 @@ import { Route as ApiPublicTestEmailRouteImport } from './routes/api/public/test
 import { Route as ApiPublicSyncWalletRouteImport } from './routes/api/public/sync-wallet'
 import { Route as ApiPublicSendNotificationRouteImport } from './routes/api/public/send-notification'
 import { Route as ApiPublicRestoreAdminRouteImport } from './routes/api/public/restore-admin'
+import { Route as ApiPublicQuoteRouteImport } from './routes/api/public/quote'
 import { Route as ApiPublicPawapayWebhookRouteImport } from './routes/api/public/pawapay-webhook'
 import { Route as ApiPublicLigdicashWebhookRouteImport } from './routes/api/public/ligdicash-webhook'
 import { Route as AuthenticatedDashboardWalletRouteImport } from './routes/_authenticated/dashboard/wallet'
@@ -267,6 +268,11 @@ const ApiPublicRestoreAdminRoute = ApiPublicRestoreAdminRouteImport.update({
   path: '/api/public/restore-admin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicQuoteRoute = ApiPublicQuoteRouteImport.update({
+  id: '/api/public/quote',
+  path: '/api/public/quote',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicPawapayWebhookRoute = ApiPublicPawapayWebhookRouteImport.update({
   id: '/api/public/pawapay-webhook',
   path: '/api/public/pawapay-webhook',
@@ -460,6 +466,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/wallet': typeof AuthenticatedDashboardWalletRoute
   '/api/public/ligdicash-webhook': typeof ApiPublicLigdicashWebhookRoute
   '/api/public/pawapay-webhook': typeof ApiPublicPawapayWebhookRoute
+  '/api/public/quote': typeof ApiPublicQuoteRoute
   '/api/public/restore-admin': typeof ApiPublicRestoreAdminRoute
   '/api/public/send-notification': typeof ApiPublicSendNotificationRoute
   '/api/public/sync-wallet': typeof ApiPublicSyncWalletRoute
@@ -523,6 +530,7 @@ export interface FileRoutesByTo {
   '/dashboard/wallet': typeof AuthenticatedDashboardWalletRoute
   '/api/public/ligdicash-webhook': typeof ApiPublicLigdicashWebhookRoute
   '/api/public/pawapay-webhook': typeof ApiPublicPawapayWebhookRoute
+  '/api/public/quote': typeof ApiPublicQuoteRoute
   '/api/public/restore-admin': typeof ApiPublicRestoreAdminRoute
   '/api/public/send-notification': typeof ApiPublicSendNotificationRoute
   '/api/public/sync-wallet': typeof ApiPublicSyncWalletRoute
@@ -590,6 +598,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/wallet': typeof AuthenticatedDashboardWalletRoute
   '/api/public/ligdicash-webhook': typeof ApiPublicLigdicashWebhookRoute
   '/api/public/pawapay-webhook': typeof ApiPublicPawapayWebhookRoute
+  '/api/public/quote': typeof ApiPublicQuoteRoute
   '/api/public/restore-admin': typeof ApiPublicRestoreAdminRoute
   '/api/public/send-notification': typeof ApiPublicSendNotificationRoute
   '/api/public/sync-wallet': typeof ApiPublicSyncWalletRoute
@@ -657,6 +666,7 @@ export interface FileRouteTypes {
     | '/dashboard/wallet'
     | '/api/public/ligdicash-webhook'
     | '/api/public/pawapay-webhook'
+    | '/api/public/quote'
     | '/api/public/restore-admin'
     | '/api/public/send-notification'
     | '/api/public/sync-wallet'
@@ -720,6 +730,7 @@ export interface FileRouteTypes {
     | '/dashboard/wallet'
     | '/api/public/ligdicash-webhook'
     | '/api/public/pawapay-webhook'
+    | '/api/public/quote'
     | '/api/public/restore-admin'
     | '/api/public/send-notification'
     | '/api/public/sync-wallet'
@@ -786,6 +797,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/wallet'
     | '/api/public/ligdicash-webhook'
     | '/api/public/pawapay-webhook'
+    | '/api/public/quote'
     | '/api/public/restore-admin'
     | '/api/public/send-notification'
     | '/api/public/sync-wallet'
@@ -834,6 +846,7 @@ export interface RootRouteChildren {
   ResourcesUseCasesRoute: typeof ResourcesUseCasesRoute
   ApiPublicLigdicashWebhookRoute: typeof ApiPublicLigdicashWebhookRoute
   ApiPublicPawapayWebhookRoute: typeof ApiPublicPawapayWebhookRoute
+  ApiPublicQuoteRoute: typeof ApiPublicQuoteRoute
   ApiPublicRestoreAdminRoute: typeof ApiPublicRestoreAdminRoute
   ApiPublicSendNotificationRoute: typeof ApiPublicSendNotificationRoute
   ApiPublicSyncWalletRoute: typeof ApiPublicSyncWalletRoute
@@ -1113,6 +1126,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/restore-admin'
       fullPath: '/api/public/restore-admin'
       preLoaderRoute: typeof ApiPublicRestoreAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/quote': {
+      id: '/api/public/quote'
+      path: '/api/public/quote'
+      fullPath: '/api/public/quote'
+      preLoaderRoute: typeof ApiPublicQuoteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/pawapay-webhook': {
@@ -1431,6 +1451,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResourcesUseCasesRoute: ResourcesUseCasesRoute,
   ApiPublicLigdicashWebhookRoute: ApiPublicLigdicashWebhookRoute,
   ApiPublicPawapayWebhookRoute: ApiPublicPawapayWebhookRoute,
+  ApiPublicQuoteRoute: ApiPublicQuoteRoute,
   ApiPublicRestoreAdminRoute: ApiPublicRestoreAdminRoute,
   ApiPublicSendNotificationRoute: ApiPublicSendNotificationRoute,
   ApiPublicSyncWalletRoute: ApiPublicSyncWalletRoute,
