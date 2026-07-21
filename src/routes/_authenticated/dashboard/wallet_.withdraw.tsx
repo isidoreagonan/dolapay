@@ -270,13 +270,13 @@ function WithdrawPage() {
                 value={withdrawAmount}
                 onChange={(e) => setWithdrawAmount(e.target.value)}
                 placeholder="0"
-                min={100}
+                min={200}
                 className="pl-4 pr-16 h-14 text-2xl font-bold font-mono rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 focus-visible:ring-primary/20"
                 required
               />
               <div className="absolute right-4 top-4 text-sm font-bold text-slate-400">FCFA</div>
             </div>
-            <p className="text-xs text-muted-foreground">Minimum: 100 XOF</p>
+            <p className="text-xs text-muted-foreground">Minimum: 200 XOF</p>
           </div>
 
           <div className="space-y-4">
