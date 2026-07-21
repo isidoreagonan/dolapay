@@ -9,14 +9,12 @@ async function handleTestTx() {
 
   const userId = "46179a95-999b-469d-915d-718bae54a844";
 
-  const wRes = await supabaseAdmin.from("wallets").select("*").eq("profile_id", userId);
-  
-  // Wipe the manual balance
-  const uRes = await supabaseAdmin.from("wallets").update({ balance: 0 }).eq("profile_id", userId);
+  // Wipe the ghost balance from user_metadata
+  const uRes = await supabaseAdmin.auth.admin.updateUserById(userId, {
+    user_metadata: { wallet_balance: 0 }
+  });
 
   return Response.json({
-    wallets: wRes.data,
-    wError: wRes.error,
     uError: uRes.error
   });
 }
