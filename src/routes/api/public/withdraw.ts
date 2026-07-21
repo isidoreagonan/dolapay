@@ -279,19 +279,19 @@ export const Route = createFileRoute("/api/public/withdraw")({
 
             // Vérifier le solde exhaustif (wallets, profiles, transactions, user_metadata)
             let currentBalance = Number(wallet.balance ?? wallet.amount ?? wallet.solde ?? 0);
-            const txCandidates = ["profile_id", "user_id", "merchant_id", "account_id", "id"];
+            
+            const { data: colTxs } = await (supabaseAdmin.from("transactions") as any)
+              .select("*")
+              .eq("profile_id", user.id);
+              
             const allTxsMap = new Map<string, any>();
-            for (const col of txCandidates) {
-              const { data: colTxs } = await (supabaseAdmin.from("transactions") as any)
-                .select("*")
-                .eq(col, user.id);
-              if (colTxs) {
-                colTxs.forEach((t: any) => {
-                  if (t && t.id) allTxsMap.set(String(t.id), t);
-                  else allTxsMap.set(JSON.stringify(t), t);
-                });
-              }
+            if (colTxs) {
+              colTxs.forEach((t: any) => {
+                if (t && t.id) allTxsMap.set(String(t.id), t);
+                else allTxsMap.set(JSON.stringify(t), t);
+              });
             }
+            
             const allTxs = Array.from(allTxsMap.values());
             let livePayin = 0, livePayout = 0;
             for (const t of allTxs) {
@@ -318,20 +318,22 @@ export const Route = createFileRoute("/api/public/withdraw")({
             for (const t of allTxs) {
               if (t && t.id) seenWIds.add(String(t.id));
             }
-            for (const col of ["profile_id", "user_id", "merchant_id", "account_id", "owner_id", "id"]) {
-              const { data: wrs } = await (supabaseAdmin.from("withdrawal_requests") as any).select("*").eq(col, user.id);
-              if (wrs) {
-                wrs.forEach((w: any) => {
-                  const st = String(w.status || "").toLowerCase();
-                  if (st === "success" || st === "completed" || st === "processing" || st === "validé" || st === "validated" || st === "pending") {
-                    if (!seenWIds.has(String(w.id))) {
-                      seenWIds.add(String(w.id));
-                      const amt = Number(w.amount || 0);
-                      if (amt > 0) livePayout += amt;
-                    }
+            
+            const { data: wrs } = await (supabaseAdmin.from("withdrawal_requests") as any)
+              .select("*")
+              .eq("profile_id", user.id);
+              
+            if (wrs) {
+              wrs.forEach((w: any) => {
+                const st = String(w.status || "").toLowerCase();
+                if (st === "success" || st === "completed" || st === "processing" || st === "validé" || st === "validated" || st === "pending") {
+                  if (!seenWIds.has(String(w.id))) {
+                    seenWIds.add(String(w.id));
+                    const amt = Number(w.amount || 0);
+                    if (amt > 0) livePayout += amt;
                   }
-                });
-              }
+                }
+              });
             }
 
             // Sommation exhaustive des virements de masse
@@ -387,11 +389,6 @@ export const Route = createFileRoute("/api/public/withdraw")({
                 } as any)
                 .eq("id", wallet.id);
             }
-
-            // Si la table profiles a une colonne balance ou wallet_balance, on la synchronise aussi
-            await (supabaseAdmin.from("profiles") as any)
-              .update({ balance: newBalance, wallet_balance: newBalance } as any)
-              .eq("id", user.id);
 
             // Connexion API PawaPay pour effectuer le décaissement automatique (Payout API)
             const isVirtualWithdraw = Boolean(json.testMode);
