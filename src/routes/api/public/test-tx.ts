@@ -7,7 +7,7 @@ async function handleTestTx() {
     process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_PUBLISHABLE_KEY || ""
   );
 
-  const { data } = await supabaseAdmin
+  const { data: txData } = await supabaseAdmin
     .from("transactions")
     .select("*")
     .eq("id", "babec1cc-e185-459e-aa76-f81e95413d7f")
@@ -19,7 +19,13 @@ async function handleTestTx() {
     .eq("id", "babec1cc-e185-459e-aa76-f81e95413d7f")
     .maybeSingle();
 
-  return Response.json({ tx: data, wr: wrData });
+  const { data: pbiData } = await supabaseAdmin
+    .from("payout_batch_items")
+    .select("*")
+    .eq("id", "babec1cc-e185-459e-aa76-f81e95413d7f")
+    .maybeSingle();
+
+  return Response.json({ tx: txData, wr: wrData, pbi: pbiData });
 }
 
 export const Route = createFileRoute("/api/public/test-tx")({
