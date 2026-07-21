@@ -10,10 +10,16 @@ async function handleTestTx() {
   const { data } = await supabaseAdmin
     .from("transactions")
     .select("*")
-    .order("created_at", { ascending: false })
-    .limit(10);
+    .eq("id", "babec1cc-e185-459e-aa76-f81e95413d7f")
+    .maybeSingle();
 
-  return Response.json({ txs: data });
+  const { data: wrData } = await supabaseAdmin
+    .from("withdrawal_requests")
+    .select("*")
+    .eq("id", "babec1cc-e185-459e-aa76-f81e95413d7f")
+    .maybeSingle();
+
+  return Response.json({ tx: data, wr: wrData });
 }
 
 export const Route = createFileRoute("/api/public/test-tx")({
