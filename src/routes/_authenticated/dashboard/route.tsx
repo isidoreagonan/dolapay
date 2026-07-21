@@ -325,7 +325,7 @@ function DashboardLayout() {
             {navItems.map((it) => {
               const active = it.exact ? pathname === it.to : pathname.startsWith(it.to);
               const linkClass = cn(
-                "flex items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+                "flex items-center justify-between gap-3 rounded-[8px] px-3 py-2.5 text-sm font-medium transition-colors",
                 active ? "bg-primary text-primary-foreground shadow" : "text-foreground/80 hover:bg-accent",
                 it.locked && !active && "opacity-70",
               );
