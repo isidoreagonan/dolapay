@@ -16,6 +16,53 @@ export interface BlogPost {
 
 export const blogPosts: BlogPost[] = [
   {
+    id: "3",
+    slug: "dolapay-et-non-dolapay-importance-majuscule",
+    title: "Pourquoi c'est DolaPay et non Dolapay (L'importance du P majuscule)",
+    excerpt: "Pourquoi nous tenons tant à cette majuscule au milieu de notre nom, et ce qu'elle signifie pour notre vision du paiement en Afrique.",
+    date: "22 Juillet 2026",
+    author: {
+      name: "Agonan Isidore Abraham",
+      role: "CEO & Fondateur",
+      avatarUrl: "/images/blog/isidore-ceo.jpg"
+    },
+    coverImage: "/images/blog/cover-story.png",
+    category: "Branding",
+    content: `
+Beaucoup de gens nous l'écrivent "Dolapay". Parfois même "dolapay" (aïe !). Et soyons honnêtes, on ne vous en veut pas. C'est le correcteur orthographique qui fait souvent des siennes.
+
+Mais chez nous, en interne, il y a une règle d'or : **C'est DolaPay. Avec un grand P.**
+
+Pourquoi tenons-nous tant à cette majuscule au milieu de notre nom ? C'est loin d'être un simple caprice esthétique. 
+
+### Dola + Pay : L'union de deux concepts forts
+
+Notre nom est la fusion de deux idées :
+- **Dola** : Évoque bien sûr le dollar, la valeur, la monnaie forte, la fiabilité financière.
+- **Pay** : L'action de payer, le mouvement de l'argent, la transaction.
+
+En mettant une majuscule au "P", nous séparons visuellement et conceptuellement ces deux éléments, tout en les unissant dans un seul mot fluide. Cela s'appelle du *CamelCase* dans le jargon des développeurs (une pratique très courante dans le code !). Mais au-delà du code, c'est une déclaration d'intention.
+
+### Le paiement (Pay) est notre cœur de métier
+
+Le "P" majuscule met l'accent sur notre véritable mission : **le paiement**.
+Nous ne sommes pas juste une entreprise de la FinTech qui fait un peu de tout. Notre obsession quotidienne, notre cœur de métier absolu, c'est de garantir que l'action de payer (*Pay*) soit la plus simple, la plus rapide et la plus sécurisée possible.
+
+En grandissant le "P", nous élevons l'importance de la transaction. C'est le moment de vérité pour tout e-commerçant, le moment où le visiteur devient client. Ce moment mérite une majuscule.
+
+### Le souci du détail
+
+Enfin, exiger ce "P" majuscule, c'est témoigner de notre rigueur.
+Une infrastructure financière qui gère des millions de FCFA se doit d'être obsédée par les détails. Si nous laissons passer une erreur sur notre propre nom, comment pourriez-vous nous faire confiance pour ne pas laisser passer une erreur sur vos transactions ?
+
+Cette majuscule, c'est notre signature de fiabilité.
+
+Alors la prochaine fois que vous parlez de nous, ou que vous intégrez notre API magique, n'oubliez pas d'appuyer sur la touche *Shift*. 😉
+
+Bienvenue chez **DolaPay**.
+    `
+  },
+  {
     id: "1",
     slug: "histoire-de-dolapay-solution-magique-paiement-afrique",
     title: "L'histoire de DolaPay : Pourquoi j'ai créé la \"solution magique\" pour les paiements en Afrique",
