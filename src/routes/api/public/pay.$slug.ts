@@ -81,15 +81,10 @@ export const Route = createFileRoute("/api/public/pay/$slug")({
 
           const emailStr = parsed.data.customer_email ? parsed.data.customer_email.trim() : "noemail@client.com";
           const gatewayUsed = isLigdiCash ? "ligdicash" : "pawapay";
-          const margins = await calculateMargin(supabaseAdmin, link.amount, "pay-in", parsed.data.provider, gatewayUsed);
+          const margins = await calculateMargin(supabaseAdmin, link.amount, "pay-in", parsed.data.provider, gatewayUsed, link.fees_paid_by);
           
-          let finalAmount = link.amount;
-          let netAmount = margins.net_amount;
-
-          if (link.fees_paid_by === "customer") {
-            finalAmount = link.amount + margins.totalFees;
-            netAmount = link.amount;
-          }
+          const finalAmount = margins.final_amount;
+          const netAmount = margins.net_amount;
           
           const { data: tx, error: txErr } = await supabaseAdmin
             .from("transactions")

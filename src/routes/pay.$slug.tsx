@@ -188,16 +188,15 @@ function PayPage() {
       const res = await fetch("/api/public/quote", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: link.amount, provider }),
+        body: JSON.stringify({ amount: link.amount, provider, fees_paid_by: link.fees_paid_by }),
       });
       if (!res.ok) return null;
-      return await res.json() as { totalFees: number; net_amount: number };
+      return await res.json() as { totalFees: number; net_amount: number; final_amount: number };
     },
     enabled: !!link && !!provider && link.fees_paid_by === "customer",
   });
 
-  const customerFee = link?.fees_paid_by === "customer" && quote ? quote.totalFees : 0;
-  const finalAmount = link ? link.amount + customerFee : 0;
+  const finalAmount = quote ? quote.final_amount : (link ? link.amount : 0);
 
   const activeCountry = useMemo(() => {
     return COUNTRIES.find((c) => c.code === selectedCountryCode) || COUNTRIES[0];
@@ -686,7 +685,7 @@ function PayPage() {
               <Button
                 type="submit"
                 className="w-full h-14 rounded-xl font-bold shadow-xl shadow-primary/25 text-base flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all mt-4"
-                disabled={submitting || (link.fees_paid_by === "customer" && customerFee === 0)}
+                disabled={submitting || (link.fees_paid_by === "customer" && !quote)}
               >
                 {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Lock className="h-3.5 w-3.5" />}
                 Payer {fmt(finalAmount)} {link.currency}

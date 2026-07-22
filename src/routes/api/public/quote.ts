@@ -4,6 +4,7 @@ import { z } from "zod";
 const QuoteSchema = z.object({
   amount: z.number().positive(),
   provider: z.string().trim().min(1),
+  fees_paid_by: z.enum(["merchant", "customer"]).optional().default("merchant"),
 });
 
 export const Route = createFileRoute("/api/public/quote")({
@@ -26,12 +27,14 @@ export const Route = createFileRoute("/api/public/quote")({
             parsed.data.amount,
             "pay-in",
             parsed.data.provider,
-            gatewayUsed
+            gatewayUsed,
+            parsed.data.fees_paid_by
           );
 
           return Response.json({
             totalFees: margins.totalFees,
             net_amount: margins.net_amount,
+            final_amount: margins.final_amount,
           });
         } catch (e) {
           console.error("Error in quote API:", e);
