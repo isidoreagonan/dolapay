@@ -261,6 +261,8 @@ function CheckoutPage() {
         setStatus("success");
         setSubmitting(false);
         if (session.success_url) setTimeout(() => window.location.href = session.success_url, 3000);
+      } else if (data.status === "redirect" && data.redirect_url) {
+        window.location.href = data.redirect_url;
       } else {
         setTxId(data.id);
         setStatus("pending");

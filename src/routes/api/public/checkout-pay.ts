@@ -131,12 +131,15 @@ export const Route = createFileRoute("/api/public/checkout-pay")({
                 phone: customer_phone,
               },
             });
-            if (ligdiRes.response_text !== "success") {
+            if (ligdiRes.response_code !== "00") {
               await supabaseAdmin.from("transactions").update({ status: "failed" }).eq("id", txId);
               return Response.json({ error: { message: ligdiRes.description || "Rejeté par LigdiCash." } }, { status: 400 });
             }
             if (ligdiRes.token) {
               await supabaseAdmin.from("transactions").update({ ligdicash_token: ligdiRes.token } as any).eq("id", txId);
+            }
+            if (ligdiRes.response_text) {
+              return Response.json({ id: txId, status: "redirect", redirect_url: ligdiRes.response_text });
             }
           }
 

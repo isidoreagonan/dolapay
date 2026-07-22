@@ -1,37 +1,41 @@
-const { createClient } = require('@supabase/supabase-js');
-require('dotenv').config();
-
-const supabase = createClient(
-  process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL,
-  process.env.VITE_SUPABASE_PUBLISHABLE_KEY || process.env.SUPABASE_ANON_KEY
-);
-
 async function run() {
-  const userId = '46179a95-999b-469d-915d-718bae54a844';
-  
-  const payoutId = "f56b9c99-0a30-4e20-802c-7389146039ea";
-  const { data, error } = await supabase.from('transactions').insert({
-    id: payoutId,
-    profile_id: userId,
-    amount: 300,
-    net_amount: 303,
-    operator_fee: 0,
-    gateway_fee: 3,
-    dola_margin: 0,
-    gateway: "pawapay",
-    provider: "pawapay",
-    currency: "XOF",
-    type: "pay-out",
-    status: "processing",
-    description: `[RETRAIT_UI] BEN_MTN · 2290157385885`,
-    payment_method: "MTN MoMo",
-    customer_phone: "2290157385885",
-  }).select('*');
-    
-  if (error) {
-    console.error("Error inserting:", error);
-  } else {
-    console.log("Transactions inserted:", JSON.stringify(data, null, 2));
+  const apiKey = process.env.LIGDICASH_API_KEY;
+  const authToken = process.env.LIGDICASH_AUTH_TOKEN;
+
+  const payload = {
+    commande: {
+      invoice: {
+        items: [{ name: "Test DolaPay", description: "Test", quantity: 1, unit_price: 200, total_price: 200 }],
+        total_amount: 200,
+        currency: "xof",
+        description: "Test",
+        customer: "22680005738",
+      },
+      store: { name: "DolaPay", website_url: "https://dola-pay.com" },
+      actions: {
+        cancel_url: "https://dola-pay.com/cancel",
+        return_url: "https://dola-pay.com/success",
+        callback_url: "https://dola-pay.com/webhook",
+      },
+      custom_data: { test: true },
+    },
+  };
+
+  try {
+    const res = await fetch("https://app.ligdicash.com/pay/v01/redirect/checkout-invoice/create", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${authToken}`,
+        "Apikey": apiKey,
+      },
+      body: JSON.stringify(payload)
+    });
+    const text = await res.text();
+    console.log("Status:", res.status);
+    console.log("Response:", text);
+  } catch(e) {
+    console.error("Fetch error:", e);
   }
 }
 
