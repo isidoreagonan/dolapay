@@ -52,6 +52,41 @@ export const Route = createFileRoute("/api/v1/payouts")({
         // Calculer les marges et frais pour le payout
         const margins = await calculateMargin(supabaseAdmin, amount, "pay-out", correspondent, "pawapay");
 
+        // 🚨 VÉRIFICATION DE SÉCURITÉ DU SOLDE 🚨
+        let currentBalance = 0;
+        try {
+          // Utilisation de sync-wallet pour avoir le calcul exact et exhaustif en temps réel
+          const syncUrl = new URL("/api/public/sync-wallet", request.url).toString();
+          const syncRes = await fetch(syncUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId: auth.profile_id })
+          });
+          if (syncRes.ok) {
+            const syncData = await syncRes.json();
+            currentBalance = syncData.balance || 0;
+          } else {
+            throw new Error("Sync failed");
+          }
+        } catch (e) {
+          // Fallback de secours si le fetch interne échoue
+          const { data: profData } = await supabaseAdmin.from("profiles").select("balance").eq("id", auth.profile_id).maybeSingle();
+          currentBalance = Number(profData?.balance || 0);
+        }
+
+        if (currentBalance < margins.net_amount) {
+          return Response.json(
+            { error: { code: "insufficient_funds", message: `Solde insuffisant pour ce décaissement. Requis: ${margins.net_amount} XOF, Disponible: ${Math.round(currentBalance)} XOF` } },
+            { status: 400 }
+          );
+        }
+
+        // Mettre à jour immédiatement le solde en base de données pour "réserver" les fonds et éviter les doubles retraits
+        const newBalance = currentBalance - margins.net_amount;
+        await supabaseAdmin.from("wallets").update({ balance: newBalance, updated_at: new Date().toISOString() } as any).eq("profile_id", auth.profile_id);
+        await (supabaseAdmin.from("profiles") as any).update({ balance: newBalance, wallet_balance: newBalance }).eq("id", auth.profile_id);
+
+
         // Créer un lot de décaissement ou une transaction de retrait
         const { data: batch, error: batchErr } = await supabaseAdmin
           .from("payout_batches")
