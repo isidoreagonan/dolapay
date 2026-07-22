@@ -11,15 +11,14 @@ const webhookSnippets: Record<Lang, string> = {
   curl: `# DolaPay envoie une requête POST à votre Webhook URL
 # Header inclus pour la sécurité : x-dolapay-signature
 
-curl -X POST https://votre-site.com/webhooks/dolapay \
-  -H "x-dolapay-signature: t=1710000000,v1=ab23c4d5e6f7..." \
+curl -X POST https://votre-site.com/webhooks/dolapay \\
+  -H "x-dolapay-signature: t=1710000000,v1=ab23c4d5e6f7..." \\
   -d '{
     "id": "evt_987654321",
-    "type": "checkout.success",
+    "type": "transaction.success",
     "created_at": "2024-03-10T12:00:00Z",
     "data": { 
-      "session_id": "cs_test_123", 
-      "client_reference_id": "CMD-10293",
+      "id": "123e4567-e89b-12d3-a456-426614174000", 
       "amount": 5000,
       "status": "success"
     }
@@ -35,10 +34,9 @@ app.post("/webhooks/dolapay", express.raw({ type: "application/json" }), (req, r
   const payload = req.body.toString();
   
   // 1. Extraire le timestamp et la signature du header
-  // x-dolapay-signature ressemble à : t=1710000000,v1=ab23c4d...
   const parts = signatureHeader.split(',');
-  const timestamp = parts.find(p => p.startsWith('t=')).split('=')[1];
-  const signature = parts.find(p => p.startsWith('v1=')).split('=')[1];
+  const timestamp = parts.find((p: string) => p.startsWith('t=')).split('=')[1];
+  const signature = parts.find((p: string) => p.startsWith('v1=')).split('=')[1];
   
   // 2. Recréer la chaîne à signer : "timestamp.payload"
   const signedPayload = \`\${timestamp}.\${payload}\`;
@@ -53,10 +51,16 @@ app.post("/webhooks/dolapay", express.raw({ type: "application/json" }), (req, r
   if (crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature))) {
     const event = JSON.parse(payload);
     
-    // Traiter l'événement
-    if (event.type === "checkout.success") {
-      console.log("Paiement validé :", event.data.client_reference_id);
-      // Mettre à jour la base de données...
+    // Traiter les événements d'encaissement (Paiement)
+    if (event.type === "transaction.success") {
+      console.log("Paiement validé :", event.data.id);
+      // Valider la commande du client...
+    }
+    
+    // Traiter les événements de décaissement (Retrait API)
+    if (event.type === "payout.success") {
+      console.log("Retrait API effectué avec succès :", event.data.id);
+      // Mettre à jour le statut du retrait côté serveur...
     }
     
     // Il est très important de répondre avec un 200 OK rapidement
@@ -80,32 +84,60 @@ function ApiWebhooksPage() {
       </div>
       
       <p className="text-lg text-navy/60 leading-relaxed mb-6 mt-4">
-        Les paiements Mobile Money sont par nature asynchrones. L'utilisateur peut mettre plusieurs minutes avant de saisir son code PIN. Pour automatiser vos processus (livraison, facturation), vous devez écouter nos Webhooks.
+        Que vous utilisiez l'API de Paiement (avec redirection ou en direct sans redirection) ou l'API de Retrait (Décaissement), les transactions Mobile Money sont asynchrones. Pour être notifié instantanément du succès ou de l'échec d'une transaction, vous devez configurer et écouter nos Webhooks.
       </p>
 
       <section className="mt-12">
         <h2 className="text-2xl font-semibold text-navy tracking-tight mb-4 flex items-center gap-2">
           <CheckCircle className="h-5 w-5 text-emerald-500" /> 
-          Événements supportés
+          Événements d'Encaissement (Paiements)
         </h2>
         <div className="grid gap-4 mt-6">
           <div className="p-5 rounded-2xl border border-border bg-card shadow-sm">
             <div className="flex items-center gap-3 mb-2">
-              <code className="text-emerald-600 bg-emerald-500/10 px-2 py-1 rounded font-bold text-sm">checkout.success</code>
+              <code className="text-emerald-600 bg-emerald-500/10 px-2 py-1 rounded font-bold text-sm">transaction.success</code>
             </div>
             <p className="text-navy/70 leading-relaxed">
-              Cet événement est déclenché dès que le client valide le paiement sur son téléphone et que les fonds sont sécurisés par DolaPay. C'est le signal pour vous de valider la commande ou de livrer le service.
+              Déclenché dès qu'un client valide son paiement (qu'il vienne d'une redirection Checkout Session ou d'une requête API Directe sans redirection). C'est le signal pour vous de valider la commande.
             </p>
           </div>
           
           <div className="p-5 rounded-2xl border border-border bg-card shadow-sm">
             <div className="flex items-center gap-3 mb-2">
-              <code className="text-red-600 bg-red-500/10 px-2 py-1 rounded font-bold text-sm">checkout.failed</code>
+              <code className="text-red-600 bg-red-500/10 px-2 py-1 rounded font-bold text-sm">transaction.failed</code>
             </div>
             <p className="text-navy/70 leading-relaxed">
-              Déclenché si le paiement échoue. Les raisons peuvent être multiples : fonds insuffisants, annulation par le client sur son téléphone, ou expiration du délai d'attente (timeout).
+              Déclenché si le paiement échoue (fonds insuffisants, annulation par le client sur son téléphone, ou délai d'attente dépassé).
             </p>
           </div>
+        </div>
+      </section>
+
+      <section className="mt-12 pt-8 border-t border-border">
+        <h2 className="text-2xl font-semibold text-navy tracking-tight mb-4 flex items-center gap-2">
+          <CheckCircle className="h-5 w-5 text-emerald-500" /> 
+          Événements de Décaissement (Retraits API)
+        </h2>
+        <div className="grid gap-4 mt-6">
+          <div className="p-5 rounded-2xl border border-border bg-card shadow-sm">
+            <div className="flex items-center gap-3 mb-2">
+              <code className="text-emerald-600 bg-emerald-500/10 px-2 py-1 rounded font-bold text-sm">payout.success</code>
+            </div>
+            <p className="text-navy/70 leading-relaxed">
+              Déclenché lorsque votre requête de retrait via l'API (Décaissement B2C) est traitée et que les fonds sont effectivement arrivés sur le numéro de destination.
+            </p>
+          </div>
+          
+          <div className="p-5 rounded-2xl border border-border bg-card shadow-sm">
+            <div className="flex items-center gap-3 mb-2">
+              <code className="text-red-600 bg-red-500/10 px-2 py-1 rounded font-bold text-sm">payout.failed</code>
+            </div>
+            <p className="text-navy/70 leading-relaxed">
+              Déclenché si l'envoi des fonds au destinataire a échoué (numéro erroné, plafond atteint sur le compte de destination). <strong>Le montant est alors automatiquement re-crédité sur votre solde DolaPay.</strong>
+            </p>
+          </div>
+        </div>
+      </section> </div>
         </div>
       </section>
 
