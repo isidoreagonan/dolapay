@@ -359,11 +359,13 @@ export const Route = createFileRoute("/api/public/withdraw")({
             const baseDeposit = livePayin > 0 ? livePayin : Math.max(currentBalance + livePayout, profBalance + livePayout, 0);
             currentBalance = Math.max(0, baseDeposit - livePayout);
 
-            const { getCorrespondentCode } = await import("@/lib/pawapay.server");
+            const { getCorrespondentCode, detectCountryFromPhone } = await import("@/lib/pawapay.server");
             const correspondentCode = getCorrespondentCode(method, phone);
+            const country = detectCountryFromPhone(phone);
+            const gatewayTarget = country === "BFA" ? "ligdicash" : "pawapay";
             
             // Calculer les marges et frais pour le retrait
-            const margins = await calculateMargin(supabaseAdmin, amount, "pay-out", correspondentCode, "pawapay");
+            const margins = await calculateMargin(supabaseAdmin, amount, "pay-out", correspondentCode, gatewayTarget);
 
             if (currentBalance < margins.net_amount) {
               const dbErr = await logFail("Solde insuffisant", method, phone, amount);
@@ -389,40 +391,75 @@ export const Route = createFileRoute("/api/public/withdraw")({
                 .eq("id", wallet.id);
             }
 
-            // Connexion API PawaPay pour effectuer le décaissement automatique (Payout API)
+            // Connexion API pour effectuer le décaissement automatique
             const isVirtualWithdraw = Boolean(json.testMode);
             let finalStatus = isVirtualWithdraw ? "success" : "processing";
             let payoutError: string | null = null;
-            const { pawapay } = await import("@/lib/pawapay.server");
-            const payoutId = crypto.randomUUID(); // Exigence stricte PawaPay : exactement 36 caractères (UUID v4)
+            const payoutId = crypto.randomUUID();
 
             if (!isVirtualWithdraw) {
-              try {
-                console.log(`[PawaPay API] Initiation du décaissement Live (${amount} XOF -> ${phone} via ${correspondentCode})...`);
-                const payoutRes = await pawapay.initiatePayout({
-                  payoutId,
-                  amount: amount,
-                  currency: "XOF",
-                  phone: phone,
-                  provider: correspondentCode,
-                  description: `Retrait DolaPay (${method})`,
-                });
-                if (payoutRes && payoutRes.status) {
-                  if (payoutRes.status === "REJECTED") {
-                    payoutError = `Retrait refusé par l'opérateur Mobile Money (${correspondentCode}) : ${payoutRes.rejectionReason?.rejectionMessage || "Refus PawaPay."}`;
-                    finalStatus = "failed";
+              if (gatewayTarget === "ligdicash") {
+                // Routage via LigdiCash pour le Burkina Faso
+                try {
+                  console.log(`[LigdiCash API] Initiation du décaissement Live (${amount} XOF -> ${phone} via ${method})...`);
+                  const { createLigdiCashPayout, LigdiCashMethod } = await import("@/lib/ligdicash.server");
+                  
+                  let ligdiMethod = "WALLET";
+                  const methUpper = method.toUpperCase();
+                  if (methUpper.includes("ORANGE")) ligdiMethod = "ORANGE";
+                  else if (methUpper.includes("MOOV")) ligdiMethod = "MOOV";
+                  else if (methUpper.includes("TELECEL")) ligdiMethod = "TELECEL";
+                  
+                  const ligdiRes = await createLigdiCashPayout({
+                    amount: amount,
+                    currency: "XOF",
+                    description: `Retrait DolaPay (${method})`,
+                    recipient: { phone },
+                    method: ligdiMethod as any,
+                    customData: { payoutId }
+                  });
+                  
+                  if (ligdiRes && ligdiRes.response_code === "00") {
+                    finalStatus = "processing";
                   } else {
-                    finalStatus = payoutRes.status === "ACCEPTED" ? "processing" : "pending";
+                    payoutError = `Retrait refusé par LigdiCash : ${ligdiRes.response_text || "Erreur inconnue."}`;
+                    finalStatus = "failed";
                   }
+                } catch (lgErr: any) {
+                  console.error("[LigdiCash API] Erreur lors de l'appel createLigdiCashPayout :", lgErr);
+                  payoutError = `Échec d'envoi API LigdiCash : ${lgErr.message || "Erreur réseau."}`;
+                  finalStatus = "failed";
                 }
-              } catch (pwErr: any) {
-                console.error("[PawaPay API] Erreur lors de l'appel initiatePayout :", pwErr);
-                payoutError = `Échec d'envoi API PawaPay (${correspondentCode}) : ${pwErr.message || "Erreur réseau ou solde opérateur insuffisant."}`;
-                finalStatus = "failed";
+              } else {
+                // Routage classique via PawaPay
+                try {
+                  console.log(`[PawaPay API] Initiation du décaissement Live (${amount} XOF -> ${phone} via ${correspondentCode})...`);
+                  const { pawapay } = await import("@/lib/pawapay.server");
+                  const payoutRes = await pawapay.initiatePayout({
+                    payoutId,
+                    amount: amount,
+                    currency: "XOF",
+                    phone: phone,
+                    provider: correspondentCode,
+                    description: `Retrait DolaPay (${method})`,
+                  });
+                  if (payoutRes && payoutRes.status) {
+                    if (payoutRes.status === "REJECTED") {
+                      payoutError = `Retrait refusé par l'opérateur Mobile Money (${correspondentCode}) : ${payoutRes.rejectionReason?.rejectionMessage || "Refus PawaPay."}`;
+                      finalStatus = "failed";
+                    } else {
+                      finalStatus = payoutRes.status === "ACCEPTED" ? "processing" : "pending";
+                    }
+                  }
+                } catch (pwErr: any) {
+                  console.error("[PawaPay API] Erreur lors de l'appel initiatePayout :", pwErr);
+                  payoutError = `Échec d'envoi API PawaPay (${correspondentCode}) : ${pwErr.message || "Erreur réseau ou solde opérateur insuffisant."}`;
+                  finalStatus = "failed";
+                }
               }
 
               if (finalStatus === "failed") {
-                // Rollback du solde si refusé immédiatement par PawaPay ou en cas d'erreur
+                // Rollback du solde si refusé immédiatement en cas d'erreur
                 await supabaseAdmin
                   .from("wallets")
                   .update({ balance: currentBalance, updated_at: new Date().toISOString() } as any)
@@ -430,9 +467,9 @@ export const Route = createFileRoute("/api/public/withdraw")({
                 await (supabaseAdmin.from("profiles") as any)
                   .update({ balance: currentBalance, wallet_balance: currentBalance } as any)
                   .eq("id", user.id);
-                const failId = payoutId;
+                
                 await supabaseAdmin.from("transactions").insert({
-                  id: failId,
+                  id: payoutId,
                   profile_id: user.id,
                   amount: amount,
                   net_amount: amount,
@@ -443,7 +480,7 @@ export const Route = createFileRoute("/api/public/withdraw")({
                   type: "pay-out",
                   status: finalStatus,
                   description: `Retrait vers ${phone} via ${method}`,
-                  gateway: "pawapay"
+                  gateway: gatewayTarget
                 } as any);
               }
             }
