@@ -538,10 +538,15 @@ export async function notifyDepositSuccess(supabaseAdmin: any, transactionId: st
 
     if (!prof || !prof.email) return;
 
-    // Vérification des préférences utilisateur pour désactiver les emails
-    const { data: userAuth } = await supabaseAdmin.auth.admin.getUserById(profileId);
-    if (userAuth?.user?.user_metadata?.disable_receipt_emails === true) {
-      return;
+    // Vérification des préférences utilisateur pour désactiver les emails marchands
+    let merchantWantsEmails = true;
+    try {
+      const { data: userAuth } = await supabaseAdmin.auth.admin.getUserById(profileId);
+      if (userAuth?.user?.user_metadata?.disable_receipt_emails === true) {
+        merchantWantsEmails = false;
+      }
+    } catch (e) {
+      console.error("[email.server] Error fetching user metadata", e);
     }
 
     const merchantName = prof.company_name || prof.full_name || "Marchand DolaPay";
@@ -566,19 +571,21 @@ export async function notifyDepositSuccess(supabaseAdmin: any, transactionId: st
       }
     }
 
-    // 1. Email Marchand
-    await sendPaymentReceivedMerchantEmail({
-      merchantEmail: prof.email,
-      merchantName,
-      amount: Number(tx.amount),
-      currency: tx.currency || "XOF",
-      customerName,
-      customerPhone: tx.customer_phone,
-      customerEmail,
-      paymentMethod: tx.payment_method || "Mobile Money",
-      transactionId: tx.id,
-      linkTitle,
-    });
+    // 1. Email Marchand (Seulement s'il n'a pas désactivé l'option)
+    if (merchantWantsEmails) {
+      await sendPaymentReceivedMerchantEmail({
+        merchantEmail: prof.email,
+        merchantName,
+        amount: Number(tx.amount),
+        currency: tx.currency || "XOF",
+        customerName,
+        customerPhone: tx.customer_phone,
+        customerEmail,
+        paymentMethod: tx.payment_method || "Mobile Money",
+        transactionId: tx.id,
+        linkTitle,
+      });
+    }
 
     // 2. Email Client
     if (customerEmail) {
@@ -631,10 +638,17 @@ export async function notifyPayoutStatus(supabaseAdmin: any, payoutIdOrItem: any
     if (!prof || !prof.email) return;
 
     // Vérification des préférences utilisateur pour désactiver les emails
-    const { data: userAuth } = await supabaseAdmin.auth.admin.getUserById(profileId);
-    if (userAuth?.user?.user_metadata?.disable_receipt_emails === true) {
-      return;
+    let merchantWantsEmails = true;
+    try {
+      const { data: userAuth } = await supabaseAdmin.auth.admin.getUserById(profileId);
+      if (userAuth?.user?.user_metadata?.disable_receipt_emails === true) {
+        merchantWantsEmails = false;
+      }
+    } catch (e) {
+      console.error("[email.server] Error fetching user metadata", e);
     }
+
+    if (!merchantWantsEmails) return;
 
     const merchantName = prof.company_name || prof.full_name || "Marchand DolaPay";
 
