@@ -29,8 +29,7 @@ function AdminOverview() {
         .from("transactions")
         .select("id,amount,status,type,created_at,profile_id,dola_margin,description")
         .gte("created_at", since)
-        .order("created_at", { ascending: false })
-        .limit(1000);
+        .order("created_at", { ascending: false });
       if (error) throw error;
       const results: Tx[] = (data ?? []) as Tx[];
       const existingIds = new Set(results.map((t) => t.id));
