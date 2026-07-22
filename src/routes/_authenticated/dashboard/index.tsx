@@ -145,7 +145,14 @@ function Overview() {
         }
       }
 
-      return results.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      // Exclure les transactions de test pour que les métriques soient exactes et correspondent à l'admin
+      const finalResults = results.filter((t) => {
+        const desc = String(t.description || "").toLowerCase();
+        const mode = String((t as any).mode || "").toLowerCase();
+        return !(desc.includes("_test") || desc.includes("sandbox") || mode === "test" || mode === "sandbox");
+      });
+
+      return finalResults.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     },
     refetchInterval: 5000,
   });
