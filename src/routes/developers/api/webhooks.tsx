@@ -137,8 +137,6 @@ function ApiWebhooksPage() {
             </p>
           </div>
         </div>
-      </section> </div>
-        </div>
       </section>
 
       <section className="mt-12 pt-8 border-t border-border">
