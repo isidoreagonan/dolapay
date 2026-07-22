@@ -10,7 +10,7 @@ const COUNTRIES = [
   { code: "BFA", name: "Burkina Faso", prefix: "226", operators: ["Orange", "MOOV", "Telecel", "LigdiCash Wallet"], gateway: "Redirection Web" },
   { code: "BEN", name: "Bénin", prefix: "229", operators: ["MTN", "MOOV"], gateway: "USSD Push (Direct)" },
   { code: "CIV", name: "Côte d'Ivoire", prefix: "225", operators: ["Orange", "MTN"], gateway: "USSD Push (Direct)" },
-  { code: "CMR", name: "Cameroun", prefix: "237", operators: ["MTN"], gateway: "USSD Push (Direct)" },
+  { code: "CMR", name: "Cameroun", prefix: "237", operators: ["MTN", "Orange"], gateway: "USSD Push (Direct)" },
   { code: "COD", name: "RD Congo", prefix: "243", operators: ["Orange", "Airtel", "Vodacom"], gateway: "USSD Push (Direct)" },
   { code: "COG", name: "Congo", prefix: "242", operators: ["MTN", "Airtel"], gateway: "USSD Push (Direct)" },
   { code: "GAB", name: "Gabon", prefix: "241", operators: ["Airtel"], gateway: "USSD Push (Direct)" },

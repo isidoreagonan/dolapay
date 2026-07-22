@@ -68,6 +68,7 @@ const COUNTRIES: CountryConfig[] = [
     code: "CMR", name: "Cameroun", flag: "🇨🇲", prefix: "237",
     operators: [
       { id: "MTN", name: "MTN MoMo", logoUrl: "/methods/mtn.png", color: "bg-[#FFCC00]" },
+      { id: "ORANGE", name: "Orange Money", logoUrl: "/methods/orange.png", color: "bg-[#FF6600]" },
     ]
   },
   {

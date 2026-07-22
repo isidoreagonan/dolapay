@@ -13,7 +13,7 @@ const countries = [
   { name: "Burkina Faso", flag: "🇧🇫", zone: "UEMOA", ops: ["Orange", "Moov"] },
   { name: "Côte d'Ivoire", flag: "🇨🇮", zone: "UEMOA", ops: ["MTN", "Orange"] },
   { name: "Sénégal", flag: "🇸🇳", zone: "UEMOA", ops: ["Orange", "Free"] },
-  { name: "Cameroun", flag: "🇨🇲", zone: "CEMAC", ops: ["MTN"] },
+  { name: "Cameroun", flag: "🇨🇲", zone: "CEMAC", ops: ["MTN", "Orange"] },
   { name: "Congo", flag: "🇨🇬", zone: "CEMAC", ops: ["MTN", "Airtel"] },
   { name: "Gabon", flag: "🇬🇦", zone: "CEMAC", ops: ["Airtel"] },
   { name: "RDC", flag: "🇨🇩", zone: "Afrique Centrale", ops: ["Orange", "Airtel", "Vodacom M-Pesa"] },

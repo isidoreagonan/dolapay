@@ -41,7 +41,8 @@ export const COUNTRY_RATES: CountryRate[] = [
   {
     code: "CM", name: "Cameroun", flag: "🇨🇲", currency: "XAF",
     operators: [
-      { operator: "MTN", payin: 2.75, payout: 2.30 }
+      { operator: "MTN", payin: 2.75, payout: 2.30 },
+      { operator: "Orange", payin: 2.77, payout: 1.00 }
     ],
   },
   {

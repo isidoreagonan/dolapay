@@ -26,6 +26,7 @@ export const WITHDRAW_COUNTRIES = [
     prefix: "237",
     methods: [
       { id: "MTN MoMo", name: "MTN MoMo", logoUrl: pmMtn.url, color: "border-yellow-500/80 text-yellow-600 bg-yellow-500/10 dark:bg-yellow-500/20" },
+      { id: "Orange Money", name: "Orange Money", logoUrl: pmOrange.url, color: "border-orange-500/80 text-orange-600 bg-orange-500/10 dark:bg-orange-500/20" },
     ]
   },
   {

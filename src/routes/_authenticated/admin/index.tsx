@@ -29,14 +29,16 @@ function AdminOverview() {
         .from("transactions")
         .select("id,amount,status,type,created_at,profile_id,dola_margin,description")
         .gte("created_at", since)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(10000);
       if (error) throw error;
       const results: Tx[] = (data ?? []) as Tx[];
       const existingIds = new Set(results.map((t) => t.id));
 
       const { data: wrs } = await (supabase.from("withdrawal_requests") as any)
         .select("id,amount,status,created_at,profile_id")
-        .gte("created_at", since);
+        .gte("created_at", since)
+        .limit(10000);
       if (wrs && wrs.length > 0) {
         for (const w of wrs) {
           if (!existingIds.has(w.id)) {
@@ -60,7 +62,8 @@ function AdminOverview() {
       const { data: oldWrs } = await supabase
         .from("withdrawals")
         .select("id,amount,status,created_at,merchant_id")
-        .gte("created_at", since);
+        .gte("created_at", since)
+        .limit(10000);
       if (oldWrs && oldWrs.length > 0) {
         for (const w of oldWrs) {
           if (!existingIds.has(w.id)) {
@@ -83,7 +86,8 @@ function AdminOverview() {
 
       const { data: batches } = await (supabase.from("payout_batches") as any)
         .select("*, payout_batch_items(*)")
-        .gte("created_at", since);
+        .gte("created_at", since)
+        .limit(10000);
       if (batches && batches.length > 0) {
         for (const b of batches) {
           if (b.payout_batch_items && Array.isArray(b.payout_batch_items)) {
