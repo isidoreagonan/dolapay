@@ -516,12 +516,16 @@ function TierLimitsCard({ tier, usedMonthly }: { tier: ReturnType<typeof getTier
 function Capability({ ok, label }: { ok: boolean; label: string }) {
   return (
     <span className={cn(
-      "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 font-bold tracking-wide backdrop-blur-sm transition-all",
+      "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-colors",
       ok
-        ? "border-emerald-300/30 bg-emerald-400/20 text-emerald-100 shadow-sm"
-        : "border-white/10 bg-white/5 text-blue-100/50",
+        ? "bg-white/10 text-white border border-white/5"
+        : "text-blue-100/40",
     )}>
-      <span className={cn("h-2 w-2 rounded-full", ok ? "bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.9)]" : "bg-white/20")} />
+      {ok ? (
+        <CheckCircle2 className="h-3.5 w-3.5 text-blue-200" />
+      ) : (
+        <span className="h-3 w-3 rounded-full border border-blue-100/20" />
+      )}
       {label}
     </span>
   );
