@@ -94,7 +94,7 @@ function ApiPayoutsPage() {
               <tr className="hover:bg-muted/30">
                 <td className="p-4 font-mono text-primary font-bold">provider <span className="text-red-500">*</span></td>
                 <td className="p-4 text-navy/70">
-                  L'opérateur mobile du destinataire. Exemples: <code className="text-xs font-bold text-primary">Orange</code>, <code className="text-xs font-bold text-primary">MTN</code>, <code className="text-xs font-bold text-primary">MOOV</code>, <code className="text-xs font-bold text-primary">Airtel</code>, <code className="text-xs font-bold text-primary">Free</code>. Par défaut, <code className="text-xs font-bold text-primary">Orange</code>.
+                  L'opérateur mobile du destinataire. Exemples: <code className="text-xs font-bold text-primary">Orange</code>, <code className="text-xs font-bold text-primary">MTN</code>, <code className="text-xs font-bold text-primary">MOOV</code>, <code className="text-xs font-bold text-primary">Telecel</code>, <code className="text-xs font-bold text-primary">Wallet</code> (LigdiCash), <code className="text-xs font-bold text-primary">Airtel</code>, <code className="text-xs font-bold text-primary">Free</code>. Par défaut, <code className="text-xs font-bold text-primary">Orange</code>.
                 </td>
               </tr>
               <tr className="hover:bg-muted/30">
