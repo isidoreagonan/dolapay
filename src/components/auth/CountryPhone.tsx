@@ -21,24 +21,24 @@ export function CountrySelect({
 
   return (
     <div className="block">
-      <span className="mb-1.5 block text-xs font-semibold text-slate-900 dark:text-white/80">{label}</span>
+      <span className="mb-1.5 block text-xs font-semibold text-slate-900">{label}</span>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <button
             type="button"
             disabled={disabled}
-            className="flex w-full items-center justify-between gap-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2.5 text-sm text-slate-900 dark:text-white transition-colors hover:border-primary/60 disabled:opacity-60"
+            className="flex w-full items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 transition-colors hover:border-primary/60 disabled:opacity-60"
           >
             {selected ? (
               <span className="flex items-center gap-2">
                 <FlagIcon code={selected.code} flag={selected.flag} name={selected.name} className="w-5 h-3.5" />
                 <span className="font-medium">{selected.name}</span>
-                <span className="text-xs text-slate-500 dark:text-slate-400">{selected.dialCode}</span>
+                <span className="text-xs text-slate-500">{selected.dialCode}</span>
               </span>
             ) : (
-              <span className="text-slate-500 dark:text-slate-400">Sélectionnez un pays…</span>
+              <span className="text-slate-500">Sélectionnez un pays…</span>
             )}
-            <ChevronDown className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+            <ChevronDown className="h-4 w-4 text-slate-500" />
           </button>
         </PopoverTrigger>
         <PopoverContent
@@ -56,20 +56,20 @@ export function CountrySelect({
                   setOpen(false);
                 }}
                 className={cn(
-                  "flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-slate-50 dark:bg-slate-950",
-                  active && "bg-slate-50 dark:bg-slate-950",
+                  "flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left text-sm transition-colors hover:bg-slate-50",
+                  active && "bg-slate-50",
                 )}
               >
                 <FlagIcon code={c.code} flag={c.flag} name={c.name} className="w-5 h-3.5" />
-                <span className="flex-1 font-medium text-slate-900 dark:text-white">{c.name}</span>
-                <span className="text-xs text-slate-500 dark:text-slate-400">{c.dialCode}</span>
+                <span className="flex-1 font-medium text-slate-900">{c.name}</span>
+                <span className="text-xs text-slate-500">{c.dialCode}</span>
                 {active && <Check className="h-4 w-4 text-primary" />}
               </button>
             );
           })}
         </PopoverContent>
       </Popover>
-      <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+      <p className="mt-1 text-[11px] text-slate-500">
         DolaPay couvre 12 marchés africains. Les autres pays seront ajoutés prochainement.
       </p>
     </div>
@@ -90,9 +90,9 @@ export function PhoneField({
   const country = useMemo(() => findCountryByCode(countryCode), [countryCode]);
   return (
     <label className="block">
-      <span className="mb-1.5 block text-xs font-semibold text-slate-900 dark:text-white/80">{label}</span>
-      <div className="flex items-stretch gap-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2.5 focus-within:border-primary">
-        <div className="flex shrink-0 items-center gap-1.5 border-r border-slate-200 dark:border-slate-800 pr-3 text-sm font-semibold text-slate-900 dark:text-white/80">
+      <span className="mb-1.5 block text-xs font-semibold text-slate-900">{label}</span>
+      <div className="flex items-stretch gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 focus-within:border-primary">
+        <div className="flex shrink-0 items-center gap-1.5 border-r border-slate-200 pr-3 text-sm font-semibold text-slate-900">
           <FlagIcon code={country?.code} flag={country?.flag} name={country?.name} className="w-5 h-3.5" />
           <span>{country?.dialCode ?? "+ —"}</span>
         </div>
@@ -104,7 +104,7 @@ export function PhoneField({
           disabled={!country}
           onChange={(e) => onChange(e.target.value.replace(/\D/g, ""))}
           required
-          className="min-w-0 flex-1 bg-transparent text-sm text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-slate-400/60 focus:outline-none disabled:opacity-60"
+          className="min-w-0 flex-1 bg-transparent text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none disabled:opacity-60"
         />
       </div>
     </label>
