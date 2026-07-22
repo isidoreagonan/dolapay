@@ -38,6 +38,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -486,12 +487,12 @@ function TopBar({ profile, open, setOpen }: { profile: Profile | null, open: boo
   const initials = profile?.full_name?.substring(0, 2).toUpperCase() || profile?.email?.substring(0, 2).toUpperCase() || "DP";
 
   return (
-    <header className="sticky top-0 z-30 flex items-center justify-between w-full h-16 px-4 sm:px-6 bg-card/80 backdrop-blur border-b border-border shadow-sm">
+    <header className="sticky top-0 z-30 flex items-center justify-between w-full h-16 px-4 sm:px-6 bg-white/70 dark:bg-card/70 backdrop-blur-xl border-b border-border shadow-[0_1px_12px_rgba(0,0,0,0.03)] dark:shadow-none">
       {/* Left part */}
       <div className="flex items-center gap-3">
         {/* Mobile Hamburger & Logo */}
         <div className="flex items-center gap-3 lg:hidden">
-          <button onClick={() => setOpen(!open)} className="rounded-lg border border-border p-2 text-foreground hover:bg-muted">
+          <button onClick={() => setOpen(!open)} className="rounded-lg border border-border p-2 text-foreground hover:bg-muted transition-colors">
             <Menu className="h-5 w-5" />
           </button>
           <Link to="/dashboard"><img src={logoFull.url} alt="DolaPay" className="h-6" /></Link>
@@ -501,14 +502,14 @@ function TopBar({ profile, open, setOpen }: { profile: Profile | null, open: boo
         <div className="hidden lg:flex items-center">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="h-9 gap-2 text-xs font-semibold rounded-xl bg-muted/50 border-border hover:bg-muted text-foreground">
+              <Button variant="outline" size="sm" className="h-9 gap-2 text-xs font-semibold rounded-xl bg-white/50 dark:bg-muted/50 border-border shadow-sm hover:bg-muted text-foreground transition-all">
                 <Building className="h-4 w-4 text-primary" />
                 <span>DolaPay Live</span>
                 <ChevronDown className="h-3 w-3 opacity-50" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-48 rounded-xl">
-              <DropdownMenuLabel className="text-xs text-muted-foreground">Environnement</DropdownMenuLabel>
+            <DropdownMenuContent align="start" className="w-48 rounded-xl shadow-lg border-border/50">
+              <DropdownMenuLabel className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Environnement</DropdownMenuLabel>
               <DropdownMenuItem className="text-xs cursor-pointer font-medium text-primary">
                 <Building className="h-4 w-4 mr-2" /> Live (Production)
               </DropdownMenuItem>
@@ -523,24 +524,32 @@ function TopBar({ profile, open, setOpen }: { profile: Profile | null, open: boo
       {/* Right part: Actions and Profile */}
       <div className="flex items-center gap-1 sm:gap-2">
         {/* Call to action */}
-        <Button asChild size="sm" className="hidden sm:flex h-9 text-xs font-bold rounded-xl shadow-md bg-primary text-primary-foreground hover:bg-primary/90 mr-1">
+        <Button 
+          asChild 
+          size="sm" 
+          className="hidden sm:flex h-9 text-xs font-bold rounded-xl bg-primary text-white shadow-[0_4px_14px_0_rgba(37,99,235,0.39)] hover:shadow-[0_6px_20px_rgba(37,99,235,0.23)] hover:-translate-y-0.5 transition-all duration-200 mr-2"
+        >
           <Link to="/dashboard/payment-links/new">
             Créer un lien
           </Link>
         </Button>
 
-        <div className="h-4 w-px bg-border hidden sm:block mx-1" />
+        <div className="h-6 w-px bg-border hidden sm:block mx-1" />
 
         {/* Language */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full text-muted-foreground hover:bg-muted hidden sm:flex">
+            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full text-navy/60 dark:text-muted-foreground hover:bg-navy/5 dark:hover:bg-muted hidden sm:flex transition-colors">
               <Globe className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="min-w-32 rounded-xl">
-            <DropdownMenuItem className="text-xs font-bold">🇫🇷 Français</DropdownMenuItem>
-            <DropdownMenuItem className="text-xs text-muted-foreground cursor-not-allowed">🇬🇧 English (Bientôt)</DropdownMenuItem>
+          <DropdownMenuContent align="end" className="min-w-32 rounded-xl shadow-lg border-border/50">
+            <DropdownMenuItem className="text-xs font-bold flex items-center gap-2 cursor-pointer">
+              <span>🇫🇷</span> Français
+            </DropdownMenuItem>
+            <DropdownMenuItem className="text-xs text-muted-foreground flex items-center gap-2 cursor-not-allowed">
+              <span className="opacity-50">🇬🇧</span> English (Bientôt)
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
 
@@ -549,59 +558,89 @@ function TopBar({ profile, open, setOpen }: { profile: Profile | null, open: boo
           variant="ghost" 
           size="icon" 
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          className="h-9 w-9 rounded-full text-muted-foreground hover:bg-muted"
+          className="h-9 w-9 rounded-full text-navy/60 dark:text-muted-foreground hover:bg-navy/5 dark:hover:bg-muted transition-colors relative"
         >
-          <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-          <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+          <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-amber-500" />
+          <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 text-blue-400" />
         </Button>
 
         {/* Notifications */}
-        <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full text-muted-foreground hover:bg-muted relative">
-          <Bell className="h-4 w-4" />
-          <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500 border border-card" />
-        </Button>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full text-navy/60 dark:text-muted-foreground hover:bg-navy/5 dark:hover:bg-muted transition-colors relative">
+              <Bell className="h-4 w-4" />
+              <span className="absolute top-2 right-2.5 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-card animate-pulse" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent align="end" className="w-80 rounded-2xl p-0 shadow-xl border-border/50">
+            <div className="p-4 border-b border-border bg-muted/20">
+              <h4 className="font-bold text-sm text-foreground">Notifications</h4>
+            </div>
+            <div className="max-h-64 overflow-y-auto p-2 space-y-1">
+              <div className="p-3 rounded-xl bg-primary/5 hover:bg-primary/10 transition-colors cursor-pointer border border-primary/10">
+                <p className="text-xs font-semibold text-foreground mb-1">🎉 Compte Approuvé</p>
+                <p className="text-[11px] text-muted-foreground">Votre compte DolaPay est prêt à recevoir des paiements.</p>
+                <p className="text-[10px] text-muted-foreground/70 mt-2">Il y a 2 heures</p>
+              </div>
+              <div className="p-3 rounded-xl hover:bg-muted transition-colors cursor-pointer">
+                <p className="text-xs font-semibold text-foreground mb-1">💸 Nouveau paiement reçu</p>
+                <p className="text-[11px] text-muted-foreground">Vous avez reçu 15 000 FCFA via Wave.</p>
+                <p className="text-[10px] text-muted-foreground/70 mt-2">Hier</p>
+              </div>
+            </div>
+            <div className="p-2 border-t border-border">
+              <Button variant="ghost" size="sm" className="w-full text-xs text-primary font-medium hover:bg-primary/10">
+                Tout marquer comme lu
+              </Button>
+            </div>
+          </PopoverContent>
+        </Popover>
+
+        <div className="h-6 w-px bg-border mx-1" />
 
         {/* Profile Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-9 gap-2 px-2 rounded-full hover:bg-muted ml-1">
-              <div className="hidden md:flex flex-col items-end text-left mr-1">
-                <span className="text-xs font-bold leading-none text-foreground">{profile?.full_name || "Commerçant"}</span>
-                <span className="text-[10px] text-muted-foreground leading-none mt-1">{profile?.account_type === "enterprise" ? "Entreprise" : "Standard"}</span>
+            <Button variant="ghost" className="h-9 gap-2.5 pl-2 pr-1 rounded-full hover:bg-navy/5 dark:hover:bg-muted transition-all border border-transparent hover:border-border">
+              <div className="hidden md:flex flex-col items-end text-left">
+                <span className="text-xs font-bold leading-none text-navy dark:text-foreground">{profile?.full_name || "Commerçant"}</span>
+                <span className="text-[10px] font-medium text-primary leading-none mt-1.5">{profile?.account_type === "enterprise" ? "Entreprise" : "Standard"}</span>
               </div>
-              <Avatar className="h-7 w-7 border border-border shadow-sm">
-                <AvatarFallback className="bg-primary/10 text-primary text-[10px] font-bold">{initials}</AvatarFallback>
+              <Avatar className="h-7 w-7 ring-2 ring-white dark:ring-card shadow-sm">
+                <AvatarFallback className="bg-gradient-to-br from-primary to-blue-600 text-white text-[10px] font-bold">{initials}</AvatarFallback>
               </Avatar>
               <ChevronDown className="h-3 w-3 opacity-50 hidden md:block" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56 rounded-xl mt-1">
-            <DropdownMenuLabel className="font-normal flex items-start gap-2 p-3">
-              <Avatar className="h-8 w-8">
-                <AvatarFallback className="bg-primary text-primary-foreground text-xs font-bold">{initials}</AvatarFallback>
+          <DropdownMenuContent align="end" className="w-60 rounded-2xl shadow-xl border-border/50 mt-2">
+            <DropdownMenuLabel className="font-normal flex items-start gap-3 p-4 bg-muted/20 rounded-t-xl">
+              <Avatar className="h-10 w-10 ring-2 ring-white dark:ring-card shadow-sm">
+                <AvatarFallback className="bg-gradient-to-br from-primary to-blue-600 text-white text-sm font-bold">{initials}</AvatarFallback>
               </Avatar>
               <div className="flex flex-col space-y-1">
                 <p className="text-sm font-bold leading-none">{profile?.full_name}</p>
-                <p className="text-xs leading-none text-muted-foreground font-mono">{profile?.email}</p>
+                <p className="text-[11px] leading-tight text-muted-foreground truncate w-36">{profile?.email}</p>
               </div>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem asChild className="cursor-pointer">
-                <Link to="/dashboard/settings"><User className="mr-2 h-4 w-4 text-muted-foreground" /> Mon profil</Link>
+            <DropdownMenuSeparator className="m-0" />
+            <div className="p-1">
+              <DropdownMenuGroup>
+                <DropdownMenuItem asChild className="cursor-pointer rounded-lg text-xs py-2.5">
+                  <Link to="/dashboard/settings"><User className="mr-3 h-4 w-4 text-muted-foreground" /> Mon profil</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild className="cursor-pointer rounded-lg text-xs py-2.5">
+                  <Link to="/dashboard/wallet"><CreditCard className="mr-3 h-4 w-4 text-muted-foreground" /> Mon Portefeuille</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild className="cursor-pointer rounded-lg text-xs py-2.5">
+                  <Link to="/dashboard/settings"><SettingsIcon className="mr-3 h-4 w-4 text-muted-foreground" /> Paramètres</Link>
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleSignOut} className="text-red-600 dark:text-red-400 focus:text-red-700 focus:bg-red-50 dark:focus:bg-red-500/10 cursor-pointer rounded-lg text-xs py-2.5 font-medium">
+                <LogOut className="mr-3 h-4 w-4" />
+                <span>Se déconnecter</span>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild className="cursor-pointer">
-                <Link to="/dashboard/wallet"><CreditCard className="mr-2 h-4 w-4 text-muted-foreground" /> Portefeuille</Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild className="cursor-pointer">
-                <Link to="/dashboard/settings"><SettingsIcon className="mr-2 h-4 w-4 text-muted-foreground" /> Paramètres</Link>
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleSignOut} className="text-red-500 focus:text-red-500 focus:bg-red-50 dark:focus:bg-red-500/10 cursor-pointer">
-              <LogOut className="mr-2 h-4 w-4" />
-              <span>Se déconnecter</span>
-            </DropdownMenuItem>
+            </div>
           </DropdownMenuContent>
         </DropdownMenu>
 
