@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as ResourcesUseCasesRouteImport } from './routes/resources.use-cases'
 import { Route as ResourcesSupportRouteImport } from './routes/resources.support'
 import { Route as ResourcesFaqRouteImport } from './routes/resources.faq'
@@ -31,6 +32,7 @@ import { Route as CompanyCoverageRouteImport } from './routes/company.coverage'
 import { Route as CompanyContactRouteImport } from './routes/company.contact'
 import { Route as CompanyAboutRouteImport } from './routes/company.about'
 import { Route as CheckoutSessionIdRouteImport } from './routes/checkout.$sessionId'
+import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 import { Route as AuthSignUpRouteImport } from './routes/auth.sign-up'
 import { Route as AuthSignInRouteImport } from './routes/auth.sign-in'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
@@ -42,7 +44,9 @@ import { Route as DevelopersApiIndexRouteImport } from './routes/developers/api/
 import { Route as AuthenticatedDashboardIndexRouteImport } from './routes/_authenticated/dashboard/index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin/index'
 import { Route as DevelopersApiWebhooksRouteImport } from './routes/developers/api/webhooks'
+import { Route as DevelopersApiPayoutsRouteImport } from './routes/developers/api/payouts'
 import { Route as DevelopersApiErrorsRouteImport } from './routes/developers/api/errors'
+import { Route as DevelopersApiCountriesRouteImport } from './routes/developers/api/countries'
 import { Route as DevelopersApiCheckoutSessionsRouteImport } from './routes/developers/api/checkout-sessions'
 import { Route as DevelopersApiCheckoutPayRouteImport } from './routes/developers/api/checkout-pay'
 import { Route as DevelopersApiAuthRouteImport } from './routes/developers/api/auth'
@@ -99,6 +103,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogIndexRoute = BlogIndexRouteImport.update({
+  id: '/blog/',
+  path: '/blog/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResourcesUseCasesRoute = ResourcesUseCasesRouteImport.update({
@@ -196,6 +205,11 @@ const CheckoutSessionIdRoute = CheckoutSessionIdRouteImport.update({
   path: '/checkout/$sessionId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/blog/$slug',
+  path: '/blog/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthSignUpRoute = AuthSignUpRouteImport.update({
   id: '/auth/sign-up',
   path: '/auth/sign-up',
@@ -254,9 +268,19 @@ const DevelopersApiWebhooksRoute = DevelopersApiWebhooksRouteImport.update({
   path: '/webhooks',
   getParentRoute: () => DevelopersApiRouteRoute,
 } as any)
+const DevelopersApiPayoutsRoute = DevelopersApiPayoutsRouteImport.update({
+  id: '/payouts',
+  path: '/payouts',
+  getParentRoute: () => DevelopersApiRouteRoute,
+} as any)
 const DevelopersApiErrorsRoute = DevelopersApiErrorsRouteImport.update({
   id: '/errors',
   path: '/errors',
+  getParentRoute: () => DevelopersApiRouteRoute,
+} as any)
+const DevelopersApiCountriesRoute = DevelopersApiCountriesRouteImport.update({
+  id: '/countries',
+  path: '/countries',
   getParentRoute: () => DevelopersApiRouteRoute,
 } as any)
 const DevelopersApiCheckoutSessionsRoute =
@@ -506,6 +530,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/checkout/$sessionId': typeof CheckoutSessionIdRoute
   '/company/about': typeof CompanyAboutRoute
   '/company/contact': typeof CompanyContactRoute
@@ -525,6 +550,7 @@ export interface FileRoutesByFullPath {
   '/resources/faq': typeof ResourcesFaqRoute
   '/resources/support': typeof ResourcesSupportRoute
   '/resources/use-cases': typeof ResourcesUseCasesRoute
+  '/blog/': typeof BlogIndexRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/compliance': typeof AuthenticatedAdminComplianceRoute
   '/admin/finance': typeof AuthenticatedAdminFinanceRoute
@@ -558,7 +584,9 @@ export interface FileRoutesByFullPath {
   '/developers/api/auth': typeof DevelopersApiAuthRoute
   '/developers/api/checkout-pay': typeof DevelopersApiCheckoutPayRoute
   '/developers/api/checkout-sessions': typeof DevelopersApiCheckoutSessionsRoute
+  '/developers/api/countries': typeof DevelopersApiCountriesRoute
   '/developers/api/errors': typeof DevelopersApiErrorsRoute
+  '/developers/api/payouts': typeof DevelopersApiPayoutsRoute
   '/developers/api/webhooks': typeof DevelopersApiWebhooksRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/dashboard/': typeof AuthenticatedDashboardIndexRoute
@@ -581,6 +609,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/checkout/$sessionId': typeof CheckoutSessionIdRoute
   '/company/about': typeof CompanyAboutRoute
   '/company/contact': typeof CompanyContactRoute
@@ -600,6 +629,7 @@ export interface FileRoutesByTo {
   '/resources/faq': typeof ResourcesFaqRoute
   '/resources/support': typeof ResourcesSupportRoute
   '/resources/use-cases': typeof ResourcesUseCasesRoute
+  '/blog': typeof BlogIndexRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/compliance': typeof AuthenticatedAdminComplianceRoute
   '/admin/finance': typeof AuthenticatedAdminFinanceRoute
@@ -633,7 +663,9 @@ export interface FileRoutesByTo {
   '/developers/api/auth': typeof DevelopersApiAuthRoute
   '/developers/api/checkout-pay': typeof DevelopersApiCheckoutPayRoute
   '/developers/api/checkout-sessions': typeof DevelopersApiCheckoutSessionsRoute
+  '/developers/api/countries': typeof DevelopersApiCountriesRoute
   '/developers/api/errors': typeof DevelopersApiErrorsRoute
+  '/developers/api/payouts': typeof DevelopersApiPayoutsRoute
   '/developers/api/webhooks': typeof DevelopersApiWebhooksRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/dashboard': typeof AuthenticatedDashboardIndexRoute
@@ -661,6 +693,7 @@ export interface FileRoutesById {
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/auth/sign-in': typeof AuthSignInRoute
   '/auth/sign-up': typeof AuthSignUpRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/checkout/$sessionId': typeof CheckoutSessionIdRoute
   '/company/about': typeof CompanyAboutRoute
   '/company/contact': typeof CompanyContactRoute
@@ -680,6 +713,7 @@ export interface FileRoutesById {
   '/resources/faq': typeof ResourcesFaqRoute
   '/resources/support': typeof ResourcesSupportRoute
   '/resources/use-cases': typeof ResourcesUseCasesRoute
+  '/blog/': typeof BlogIndexRoute
   '/_authenticated/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/_authenticated/admin/compliance': typeof AuthenticatedAdminComplianceRoute
   '/_authenticated/admin/finance': typeof AuthenticatedAdminFinanceRoute
@@ -713,7 +747,9 @@ export interface FileRoutesById {
   '/developers/api/auth': typeof DevelopersApiAuthRoute
   '/developers/api/checkout-pay': typeof DevelopersApiCheckoutPayRoute
   '/developers/api/checkout-sessions': typeof DevelopersApiCheckoutSessionsRoute
+  '/developers/api/countries': typeof DevelopersApiCountriesRoute
   '/developers/api/errors': typeof DevelopersApiErrorsRoute
+  '/developers/api/payouts': typeof DevelopersApiPayoutsRoute
   '/developers/api/webhooks': typeof DevelopersApiWebhooksRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/dashboard/': typeof AuthenticatedDashboardIndexRoute
@@ -741,6 +777,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/auth/sign-in'
     | '/auth/sign-up'
+    | '/blog/$slug'
     | '/checkout/$sessionId'
     | '/company/about'
     | '/company/contact'
@@ -760,6 +797,7 @@ export interface FileRouteTypes {
     | '/resources/faq'
     | '/resources/support'
     | '/resources/use-cases'
+    | '/blog/'
     | '/admin/audit'
     | '/admin/compliance'
     | '/admin/finance'
@@ -793,7 +831,9 @@ export interface FileRouteTypes {
     | '/developers/api/auth'
     | '/developers/api/checkout-pay'
     | '/developers/api/checkout-sessions'
+    | '/developers/api/countries'
     | '/developers/api/errors'
+    | '/developers/api/payouts'
     | '/developers/api/webhooks'
     | '/admin/'
     | '/dashboard/'
@@ -816,6 +856,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/auth/sign-in'
     | '/auth/sign-up'
+    | '/blog/$slug'
     | '/checkout/$sessionId'
     | '/company/about'
     | '/company/contact'
@@ -835,6 +876,7 @@ export interface FileRouteTypes {
     | '/resources/faq'
     | '/resources/support'
     | '/resources/use-cases'
+    | '/blog'
     | '/admin/audit'
     | '/admin/compliance'
     | '/admin/finance'
@@ -868,7 +910,9 @@ export interface FileRouteTypes {
     | '/developers/api/auth'
     | '/developers/api/checkout-pay'
     | '/developers/api/checkout-sessions'
+    | '/developers/api/countries'
     | '/developers/api/errors'
+    | '/developers/api/payouts'
     | '/developers/api/webhooks'
     | '/admin'
     | '/dashboard'
@@ -895,6 +939,7 @@ export interface FileRouteTypes {
     | '/_authenticated/onboarding'
     | '/auth/sign-in'
     | '/auth/sign-up'
+    | '/blog/$slug'
     | '/checkout/$sessionId'
     | '/company/about'
     | '/company/contact'
@@ -914,6 +959,7 @@ export interface FileRouteTypes {
     | '/resources/faq'
     | '/resources/support'
     | '/resources/use-cases'
+    | '/blog/'
     | '/_authenticated/admin/audit'
     | '/_authenticated/admin/compliance'
     | '/_authenticated/admin/finance'
@@ -947,7 +993,9 @@ export interface FileRouteTypes {
     | '/developers/api/auth'
     | '/developers/api/checkout-pay'
     | '/developers/api/checkout-sessions'
+    | '/developers/api/countries'
     | '/developers/api/errors'
+    | '/developers/api/payouts'
     | '/developers/api/webhooks'
     | '/_authenticated/admin/'
     | '/_authenticated/dashboard/'
@@ -971,6 +1019,7 @@ export interface RootRouteChildren {
   DevelopersApiRouteRoute: typeof DevelopersApiRouteRouteWithChildren
   AuthSignInRoute: typeof AuthSignInRoute
   AuthSignUpRoute: typeof AuthSignUpRoute
+  BlogSlugRoute: typeof BlogSlugRoute
   CheckoutSessionIdRoute: typeof CheckoutSessionIdRoute
   CompanyAboutRoute: typeof CompanyAboutRoute
   CompanyContactRoute: typeof CompanyContactRoute
@@ -990,6 +1039,7 @@ export interface RootRouteChildren {
   ResourcesFaqRoute: typeof ResourcesFaqRoute
   ResourcesSupportRoute: typeof ResourcesSupportRoute
   ResourcesUseCasesRoute: typeof ResourcesUseCasesRoute
+  BlogIndexRoute: typeof BlogIndexRoute
   ApiPublicCheckoutPayRoute: typeof ApiPublicCheckoutPayRoute
   ApiPublicLigdicashWebhookRoute: typeof ApiPublicLigdicashWebhookRoute
   ApiPublicPawapayWebhookRoute: typeof ApiPublicPawapayWebhookRoute
@@ -1031,6 +1081,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/': {
+      id: '/blog/'
+      path: '/blog'
+      fullPath: '/blog/'
+      preLoaderRoute: typeof BlogIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/resources/use-cases': {
@@ -1166,6 +1223,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CheckoutSessionIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/blog/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth/sign-up': {
       id: '/auth/sign-up'
       path: '/auth/sign-up'
@@ -1243,11 +1307,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DevelopersApiWebhooksRouteImport
       parentRoute: typeof DevelopersApiRouteRoute
     }
+    '/developers/api/payouts': {
+      id: '/developers/api/payouts'
+      path: '/payouts'
+      fullPath: '/developers/api/payouts'
+      preLoaderRoute: typeof DevelopersApiPayoutsRouteImport
+      parentRoute: typeof DevelopersApiRouteRoute
+    }
     '/developers/api/errors': {
       id: '/developers/api/errors'
       path: '/errors'
       fullPath: '/developers/api/errors'
       preLoaderRoute: typeof DevelopersApiErrorsRouteImport
+      parentRoute: typeof DevelopersApiRouteRoute
+    }
+    '/developers/api/countries': {
+      id: '/developers/api/countries'
+      path: '/countries'
+      fullPath: '/developers/api/countries'
+      preLoaderRoute: typeof DevelopersApiCountriesRouteImport
       parentRoute: typeof DevelopersApiRouteRoute
     }
     '/developers/api/checkout-sessions': {
@@ -1652,7 +1730,9 @@ interface DevelopersApiRouteRouteChildren {
   DevelopersApiAuthRoute: typeof DevelopersApiAuthRoute
   DevelopersApiCheckoutPayRoute: typeof DevelopersApiCheckoutPayRoute
   DevelopersApiCheckoutSessionsRoute: typeof DevelopersApiCheckoutSessionsRoute
+  DevelopersApiCountriesRoute: typeof DevelopersApiCountriesRoute
   DevelopersApiErrorsRoute: typeof DevelopersApiErrorsRoute
+  DevelopersApiPayoutsRoute: typeof DevelopersApiPayoutsRoute
   DevelopersApiWebhooksRoute: typeof DevelopersApiWebhooksRoute
   DevelopersApiIndexRoute: typeof DevelopersApiIndexRoute
 }
@@ -1661,7 +1741,9 @@ const DevelopersApiRouteRouteChildren: DevelopersApiRouteRouteChildren = {
   DevelopersApiAuthRoute: DevelopersApiAuthRoute,
   DevelopersApiCheckoutPayRoute: DevelopersApiCheckoutPayRoute,
   DevelopersApiCheckoutSessionsRoute: DevelopersApiCheckoutSessionsRoute,
+  DevelopersApiCountriesRoute: DevelopersApiCountriesRoute,
   DevelopersApiErrorsRoute: DevelopersApiErrorsRoute,
+  DevelopersApiPayoutsRoute: DevelopersApiPayoutsRoute,
   DevelopersApiWebhooksRoute: DevelopersApiWebhooksRoute,
   DevelopersApiIndexRoute: DevelopersApiIndexRoute,
 }
@@ -1688,6 +1770,7 @@ const rootRouteChildren: RootRouteChildren = {
   DevelopersApiRouteRoute: DevelopersApiRouteRouteWithChildren,
   AuthSignInRoute: AuthSignInRoute,
   AuthSignUpRoute: AuthSignUpRoute,
+  BlogSlugRoute: BlogSlugRoute,
   CheckoutSessionIdRoute: CheckoutSessionIdRoute,
   CompanyAboutRoute: CompanyAboutRoute,
   CompanyContactRoute: CompanyContactRoute,
@@ -1707,6 +1790,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResourcesFaqRoute: ResourcesFaqRoute,
   ResourcesSupportRoute: ResourcesSupportRoute,
   ResourcesUseCasesRoute: ResourcesUseCasesRoute,
+  BlogIndexRoute: BlogIndexRoute,
   ApiPublicCheckoutPayRoute: ApiPublicCheckoutPayRoute,
   ApiPublicLigdicashWebhookRoute: ApiPublicLigdicashWebhookRoute,
   ApiPublicPawapayWebhookRoute: ApiPublicPawapayWebhookRoute,
