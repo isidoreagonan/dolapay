@@ -385,7 +385,7 @@ function PayPage() {
         headers: { "Content-Type": "application/json", "Idempotency-Key": idemKey },
         body: JSON.stringify({
           customer_name: name,
-          customer_phone: currentCountry.prefix + phone.replace(/\D/g, ""),
+          customer_phone: activeCountry.prefix + phone.replace(/\D/g, ""),
           provider,
           customer_email: email
         }),
