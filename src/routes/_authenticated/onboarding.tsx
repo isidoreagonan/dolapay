@@ -109,12 +109,24 @@ function OnboardingPage() {
       if (pErr) throw pErr;
 
       if (accountType === "enterprise") {
-        const { error: bErr } = await supabase.from("businesses").upsert({
-          profile_id: uid,
-          company_name: companyName,
-          registration_number: regNum,
-          tax_id: taxId,
-        }, { onConflict: "profile_id" });
+        const { data: existing } = await supabase.from("businesses").select("id").eq("profile_id", uid).maybeSingle();
+        let bErr;
+        if (existing) {
+          const { error } = await supabase.from("businesses").update({
+            company_name: companyName,
+            registration_number: regNum,
+            tax_id: taxId,
+          }).eq("profile_id", uid);
+          bErr = error;
+        } else {
+          const { error } = await supabase.from("businesses").insert({
+            profile_id: uid,
+            company_name: companyName,
+            registration_number: regNum,
+            tax_id: taxId,
+          });
+          bErr = error;
+        }
         if (bErr) throw bErr;
       }
 
