@@ -49,6 +49,9 @@ export const Route = createFileRoute("/api/v1/payouts")({
           }, { status: 201 });
         }
 
+        // Calculer les marges et frais pour le payout
+        const margins = await calculateMargin(supabaseAdmin, amount, "pay-out", correspondent, "pawapay");
+
         // Créer un lot de décaissement ou une transaction de retrait
         const { data: batch, error: batchErr } = await supabaseAdmin
           .from("payout_batches")
@@ -56,6 +59,7 @@ export const Route = createFileRoute("/api/v1/payouts")({
             owner_id: auth.profile_id,
             name: `[${correspondent}] ${reference || 'Payout API'} (${auth.prefix})`,
             total_amount: amount,
+            fee_amount: margins.totalFees,
             currency,
             total_count: 1,
             status: "processing",
@@ -82,9 +86,6 @@ export const Route = createFileRoute("/api/v1/payouts")({
           .single();
 
         const payoutId = item?.id || batch.id;
-
-        // Calculer les marges et frais pour le payout
-        const margins = await calculateMargin(supabaseAdmin, amount, "pay-out", correspondent, "pawapay");
 
         // Enregistrer la transaction avec le même ID que l'item pour que sync-wallet la prenne en compte avec les frais
         if (item) {
