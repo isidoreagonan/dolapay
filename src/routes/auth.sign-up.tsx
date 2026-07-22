@@ -131,7 +131,7 @@ function SignUp() {
         
         {/* Left Side: Branding / Marketing */}
         <div className="hidden lg:flex flex-col justify-center h-full">
-          <h1 className="text-[3.5rem] leading-[1.1] font-black text-navy mb-12 tracking-tight">
+          <h1 className="text-[3.5rem] leading-[1.1] font-black text-slate-900 mb-12 tracking-tight">
             Développez vos affaires<br/><span className="text-primary">partout en Afrique.</span>
           </h1>
 
@@ -141,8 +141,8 @@ function SignUp() {
                 <Zap className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h3 className="font-bold text-lg text-navy">Déploiement immédiat</h3>
-                <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                <h3 className="font-bold text-lg text-slate-900">Déploiement immédiat</h3>
+                <p className="text-sm text-slate-500 mt-1 leading-relaxed">
                   Créez votre compte et générez votre premier lien de paiement en moins de 2 minutes. Aucune attente technique.
                 </p>
               </div>
@@ -153,8 +153,8 @@ function SignUp() {
                 <ShieldCheck className="h-6 w-6 text-indigo-500" />
               </div>
               <div>
-                <h3 className="font-bold text-lg text-navy">Couverture régionale complète</h3>
-                <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                <h3 className="font-bold text-lg text-slate-900">Couverture régionale complète</h3>
+                <p className="text-sm text-slate-500 mt-1 leading-relaxed">
                   Bénin, Côte d'Ivoire, Sénégal, Mali... Unifiez tous les réseaux Mobile Money d'Afrique de l'Ouest sous une seule plateforme.
                 </p>
               </div>
@@ -177,8 +177,8 @@ function SignUp() {
           </div>
 
           <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-navy">Créer un compte.</h2>
-            <p className="text-sm text-muted-foreground mt-2">
+            <h2 className="text-2xl font-bold text-slate-900">Créer un compte.</h2>
+            <p className="text-sm text-slate-500 mt-2">
               Déjà un compte ? <Link to="/auth/sign-in" className="font-semibold text-primary hover:underline">Se connecter</Link>
             </p>
           </div>
@@ -212,7 +212,7 @@ function SignUp() {
             </div>
           </form>
 
-          <div className="my-6 flex items-center gap-3 text-xs text-muted-foreground">
+          <div className="my-6 flex items-center gap-3 text-xs text-slate-500">
             <div className="h-px flex-1 bg-border" /> ou continuer avec <div className="h-px flex-1 bg-border" />
           </div>
 
@@ -220,12 +220,12 @@ function SignUp() {
             onClick={handleGoogle}
             disabled={googleLoading}
             type="button"
-            className="w-full flex items-center justify-center gap-2 border border-slate-200 rounded-xl py-3.5 text-sm font-semibold text-navy hover:bg-slate-50 transition-colors disabled:opacity-70"
+            className="w-full flex items-center justify-center gap-2 border border-slate-200 rounded-xl py-3.5 text-sm font-semibold text-slate-900 hover:bg-slate-50 transition-colors disabled:opacity-70"
           >
             {googleLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <GoogleG />} Google
           </button>
           
-          <p className="text-[10px] text-center text-muted-foreground mt-8">
+          <p className="text-[10px] text-center text-slate-500 mt-8">
             En vous inscrivant, vous acceptez nos <Link to="/legal/terms" className="hover:underline">Conditions d'utilisation</Link> et notre <Link to="/legal/privacy" className="hover:underline">Politique de confidentialité</Link>.
           </p>
         </div>
@@ -245,7 +245,7 @@ function Field({ type, placeholder, value, onChange, minLength }: { type: string
         onChange={(e) => onChange(e.target.value)}
         required
         minLength={minLength}
-        className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors"
+        className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-sm text-slate-900 placeholder:text-slate-500 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors"
       />
     </div>
   );
