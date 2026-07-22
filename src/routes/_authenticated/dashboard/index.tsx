@@ -91,11 +91,10 @@ function Overview() {
       const existingIds = new Set(results.map((t) => t.id));
 
       if (profile?.id) {
-        // Optimisation : requête directe et propre sur `withdrawals` et `merchant_id`
-        const { data: wrs } = await supabase
-          .from("withdrawals")
+        // Optimisation : requête directe et propre sur `withdrawal_requests` et `profile_id`
+        const { data: wrs } = await (supabase.from("withdrawal_requests") as any)
           .select("*")
-          .eq("merchant_id", profile.id)
+          .eq("profile_id", profile.id)
           .gte("created_at", since.toISOString());
           
         if (wrs && wrs.length > 0) {
