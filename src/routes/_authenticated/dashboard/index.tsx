@@ -426,42 +426,54 @@ function TierLimitsCard({ tier, usedMonthly }: { tier: ReturnType<typeof getTier
   const unlimited = tier.monthlyLimitXof === null;
   const pct = unlimited ? 0 : Math.min(100, (usedMonthly / (tier.monthlyLimitXof || 1)) * 100);
   return (
-    <Card className="overflow-hidden border-primary/20 bg-gradient-to-br from-card via-card to-primary/5 p-5">
-      <div className="flex flex-wrap items-start justify-between gap-4">
+    <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-blue-700 via-blue-600 to-blue-400 p-6 shadow-2xl text-white">
+      {/* Glass overlay effects */}
+      <div className="absolute inset-0 bg-white/5 backdrop-blur-sm"></div>
+      <div className="absolute -top-24 -right-24 h-48 w-48 rounded-full bg-white/10 blur-3xl"></div>
+      <div className="absolute -bottom-24 -left-24 h-48 w-48 rounded-full bg-blue-500/50 blur-3xl"></div>
+
+      <div className="relative z-10 flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            {unlimited ? <Crown className="h-3.5 w-3.5 text-amber-500" /> : <Layers className="h-3.5 w-3.5" />}
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-blue-100/90 mb-3">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-white/10 border border-white/20 shadow-sm backdrop-blur-md">
+              {unlimited ? <Crown className="h-4 w-4 text-amber-300" /> : <Layers className="h-4 w-4 text-white" />}
+            </div>
             Plafond {tier.short}
           </div>
-          <div className="mt-1 text-xl font-bold">
+          <div className="text-3xl font-black tracking-tight mt-1 text-white flex items-center">
             {unlimited ? (
-              <span className="inline-flex items-center gap-1.5"><InfinityIcon className="h-5 w-5" /> Illimité <span className="text-xs font-normal text-muted-foreground">· SLA monitoré</span></span>
+              <span className="inline-flex items-center gap-2"><InfinityIcon className="h-8 w-8" /> Illimité <span className="text-xs font-medium text-blue-100/70 tracking-normal ml-1">· SLA monitoré</span></span>
             ) : (
-              <>Mensuel : {fmtXof(tier.monthlyLimitXof!)}</>
+              <>{fmtXof(tier.monthlyLimitXof!)} <span className="text-sm font-medium text-blue-100/80 ml-2 tracking-normal uppercase">/ Mois</span></>
             )}
           </div>
-          <div className="mt-0.5 text-xs text-muted-foreground">
-            Cap par transaction : <strong className="text-foreground">{fmtXof(tier.singleTxCapXof)}</strong>
+          <div className="mt-2 text-sm font-medium text-blue-100/90">
+            Cap par transaction : <strong className="text-white font-bold tracking-wide">{fmtXof(tier.singleTxCapXof)}</strong>
           </div>
         </div>
         {tier.capabilities.vipSupport && (
-          <button className="inline-flex items-center gap-2 rounded-full border border-amber-400/40 bg-amber-400/10 px-3 py-1.5 text-xs font-semibold text-amber-700 transition-colors hover:bg-amber-400/20 dark:text-amber-300">
-            <Headphones className="h-3.5 w-3.5" /> Account Manager prioritaire
+          <button className="inline-flex items-center gap-2 rounded-full border border-amber-300/30 bg-amber-400/20 px-3.5 py-2 text-xs font-bold text-amber-100 shadow-sm backdrop-blur-md transition-colors hover:bg-amber-400/30">
+            <Headphones className="h-4 w-4 text-amber-300" /> Account Manager prioritaire
           </button>
         )}
       </div>
 
       {!unlimited && (
-        <div className="mt-4">
-          <div className="mb-1.5 flex items-center justify-between text-xs text-muted-foreground">
+        <div className="relative z-10 mt-6">
+          <div className="mb-2 flex items-center justify-between text-xs font-bold text-blue-100/90 uppercase tracking-wider">
             <span>Utilisé ce mois</span>
-            <span><strong className="text-foreground">{fmtXof(usedMonthly)}</strong> / {fmtXof(tier.monthlyLimitXof!)}</span>
+            <span><strong className="text-white">{fmtXof(usedMonthly)}</strong> / {fmtXof(tier.monthlyLimitXof!)}</span>
           </div>
-          <Progress value={pct} />
+          <div className="h-2.5 w-full overflow-hidden rounded-full bg-white/20 backdrop-blur-sm shadow-inner">
+            <div
+              className="h-full bg-white shadow-[0_0_12px_rgba(255,255,255,0.9)] transition-all duration-700 ease-out"
+              style={{ width: `${pct}%` }}
+            />
+          </div>
         </div>
       )}
 
-      <div className="mt-4 flex flex-wrap gap-2 text-[11px]">
+      <div className="relative z-10 mt-6 flex flex-wrap gap-2.5 text-[11px]">
         <Capability ok={tier.capabilities.payin} label="Pay-in" />
         <Capability ok={tier.capabilities.paymentLinks} label="Liens & QR" />
         <Capability ok={tier.capabilities.payouts} label="Payouts" />
@@ -472,9 +484,9 @@ function TierLimitsCard({ tier, usedMonthly }: { tier: ReturnType<typeof getTier
       {!tier.capabilities.payouts && (
         <Link
           to="/dashboard/settings"
-          className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
+          className="relative z-10 mt-6 inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-xs font-bold text-blue-700 shadow-[0_4px_14px_0_rgba(255,255,255,0.39)] transition-all hover:-translate-y-0.5 hover:shadow-[0_6px_20px_rgba(255,255,255,0.23)]"
         >
-          <Crown className="h-3.5 w-3.5" /> Passer à Enterprise
+          <Crown className="h-4 w-4" /> Passer à Enterprise
         </Link>
       )}
     </Card>
@@ -484,12 +496,12 @@ function TierLimitsCard({ tier, usedMonthly }: { tier: ReturnType<typeof getTier
 function Capability({ ok, label }: { ok: boolean; label: string }) {
   return (
     <span className={cn(
-      "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-medium",
+      "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 font-bold tracking-wide backdrop-blur-sm transition-all",
       ok
-        ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
-        : "border-border bg-muted/40 text-muted-foreground",
+        ? "border-emerald-300/30 bg-emerald-400/20 text-emerald-100 shadow-sm"
+        : "border-white/10 bg-white/5 text-blue-100/50",
     )}>
-      <span className={cn("h-1.5 w-1.5 rounded-full", ok ? "bg-emerald-500" : "bg-muted-foreground/50")} />
+      <span className={cn("h-2 w-2 rounded-full", ok ? "bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.9)]" : "bg-white/20")} />
       {label}
     </span>
   );
