@@ -39,6 +39,12 @@ export const Route = createFileRoute("/api/v1/charges")({
         const { amount, currency, customer_phone, provider, description } = parsed.data;
         const correspondent = getCorrespondentCode(provider, customer_phone);
 
+        // Route LigdiCash for Burkina Faso
+        let gateway = "pawapay";
+        if (customer_phone.replace(/\D/g, "").startsWith("226")) {
+          gateway = "ligdicash";
+        }
+
         // Si le merchant utilise la clé de test sandbox illustrative (sans compte)
         if (auth.is_test && auth.profile_id === "00000000-0000-0000-0000-000000000000") {
           return Response.json({
@@ -53,7 +59,7 @@ export const Route = createFileRoute("/api/v1/charges")({
         }
 
         // Calculate fees and margins
-        const margins = await calculateMargin(supabaseAdmin, amount, "pay-in", correspondent, "pawapay");
+        const margins = await calculateMargin(supabaseAdmin, amount, "pay-in", correspondent, gateway as any);
 
         // Créer l'enregistrement dans la table transactions
         const { data: tx, error: txErr } = await supabaseAdmin
@@ -69,9 +75,9 @@ export const Route = createFileRoute("/api/v1/charges")({
             operator_fee: margins.operator_fee,
             gateway_fee: margins.gateway_fee,
             dola_margin: margins.dola_margin,
-            gateway: "pawapay",
+            gateway: gateway,
             customer_phone,
-            provider: "pawapay",
+            provider: gateway,
             payment_method: provider,
           } as any)
           .select("id, created_at")
@@ -82,27 +88,72 @@ export const Route = createFileRoute("/api/v1/charges")({
           return Response.json({ error: { code: "db_error", message: "Impossible de créer la transaction." } }, { status: 500 });
         }
 
-        // Appeler PawaPay SEULEMENT si c'est une clé Live
+        // Appeler la passerelle SEULEMENT si c'est une clé Live
         if (!auth.is_test) {
-          try {
-            const res = await pawapay.initiateDeposit({
-              depositId: tx.id,
-              amount,
-              currency,
-              phone: customer_phone,
-              provider,
-              description: description || `DolaPay API Charge`,
-            });
+          if (gateway === "ligdicash") {
+            try {
+              const { createLigdiCashPayin } = await import("@/lib/ligdicash.server");
+              // Use merchant's base url if available, otherwise dola-pay.com
+              const origin = new URL(request.url).origin;
+              const ligdiRes = await createLigdiCashPayin({
+                amount,
+                description: description || `DolaPay API Charge`,
+                customData: { transaction_id: tx.id },
+                customer: {
+                  firstname: "Client",
+                  lastname: "API",
+                  phone: customer_phone,
+                },
+                returnUrl: `${origin}/success`, // API developers should use webhooks, returnUrl is just fallback
+                callbackUrl: `${origin}/api/public/ligdicash-webhook`,
+              });
 
-            if (res.status === "REJECTED") {
-              await supabaseAdmin.from("transactions").update({ status: "failed" }).eq("id", tx.id);
-              return Response.json(
-                { error: { code: "operator_rejected", message: res.rejectionReason?.rejectionMessage || "Rejeté par l'opérateur." } },
-                { status: 400 }
-              );
+              if (ligdiRes.response_code !== "00") {
+                await supabaseAdmin.from("transactions").update({ status: "failed" }).eq("id", tx.id);
+                return Response.json(
+                  { error: { code: "operator_rejected", message: ligdiRes.description || "Rejeté par LigdiCash." } },
+                  { status: 400 }
+                );
+              }
+              if (ligdiRes.token) {
+                await supabaseAdmin.from("transactions").update({ ligdicash_token: ligdiRes.token } as any).eq("id", tx.id);
+              }
+              if (ligdiRes.response_text) {
+                return Response.json({
+                  id: tx.id,
+                  status: "redirect",
+                  redirect_url: ligdiRes.response_text,
+                  amount,
+                  currency,
+                  operator: correspondent.toLowerCase(),
+                  customer_phone,
+                  created_at: tx.created_at,
+                }, { status: 201 });
+              }
+            } catch (err) {
+              console.error("LigdiCash charge error:", err);
             }
-          } catch (err) {
-            console.error("PawaPay charge error:", err);
+          } else {
+            try {
+              const res = await pawapay.initiateDeposit({
+                depositId: tx.id,
+                amount,
+                currency,
+                phone: customer_phone,
+                provider,
+                description: description || `DolaPay API Charge`,
+              });
+
+              if (res.status === "REJECTED") {
+                await supabaseAdmin.from("transactions").update({ status: "failed" }).eq("id", tx.id);
+                return Response.json(
+                  { error: { code: "operator_rejected", message: res.rejectionReason?.rejectionMessage || "Rejeté par l'opérateur." } },
+                  { status: 400 }
+                );
+              }
+            } catch (err) {
+              console.error("PawaPay charge error:", err);
+            }
           }
         }
 
