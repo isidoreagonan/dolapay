@@ -577,6 +577,12 @@ export async function notifyDepositSuccess(supabaseAdmin: any, transactionId: st
 
     if (!prof || !prof.email) return;
 
+    // Vérification des préférences utilisateur pour désactiver les emails
+    const { data: userAuth } = await supabaseAdmin.auth.admin.getUserById(profileId);
+    if (userAuth?.user?.user_metadata?.disable_receipt_emails === true) {
+      return;
+    }
+
     const merchantName = prof.company_name || prof.full_name || "Marchand DolaPay";
 
     let customerName = tx.customer_name || "Client";
@@ -662,6 +668,12 @@ export async function notifyPayoutStatus(supabaseAdmin: any, payoutIdOrItem: any
 
     const { data: prof } = await supabaseAdmin.from("profiles").select("email, full_name, company_name").eq("id", profileId).maybeSingle();
     if (!prof || !prof.email) return;
+
+    // Vérification des préférences utilisateur pour désactiver les emails
+    const { data: userAuth } = await supabaseAdmin.auth.admin.getUserById(profileId);
+    if (userAuth?.user?.user_metadata?.disable_receipt_emails === true) {
+      return;
+    }
 
     const merchantName = prof.company_name || prof.full_name || "Marchand DolaPay";
 

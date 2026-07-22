@@ -5,7 +5,8 @@ import { toast } from "sonner";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { KeyRound, Copy, Trash2 } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { KeyRound, Copy, Trash2, BellOff, Bell } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useProfile } from "./route";
 
@@ -20,6 +21,27 @@ function ApiKeysPage() {
   const { data: profile } = useProfile();
   const [label, setLabel] = useState("");
   const [newKey, setNewKey] = useState<string | null>(null);
+
+  const { data: userAuth } = useQuery({
+    queryKey: ["my-preferences"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      return user;
+    }
+  });
+  const disableEmails = userAuth?.user_metadata?.disable_receipt_emails === true;
+
+  const toggleEmails = useMutation({
+    mutationFn: async (val: boolean) => {
+      const { error } = await supabase.auth.updateUser({ data: { disable_receipt_emails: val } });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Préférences de notification mises à jour");
+      qc.invalidateQueries({ queryKey: ["my-preferences"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const { data: keys = [] } = useQuery({
     queryKey: ["my-api-keys"],
@@ -92,6 +114,30 @@ function ApiKeysPage() {
         <p className="mt-2 text-sm text-amber-700/80 dark:text-amber-500/80">
           Le sandbox est une plateforme distincte. Configurez l'URL dans votre app <code>(NEXT_PUBLIC_SANDBOX_URL)</code> pour y accéder directement et effectuer vos tests en toute sécurité sans impacter vos vraies données.
         </p>
+      </Card>
+
+      <Card className="p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="font-semibold flex items-center gap-2">
+              {disableEmails ? <BellOff className="h-4 w-4 text-muted-foreground" /> : <Bell className="h-4 w-4 text-primary" />}
+              Notifications par Email
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {disableEmails 
+                ? "Vous ne recevrez plus d'emails pour vos paiements et retraits (recommandé si vous utilisez les Webhooks)."
+                : "Vous recevrez un email à chaque encaissement ou décaissement réussi."}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">{disableEmails ? "Désactivé" : "Activé"}</span>
+            <Switch 
+              checked={!disableEmails} 
+              onCheckedChange={(checked) => toggleEmails.mutate(!checked)} 
+              disabled={toggleEmails.isPending}
+            />
+          </div>
+        </div>
       </Card>
 
       <Card className="p-6 border-emerald-100 dark:border-emerald-900/30">
