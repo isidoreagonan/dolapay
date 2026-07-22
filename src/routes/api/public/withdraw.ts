@@ -367,7 +367,7 @@ export const Route = createFileRoute("/api/public/withdraw")({
 
             if (currentBalance < margins.net_amount) {
               const dbErr = await logFail("Solde insuffisant", method, phone, amount);
-              let msg = `Solde insuffisant (${Math.round(currentBalance)} XOF disponibles) pour un retrait de ${amount} (avec frais : ${margins.net_amount} XOF). DEBUG: livePayin=${livePayin}, livePayout=${livePayout}, profBalance=${profBalance}, baseDeposit=${baseDeposit}`;
+              let msg = `Solde insuffisant (${Math.round(currentBalance)} XOF disponibles) pour un retrait de ${amount} (avec frais : ${margins.net_amount} XOF).`;
               if (dbErr) msg += ` [ERR SQL: ${dbErr.message}]`;
               return Response.json({ error: msg }, { status: 400 });
             }
