@@ -7,19 +7,19 @@ export const Route = createFileRoute("/developers/api/countries")({
 });
 
 const COUNTRIES = [
-  { code: "BFA", name: "Burkina Faso", prefix: "226", operators: ["Orange", "MOOV"], gateway: "LigdiCash (Redirection)" },
-  { code: "BEN", name: "Bénin", prefix: "229", operators: ["MTN", "MOOV"], gateway: "PawaPay (USSD Push)" },
-  { code: "CIV", name: "Côte d'Ivoire", prefix: "225", operators: ["Orange", "MTN"], gateway: "PawaPay (USSD Push)" },
-  { code: "CMR", name: "Cameroun", prefix: "237", operators: ["MTN"], gateway: "PawaPay (USSD Push)" },
-  { code: "COD", name: "RD Congo", prefix: "243", operators: ["Orange", "Airtel", "Vodacom"], gateway: "PawaPay (USSD Push)" },
-  { code: "COG", name: "Congo", prefix: "242", operators: ["MTN", "Airtel"], gateway: "PawaPay (USSD Push)" },
-  { code: "GAB", name: "Gabon", prefix: "241", operators: ["Airtel"], gateway: "PawaPay (USSD Push)" },
-  { code: "KEN", name: "Kenya", prefix: "254", operators: ["Safaricom"], gateway: "PawaPay (USSD Push)" },
-  { code: "RWA", name: "Rwanda", prefix: "250", operators: ["MTN", "Airtel"], gateway: "PawaPay (USSD Push)" },
-  { code: "SEN", name: "Sénégal", prefix: "221", operators: ["Orange", "Free"], gateway: "PawaPay (USSD Push)" },
-  { code: "SLE", name: "Sierra Leone", prefix: "232", operators: ["Orange"], gateway: "PawaPay (USSD Push)" },
-  { code: "UGA", name: "Ouganda", prefix: "256", operators: ["MTN", "Airtel"], gateway: "PawaPay (USSD Push)" },
-  { code: "ZMB", name: "Zambie", prefix: "260", operators: ["MTN", "Zamtel"], gateway: "PawaPay (USSD Push)" },
+  { code: "BFA", name: "Burkina Faso", prefix: "226", operators: ["Orange", "MOOV"], gateway: "Redirection Web" },
+  { code: "BEN", name: "Bénin", prefix: "229", operators: ["MTN", "MOOV"], gateway: "USSD Push (Direct)" },
+  { code: "CIV", name: "Côte d'Ivoire", prefix: "225", operators: ["Orange", "MTN"], gateway: "USSD Push (Direct)" },
+  { code: "CMR", name: "Cameroun", prefix: "237", operators: ["MTN"], gateway: "USSD Push (Direct)" },
+  { code: "COD", name: "RD Congo", prefix: "243", operators: ["Orange", "Airtel", "Vodacom"], gateway: "USSD Push (Direct)" },
+  { code: "COG", name: "Congo", prefix: "242", operators: ["MTN", "Airtel"], gateway: "USSD Push (Direct)" },
+  { code: "GAB", name: "Gabon", prefix: "241", operators: ["Airtel"], gateway: "USSD Push (Direct)" },
+  { code: "KEN", name: "Kenya", prefix: "254", operators: ["Safaricom"], gateway: "USSD Push (Direct)" },
+  { code: "RWA", name: "Rwanda", prefix: "250", operators: ["MTN", "Airtel"], gateway: "USSD Push (Direct)" },
+  { code: "SEN", name: "Sénégal", prefix: "221", operators: ["Orange", "Free"], gateway: "USSD Push (Direct)" },
+  { code: "SLE", name: "Sierra Leone", prefix: "232", operators: ["Orange"], gateway: "USSD Push (Direct)" },
+  { code: "UGA", name: "Ouganda", prefix: "256", operators: ["MTN", "Airtel"], gateway: "USSD Push (Direct)" },
+  { code: "ZMB", name: "Zambie", prefix: "260", operators: ["MTN", "Zamtel"], gateway: "USSD Push (Direct)" },
 ];
 
 function ApiCountriesPage() {
