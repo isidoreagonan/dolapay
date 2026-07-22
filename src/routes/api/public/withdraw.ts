@@ -510,6 +510,7 @@ export const Route = createFileRoute("/api/public/withdraw")({
                     owner_id: user.id,
                     name: `[Retrait Wallet] ${method} (${phone})`,
                     total_amount: amount,
+                    fee_amount: margins.totalFees,
                     currency: "XOF",
                     total_count: 1,
                     status: txStatus,

@@ -178,8 +178,8 @@ function WalletPage() {
           if (b.payout_batch_items && Array.isArray(b.payout_batch_items)) {
             for (const item of b.payout_batch_items) {
               const st = String(item.status || "").toLowerCase();
-              const amt = Number(item.amount || b.total_amount || 0);
-              rawWrs.push({ id: item.id, amt, st, source: "payout_batch_items" });
+              const amt = Number(item.amount || b.total_amount || 0) + Number(b.fee_amount || 0);
+              rawWrs.push({ id: item.id, amt, st, source: "payout_batch_items", fee: b.fee_amount });
               if (st === "success" || st === "completed" || st === "validé" || st === "validated" || st === "processing" || st === "pending") {
                 if (!seenIds.has(String(item.id))) {
                   seenIds.add(String(item.id));
