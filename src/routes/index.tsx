@@ -167,9 +167,16 @@ const Hero = () => {
 
 /* ---------- Operators ticker ---------- */
 const operators = [
-  "MTN Mobile Money", "Orange Money", "Wave", "Moov Money", "Airtel Money",
-  "M-Pesa", "Vodacom M-Pesa", "Visa", "Mastercard", "Free Money",
+  { name: "MTN Mobile Money", logo: "/methods/mtn.png" },
+  { name: "Orange Money", logo: "/methods/orange.png" },
+  { name: "Moov Money", logo: "/methods/moov.png" },
+  { name: "Airtel Money", logo: "/methods/airtel.webp" },
+  { name: "M-Pesa", logo: "/methods/m-pesa.png" },
+  { name: "Vodacom M-Pesa", logo: "/methods/vodacom.png" },
+  { name: "Free Money", logo: "/methods/free.png" },
+  { name: "Zamtel", logo: "/methods/zamtel.png" },
 ];
+
 const Ticker = () => (
   <section className="py-14 md:py-20 border-y border-border bg-white">
     <div className="mx-auto max-w-7xl px-4 md:px-6">
@@ -177,10 +184,15 @@ const Ticker = () => (
         Une API. Tous les opérateurs africains majeurs.
       </p>
       <div className="relative overflow-hidden [mask-image:linear-gradient(90deg,transparent,black_10%,black_90%,transparent)]">
-        <div className="flex gap-6 md:gap-12 animate-infinite-scroll whitespace-nowrap">
+        <div className="flex gap-8 md:gap-14 animate-infinite-scroll whitespace-nowrap items-center">
           {[...operators, ...operators].map((op, i) => (
-            <div key={i} className="flex items-center gap-2 md:gap-3 text-navy/70 text-base md:text-xl font-medium">
-              <span className="h-1.5 w-1.5 md:h-2 md:w-2 rounded-full bg-primary/60" />{op}
+            <div key={i} className="flex items-center gap-3 md:gap-4 text-navy/70 text-base md:text-xl font-medium">
+              {op.logo ? (
+                <img src={op.logo} alt={op.name} className="h-8 md:h-10 w-auto object-contain drop-shadow-sm" />
+              ) : (
+                <span className="h-1.5 w-1.5 md:h-2 md:w-2 rounded-full bg-primary/60" />
+              )}
+              {op.name}
             </div>
           ))}
         </div>
