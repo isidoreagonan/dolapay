@@ -38,6 +38,7 @@ type Link = {
   description: string | null; image_url: string | null; invoice_number: string | null;
   thank_you_message: string | null; fees_paid_by: "merchant" | "customer";
   success_url: string | null; failure_url: string | null;
+  theme_config?: { primaryColor?: string; fontFamily?: string; themeMode?: string } | null;
 };
 type TxStatus = "pending" | "success" | "failed";
 
@@ -147,6 +148,33 @@ const COUNTRIES: CountryConfig[] = [
   }
 ];
 
+function hexToHsl(hex: string) {
+  hex = hex.replace(/^#/, "");
+  let r = 0, g = 0, b = 0;
+  if (hex.length === 3) {
+    r = parseInt(hex[0] + hex[0], 16);
+    g = parseInt(hex[1] + hex[1], 16);
+    b = parseInt(hex[2] + hex[2], 16);
+  } else if (hex.length === 6) {
+    r = parseInt(hex.substring(0, 2), 16);
+    g = parseInt(hex.substring(2, 4), 16);
+    b = parseInt(hex.substring(4, 6), 16);
+  }
+  r /= 255; g /= 255; b /= 255;
+  const cmax = Math.max(r, g, b), cmin = Math.min(r, g, b);
+  const delta = cmax - cmin;
+  let h = 0, s = 0, l = (cmax + cmin) / 2;
+  if (delta !== 0) {
+    s = delta / (1 - Math.abs(2 * l - 1));
+    if (cmax === r) h = ((g - b) / delta) % 6;
+    else if (cmax === g) h = (b - r) / delta + 2;
+    else h = (r - g) / delta + 4;
+    h = Math.round(h * 60);
+    if (h < 0) h += 360;
+  }
+  return `${h} ${(s * 100).toFixed(1)}% ${(l * 100).toFixed(1)}%`;
+}
+
 function PayPage() {
   const { slug } = Route.useParams();
 
@@ -155,7 +183,7 @@ function PayPage() {
     queryFn: async (): Promise<Link> => {
       const { data, error } = await supabase
         .from("payment_links")
-        .select("id,title,amount,currency,active,description,image_url,invoice_number,thank_you_message,fees_paid_by,success_url,failure_url")
+        .select("id,title,amount,currency,active,description,image_url,invoice_number,thank_you_message,fees_paid_by,success_url,failure_url,theme_config")
         .eq("slug", slug)
         .eq("active", true)
         .maybeSingle();
@@ -437,8 +465,22 @@ function PayPage() {
     );
   }
 
+  const theme = link.theme_config || {};
+  const isDark = theme.themeMode === "dark";
+  const primaryColor = theme.primaryColor || "#0066FF";
+  const fontFam = theme.fontFamily || "Inter";
+
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col md:flex-row">
+    <div className={cn("custom-theme-wrapper", isDark ? "dark" : "")}>
+      <style>{`
+        .custom-theme-wrapper {
+          --primary: ${hexToHsl(primaryColor)};
+          ${fontFam === 'Inter' ? `font-family: 'Inter', sans-serif;` : ''}
+          ${fontFam === 'serif' ? `font-family: ui-serif, Georgia, serif;` : ''}
+          ${fontFam === 'system-ui' ? `font-family: system-ui, sans-serif;` : ''}
+        }
+      `}</style>
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col md:flex-row text-slate-900 dark:text-slate-50 transition-colors duration-300">
       {/* LEFT COLUMN: Product & Details Panel */}
       <div className="w-full md:w-1/2 bg-slate-100 dark:bg-slate-900 border-r border-slate-200/80 dark:border-slate-800/80 p-6 md:p-12 flex flex-col justify-between">
         <div className="space-y-8">
@@ -696,6 +738,7 @@ function PayPage() {
           <p className="text-[9px] text-slate-400 leading-none">
             Propulsé par DolaPay · Conditions · Confidentialité
           </p>
+          </div>
         </div>
       </div>
     </div>

@@ -290,6 +290,7 @@ export type Database = {
           slug: string
           success_url: string | null
           thank_you_message: string | null
+          theme_config: Json | null
           title: string
         }
         Insert: {
@@ -307,6 +308,7 @@ export type Database = {
           slug: string
           success_url?: string | null
           thank_you_message?: string | null
+          theme_config?: Json | null
           title: string
         }
         Update: {
@@ -324,6 +326,7 @@ export type Database = {
           slug?: string
           success_url?: string | null
           thank_you_message?: string | null
+          theme_config?: Json | null
           title?: string
         }
         Relationships: [

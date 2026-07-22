@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  Pencil, Receipt, Hash, Wallet, ImageIcon, ArrowRight, MessageSquareHeart, CheckCircle2, LinkIcon, ChevronLeft
+  Pencil, Receipt, Hash, Wallet, ImageIcon, ArrowRight, MessageSquareHeart, CheckCircle2, LinkIcon, ChevronLeft, Palette
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -59,6 +59,10 @@ function EditPaymentLinkPage() {
   const [failureUrl, setFailureUrl] = useState("");
   const [thankYou, setThankYou] = useState("");
 
+  const [primaryColor, setPrimaryColor] = useState("#0066FF");
+  const [fontFamily, setFontFamily] = useState("Inter");
+  const [themeMode, setThemeMode] = useState("light");
+
   useEffect(() => {
     if (link) {
       setTitle(link.title ?? "");
@@ -71,6 +75,13 @@ function EditPaymentLinkPage() {
       setSuccessUrl(link.success_url ?? "");
       setFailureUrl(link.failure_url ?? "");
       setThankYou(link.thank_you_message ?? "");
+      
+      if (link.theme_config) {
+        const tc = link.theme_config as Record<string, string>;
+        if (tc.primaryColor) setPrimaryColor(tc.primaryColor);
+        if (tc.fontFamily) setFontFamily(tc.fontFamily);
+        if (tc.themeMode) setThemeMode(tc.themeMode);
+      }
     }
   }, [link]);
 
@@ -92,6 +103,11 @@ function EditPaymentLinkPage() {
         success_url: validUrl(successUrl),
         failure_url: validUrl(failureUrl),
         thank_you_message: thankYou.trim() || null,
+        theme_config: {
+          primaryColor,
+          fontFamily,
+          themeMode,
+        },
       };
 
       const { error } = await supabase.from("payment_links").update(payload).eq("id", id);
@@ -176,6 +192,51 @@ function EditPaymentLinkPage() {
 
             <Section icon={ImageIcon} title="Visuel de la page">
               <ImageUploader value={imageUrl} onChange={setImageUrl} />
+            </Section>
+
+            <Section icon={Palette} title="Apparence">
+              <div className="space-y-4">
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <div>
+                    <Label className="text-muted-foreground">Couleur principale</Label>
+                    <div className="mt-1.5 flex h-12 items-center gap-3 rounded-xl border border-border/60 bg-background/50 px-3">
+                      <input 
+                        type="color" 
+                        value={primaryColor} 
+                        onChange={(e) => setPrimaryColor(e.target.value)}
+                        className="h-8 w-8 cursor-pointer rounded bg-transparent border-0 p-0"
+                      />
+                      <Input 
+                        value={primaryColor} 
+                        onChange={(e) => setPrimaryColor(e.target.value)} 
+                        className="h-8 border-0 bg-transparent px-0 text-sm shadow-none focus-visible:ring-0" 
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Police d'écriture</Label>
+                    <Select value={fontFamily} onValueChange={setFontFamily}>
+                      <SelectTrigger className="mt-1.5 h-12"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Inter">Inter (Moderne)</SelectItem>
+                        <SelectItem value="system-ui">Système</SelectItem>
+                        <SelectItem value="serif">Serif (Élégant)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Thème (Mode)</Label>
+                    <Select value={themeMode} onValueChange={setThemeMode}>
+                      <SelectTrigger className="mt-1.5 h-12"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="light">Clair ☀️</SelectItem>
+                        <SelectItem value="dark">Sombre 🌙</SelectItem>
+                        <SelectItem value="auto">Automatique</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
             </Section>
 
             <Section icon={ArrowRight} title="Redirection & Expérience">
