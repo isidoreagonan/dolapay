@@ -82,7 +82,7 @@ function AdminOverview() {
       }
 
       const { data: batches } = await (supabase.from("payout_batches") as any)
-        .select("created_at, owner_id, payout_batch_items(*)")
+        .select("*, payout_batch_items(*)")
         .gte("created_at", since);
       if (batches && batches.length > 0) {
         for (const b of batches) {
