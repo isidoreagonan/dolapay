@@ -57,6 +57,30 @@ function AdminOverview() {
         }
       }
 
+      const { data: oldWrs } = await supabase
+        .from("withdrawals")
+        .select("id,amount,status,created_at,merchant_id")
+        .gte("created_at", since);
+      if (oldWrs && oldWrs.length > 0) {
+        for (const w of oldWrs) {
+          if (!existingIds.has(w.id)) {
+            const amt = Number(w.amount || 0);
+            const st = amt === 101 ? "failed" : ((w.status === "completed" || w.status === "success" || w.status === "validé") ? "success" : (w.status === "failed" || w.status === "rejected" ? "failed" : "pending"));
+            if (amt > 0 && amt !== 101) {
+              existingIds.add(w.id);
+              results.push({
+                id: w.id,
+                amount: amt,
+                status: st as any,
+                type: "pay-out",
+                created_at: w.created_at,
+                profile_id: w.merchant_id,
+              } as any);
+            }
+          }
+        }
+      }
+
       const { data: batches } = await (supabase.from("payout_batches") as any)
         .select("created_at, owner_id, payout_batch_items(*)")
         .gte("created_at", since);

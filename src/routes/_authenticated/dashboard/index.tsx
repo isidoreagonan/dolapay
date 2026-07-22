@@ -116,6 +116,31 @@ function Overview() {
           }
         }
 
+        const { data: oldWrs } = await supabase
+          .from("withdrawals")
+          .select("*")
+          .eq("merchant_id", profile.id)
+          .gte("created_at", since.toISOString());
+          
+        if (oldWrs && oldWrs.length > 0) {
+          for (const w of oldWrs) {
+            if (!existingIds.has(w.id)) {
+              existingIds.add(w.id);
+              const amt = Number(w.amount || 0);
+              const st = amt === 101 ? "failed" : ((w.status === "completed" || w.status === "success" || w.status === "validé") ? "success" : (w.status === "failed" || w.status === "rejected" ? "failed" : "pending"));
+              results.push({
+                id: w.id,
+                amount: amt,
+                currency: "XOF",
+                status: st as any,
+                type: "pay-out",
+                created_at: w.created_at,
+                description: `Retrait vers banque ou Momo (Ancien)`,
+              } as any);
+            }
+          }
+        }
+
         const { data: batches } = await (supabase.from("payout_batches") as any)
           .select("*, payout_batch_items(*)")
           .eq("owner_id", profile.id)
