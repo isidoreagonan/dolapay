@@ -252,32 +252,52 @@ function Overview() {
         <UsageCard pct={usagePct} />
       </div>
 
-      <Card className="p-6">
-        <div className="mb-4">
-          <div className="text-sm font-semibold">Volume quotidien · 30 jours</div>
-          <div className="text-xs text-muted-foreground">Encaissements vs Décaissements (XOF)</div>
+      <Card className="relative overflow-hidden border-border/50 bg-card p-6 shadow-[0_2px_20px_rgba(0,0,0,0.04)] dark:shadow-none">
+        <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h3 className="text-base font-bold text-foreground">Volume des transactions</h3>
+            <p className="text-xs text-muted-foreground mt-1">Aperçu quotidien sur les 30 derniers jours (XOF)</p>
+          </div>
+          <div className="flex items-center gap-5 text-xs font-medium">
+            <div className="flex items-center gap-2">
+              <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
+              <span className="text-muted-foreground">Encaissements</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="h-2.5 w-2.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.5)]"></span>
+              <span className="text-muted-foreground">Décaissements</span>
+            </div>
+          </div>
         </div>
-        <div className="h-64 w-full">
+        <div className="h-[300px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={days}>
-              <defs>
-                <linearGradient id="in" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.5} />
-                  <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                </linearGradient>
-                <linearGradient id="out" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="hsl(24 95% 53%)" stopOpacity={0.5} />
-                  <stop offset="100%" stopColor="hsl(24 95% 53%)" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-              <XAxis dataKey="day" stroke="hsl(var(--muted-foreground))" tickLine={false} axisLine={false} fontSize={11} />
-              <YAxis stroke="hsl(var(--muted-foreground))" tickLine={false} axisLine={false} fontSize={11} tickFormatter={(v) => fmt(v as number)} />
-              <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 12 }} formatter={(v: number) => fmt(v)} />
-              <Legend wrapperStyle={{ fontSize: 12 }} />
-              <Area name="Encaissements" type="monotone" dataKey="payin" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#in)" />
-              <Area name="Décaissements" type="monotone" dataKey="payout" stroke="hsl(24 95% 53%)" strokeWidth={2} fill="url(#out)" />
-            </AreaChart>
+            <BarChart data={days} margin={{ top: 0, right: 0, left: -15, bottom: 0 }} barGap={2} barSize={8}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} opacity={0.4} />
+              <XAxis 
+                dataKey="day" 
+                stroke="hsl(var(--muted-foreground))" 
+                tickLine={false} 
+                axisLine={false} 
+                fontSize={11} 
+                tickMargin={16}
+              />
+              <YAxis 
+                stroke="hsl(var(--muted-foreground))" 
+                tickLine={false} 
+                axisLine={false} 
+                fontSize={11} 
+                tickFormatter={(v) => fmt(v as number)} 
+                tickMargin={16}
+              />
+              <Tooltip 
+                cursor={{ fill: 'hsl(var(--muted))', opacity: 0.3 }}
+                contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 12, boxShadow: "0 8px 24px rgba(0,0,0,0.12)" }} 
+                formatter={(v: number, name: string) => [fmt(v) + " XOF", name]} 
+                labelStyle={{ color: "hsl(var(--foreground))", fontWeight: 600, marginBottom: 8 }}
+              />
+              <Bar name="Encaissements" dataKey="payin" fill="#10b981" radius={[4, 4, 0, 0]} />
+              <Bar name="Décaissements" dataKey="payout" fill="#fbbf24" radius={[4, 4, 0, 0]} />
+            </BarChart>
           </ResponsiveContainer>
         </div>
       </Card>
