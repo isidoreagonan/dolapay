@@ -36,6 +36,24 @@ export async function calculateExactBalance(supabaseAdmin: SupabaseClient, userI
     }
   }
 
+  const { data: wrs } = await (supabaseAdmin.from("withdrawal_requests") as any)
+    .select("*")
+    .eq("profile_id", userId);
+    
+  if (wrs) {
+    for (const w of wrs) {
+      if (!w || !w.id || seenTxIds.has(String(w.id))) continue;
+      const st = String(w.status || "").toLowerCase();
+      const amt = Number(w.amount || 0);
+      if (st === "success" || st === "completed" || st === "processing" || st === "validé" || st === "validated" || st === "pending") {
+        if (amt > 0 && amt !== 101) {
+          seenTxIds.add(String(w.id));
+          livePayout += amt;
+        }
+      }
+    }
+  }
+
   const { data: updatedBatches } = await (supabaseAdmin.from("payout_batches") as any)
     .select("*, payout_batch_items(*)")
     .eq("owner_id", userId);
@@ -46,7 +64,7 @@ export async function calculateExactBalance(supabaseAdmin: SupabaseClient, userI
         for (const item of b.payout_batch_items) {
           if (seenTxIds.has(String(item.id))) continue;
           const st = String(item.status || "").toLowerCase();
-          const amt = Number(item.amount || b.total_amount || 0);
+          const amt = Number(item.amount || b.total_amount || 0) + Number(b.fee_amount || 0);
           if (st !== "failed" && st !== "rejected" && amt > 0 && amt !== 101) {
             seenTxIds.add(String(item.id));
             livePayout += amt;
