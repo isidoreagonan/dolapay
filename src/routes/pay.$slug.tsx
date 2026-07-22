@@ -148,36 +148,6 @@ const COUNTRIES: CountryConfig[] = [
   }
 ];
 
-function hexToHsl(hex: string) {
-  hex = hex.replace(/^#/, "");
-  let r = 0, g = 0, b = 0;
-  if (hex.length === 3) {
-    r = parseInt(hex[0] + hex[0], 16);
-    g = parseInt(hex[1] + hex[1], 16);
-    b = parseInt(hex[2] + hex[2], 16);
-  } else if (hex.length === 6) {
-    r = parseInt(hex.substring(0, 2), 16);
-    g = parseInt(hex.substring(2, 4), 16);
-    b = parseInt(hex.substring(4, 6), 16);
-  }
-  r /= 255; g /= 255; b /= 255;
-  const cmax = Math.max(r, g, b), cmin = Math.min(r, g, b);
-  const delta = cmax - cmin;
-  let h = 0, s = 0, l = (cmax + cmin) / 2;
-  if (delta !== 0) {
-    s = delta / (1 - Math.abs(2 * l - 1));
-    if (cmax === r) h = ((g - b) / delta) % 6;
-    else if (cmax === g) h = (b - r) / delta + 2;
-    else h = (r - g) / delta + 4;
-    h = Math.round(h * 60);
-    if (h < 0) h += 360;
-  }
-  return {
-    hsl: `${h} ${(s * 100).toFixed(1)}% ${(l * 100).toFixed(1)}%`,
-    lightness: l * 100
-  };
-}
-
 function PayPage() {
   const { slug } = Route.useParams();
 
@@ -470,23 +440,15 @@ function PayPage() {
 
   const theme = link.theme_config || {};
   const isDark = theme.themeMode === "dark";
-  const primaryColor = theme.primaryColor || "#0066FF";
-  const primaryTheme = hexToHsl(primaryColor);
-  
-  let primaryForeground = "210 40% 98%";
-  if (theme.buttonTextColor) {
-    primaryForeground = hexToHsl(theme.buttonTextColor).hsl;
-  } else {
-    primaryForeground = primaryTheme.lightness > 65 ? "222.2 47.4% 11.2%" : "210 40% 98%";
-  }
-  
+  const primaryColor = theme.primaryColor || "#183ceb";
+  const primaryForeground = theme.buttonTextColor || "#ffffff";
   const fontFam = theme.fontFamily || "Inter";
 
   return (
     <div className={cn("custom-theme-wrapper", isDark ? "dark" : "")}>
       <style>{`
         .custom-theme-wrapper {
-          --primary: ${primaryTheme.hsl};
+          --primary: ${primaryColor};
           --primary-foreground: ${primaryForeground};
           ${fontFam === 'Inter' ? `font-family: 'Inter', sans-serif;` : ''}
           ${fontFam === 'serif' ? `font-family: ui-serif, Georgia, serif;` : ''}
