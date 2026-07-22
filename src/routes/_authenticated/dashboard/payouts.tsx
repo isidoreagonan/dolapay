@@ -62,9 +62,11 @@ function PayoutsPage() {
         .select("id,name,currency,status,total_amount,total_count,created_at")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return (data ?? []).map((b: any) => {
-        return { ...b };
-      }) as Batch[];
+      return (data ?? [])
+        .filter((b: any) => !b.name?.startsWith("[Retrait Wallet]"))
+        .map((b: any) => {
+          return { ...b };
+        }) as Batch[];
     },
   });
 
