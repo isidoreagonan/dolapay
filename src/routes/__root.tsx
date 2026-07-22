@@ -83,6 +83,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "DolaPay — Encaissez facilement vos clients partout en Afrique" },
       { name: "description", content: "Vendez sur les réseaux sociaux avec nos liens de paiement, ou intégrez notre API sur votre site. Acceptez le Mobile Money et les cartes bancaires sans effort." },
+      { name: "keywords", content: "agrégateur de paiement Afrique, API paiement mobile money Afrique, passerelle de paiement Afrique, intégration mobile money API, accepter paiement mobile money site web, API paiement Mobile Money Orange Money MTN, solution de paiement e-commerce Afrique, passerelle paiement Bénin, passerelle paiement Côte d'Ivoire, passerelle paiement Sénégal, alternative à Stripe pour l'Afrique, accepter paiement FCFA en ligne, solution paiement diaspora africaine, mobile money payment API Africa, payment aggregator Africa, accept mobile money payments online, Africa payment gateway API, mobile money integration for developers, collect payments across Africa API, best payment API for African startups, Stripe alternative for Africa" },
       { name: "author", content: "DolaPay" },
       { name: "google-site-verification", content: "AMPu5aOAwc5zNXRYuXsKvoPx-EzDtJDBYlQMuNIaYfs" },
       { name: "twitter:card", content: "summary_large_image" },
