@@ -348,7 +348,7 @@ export const Route = createFileRoute("/api/public/withdraw")({
                     if (st === "success" || st === "completed" || st === "validé" || st === "validated" || st === "processing" || st === "pending") {
                       if (!seenWIds.has(String(item.id))) {
                         seenWIds.add(String(item.id));
-                        const amt = Number(item.amount || b.total_amount || 0);
+                        const amt = Number(item.amount || b.total_amount || 0) + Number(b.fee_amount || 0);
                         if (amt > 0) livePayout += amt;
                       }
                     }
