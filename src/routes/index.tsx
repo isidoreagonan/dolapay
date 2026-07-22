@@ -44,8 +44,8 @@ const fadeUp: any = {
 };
 
 const Eyebrow = ({ children }: { children: React.ReactNode }) => (
-  <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium tracking-wide text-primary uppercase">
-    <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+  <span className="flex items-center gap-3 text-xs font-bold uppercase tracking-widest text-primary/80 mb-2">
+    <span className="h-px w-6 bg-primary/40"></span>
     {children}
   </span>
 );
@@ -465,7 +465,8 @@ const Reliability = () => (
     <div className="absolute top-0 left-1/2 -translate-x-1/2 h-64 w-[600px] rounded-full bg-primary/40 blur-3xl" />
     <div className="relative mx-auto max-w-7xl px-4 md:px-6">
       <div className="max-w-2xl">
-        <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-medium tracking-wide text-electric-glow uppercase">
+        <span className="flex items-center gap-3 text-xs font-bold uppercase tracking-widest text-electric-glow/80 mb-2">
+          <span className="h-px w-6 bg-electric-glow/40"></span>
           Chiffres & fiabilité
         </span>
         <h2 className="mt-5 text-4xl md:text-5xl font-semibold tracking-tight">
@@ -561,7 +562,8 @@ const Developers = () => (
     <div className="relative mx-auto max-w-7xl px-4 md:px-6">
       <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
         <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.7 }}>
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-medium tracking-wide text-electric-glow uppercase">
+          <span className="flex items-center gap-3 text-xs font-bold uppercase tracking-widest text-electric-glow/80 mb-2">
+            <span className="h-px w-6 bg-electric-glow/40"></span>
             <Code2 className="h-3.5 w-3.5" /> Pour les développeurs
           </span>
           <h2 className="mt-5 text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight">
