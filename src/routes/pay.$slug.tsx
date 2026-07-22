@@ -38,7 +38,7 @@ type Link = {
   description: string | null; image_url: string | null; invoice_number: string | null;
   thank_you_message: string | null; fees_paid_by: "merchant" | "customer";
   success_url: string | null; failure_url: string | null;
-  theme_config?: { primaryColor?: string; fontFamily?: string; themeMode?: string } | null;
+  theme_config?: { primaryColor?: string; buttonTextColor?: string; fontFamily?: string; themeMode?: string } | null;
 };
 type TxStatus = "pending" | "success" | "failed";
 
@@ -472,7 +472,14 @@ function PayPage() {
   const isDark = theme.themeMode === "dark";
   const primaryColor = theme.primaryColor || "#0066FF";
   const primaryTheme = hexToHsl(primaryColor);
-  const primaryForeground = primaryTheme.lightness > 65 ? "222.2 47.4% 11.2%" : "210 40% 98%";
+  
+  let primaryForeground = "210 40% 98%";
+  if (theme.buttonTextColor) {
+    primaryForeground = hexToHsl(theme.buttonTextColor).hsl;
+  } else {
+    primaryForeground = primaryTheme.lightness > 65 ? "222.2 47.4% 11.2%" : "210 40% 98%";
+  }
+  
   const fontFam = theme.fontFamily || "Inter";
 
   return (

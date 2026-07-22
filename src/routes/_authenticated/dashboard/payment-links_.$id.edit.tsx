@@ -60,6 +60,7 @@ function EditPaymentLinkPage() {
   const [thankYou, setThankYou] = useState("");
 
   const [primaryColor, setPrimaryColor] = useState("#0066FF");
+  const [buttonTextColor, setButtonTextColor] = useState("#FFFFFF");
   const [fontFamily, setFontFamily] = useState("Inter");
   const [themeMode, setThemeMode] = useState("light");
 
@@ -79,6 +80,7 @@ function EditPaymentLinkPage() {
       if (link.theme_config) {
         const tc = link.theme_config as Record<string, string>;
         if (tc.primaryColor) setPrimaryColor(tc.primaryColor);
+        if (tc.buttonTextColor) setButtonTextColor(tc.buttonTextColor);
         if (tc.fontFamily) setFontFamily(tc.fontFamily);
         if (tc.themeMode) setThemeMode(tc.themeMode);
       }
@@ -105,6 +107,7 @@ function EditPaymentLinkPage() {
         thank_you_message: thankYou.trim() || null,
         theme_config: {
           primaryColor,
+          buttonTextColor,
           fontFamily,
           themeMode,
         },
@@ -196,9 +199,9 @@ function EditPaymentLinkPage() {
 
             <Section icon={Palette} title="Apparence">
               <div className="space-y-4">
-                <div className="grid gap-4 sm:grid-cols-3">
+                <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
                   <div>
-                    <Label className="text-muted-foreground">Couleur principale</Label>
+                    <Label className="text-muted-foreground text-xs uppercase tracking-wider">Bouton (Fond)</Label>
                     <div className="mt-1.5 flex h-12 items-center gap-3 rounded-xl border border-border/60 bg-background/50 px-3">
                       <input 
                         type="color" 
@@ -214,7 +217,23 @@ function EditPaymentLinkPage() {
                     </div>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Police d'écriture</Label>
+                    <Label className="text-muted-foreground text-xs uppercase tracking-wider">Bouton (Texte)</Label>
+                    <div className="mt-1.5 flex h-12 items-center gap-3 rounded-xl border border-border/60 bg-background/50 px-3">
+                      <input 
+                        type="color" 
+                        value={buttonTextColor} 
+                        onChange={(e) => setButtonTextColor(e.target.value)}
+                        className="h-8 w-8 cursor-pointer rounded bg-transparent border-0 p-0"
+                      />
+                      <Input 
+                        value={buttonTextColor} 
+                        onChange={(e) => setButtonTextColor(e.target.value)} 
+                        className="h-8 border-0 bg-transparent px-0 text-sm shadow-none focus-visible:ring-0" 
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground text-xs uppercase tracking-wider">Police</Label>
                     <Select value={fontFamily} onValueChange={setFontFamily}>
                       <SelectTrigger className="mt-1.5 h-12"><SelectValue /></SelectTrigger>
                       <SelectContent>
@@ -225,7 +244,7 @@ function EditPaymentLinkPage() {
                     </Select>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Thème (Mode)</Label>
+                    <Label className="text-muted-foreground text-xs uppercase tracking-wider">Thème</Label>
                     <Select value={themeMode} onValueChange={setThemeMode}>
                       <SelectTrigger className="mt-1.5 h-12"><SelectValue /></SelectTrigger>
                       <SelectContent>
