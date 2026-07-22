@@ -6,11 +6,15 @@ export const Route = createFileRoute("/developers/api")({
   component: ApiDocsLayout,
 });
 
+import { Globe2, SendHorizontal } from "lucide-react";
+
 const navItems = [
   { path: "/developers/api", label: "Introduction", icon: Book },
   { path: "/developers/api/auth", label: "Authentification", icon: ShieldCheck },
+  { path: "/developers/api/countries", label: "Couverture & Pays", icon: Globe2 },
   { path: "/developers/api/checkout-sessions", label: "Checkout Sessions", icon: Globe },
   { path: "/developers/api/checkout-pay", label: "Direct API Payment", icon: Zap },
+  { path: "/developers/api/payouts", label: "Décaissements", icon: SendHorizontal },
   { path: "/developers/api/webhooks", label: "Webhooks", icon: Webhook },
   { path: "/developers/api/errors", label: "Codes & Erreurs", icon: AlertCircle },
 ];

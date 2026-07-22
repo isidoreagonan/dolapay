@@ -1,39 +1,34 @@
 async function run() {
-  const apiKey = process.env.LIGDICASH_API_KEY;
-  const authToken = process.env.LIGDICASH_AUTH_TOKEN;
-
+  // Remplacer par la clé API secrète (sk_live_...) générée depuis le tableau de bord DolaPay
+  const DOLAPAY_API_KEY = "sk_test_12345"; 
+  
   const payload = {
-    commande: {
-      invoice: {
-        items: [{ name: "Test DolaPay", description: "Test", quantity: 1, unit_price: 200, total_price: 200 }],
-        total_amount: 200,
-        currency: "xof",
-        description: "Test",
-        customer: "22680005738",
-      },
-      store: { name: "DolaPay", website_url: "https://dola-pay.com" },
-      actions: {
-        cancel_url: "https://dola-pay.com/cancel",
-        return_url: "https://dola-pay.com/success",
-        callback_url: "https://dola-pay.com/webhook",
-      },
-      custom_data: { test: true },
-    },
+    amount: 200,
+    currency: "XOF",
+    customer_phone: "22680005738", // Numéro Burkina -> DolaPay va router vers LigdiCash
+    provider: "Orange",
+    description: "Test via DolaPay API"
   };
 
   try {
-    const res = await fetch("https://app.ligdicash.com/pay/v01/redirect/checkout-invoice/create", {
+    // Remplacer par l'URL de production si nécessaire (ex: https://ton-domaine.com/api/v1/charges)
+    const res = await fetch("http://localhost:3000/api/v1/charges", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${authToken}`,
-        "Apikey": apiKey,
+        "Authorization": `Bearer ${DOLAPAY_API_KEY}`
       },
       body: JSON.stringify(payload)
     });
-    const text = await res.text();
+    
+    const data = await res.json();
     console.log("Status:", res.status);
-    console.log("Response:", text);
+    console.log("Response:", JSON.stringify(data, null, 2));
+    
+    if (data.status === "redirect") {
+      console.log("\n✅ SUCCÈS ! DolaPay a bien basculé sur LigdiCash.");
+      console.log("👉 URL de paiement LigdiCash générée :", data.redirect_url);
+    }
   } catch(e) {
     console.error("Fetch error:", e);
   }
