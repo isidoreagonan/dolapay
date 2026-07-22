@@ -544,25 +544,14 @@ function TopBar({ profile, open, setOpen }: { profile: Profile | null, open: boo
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="min-w-32 rounded-xl shadow-lg border-border/50">
-            <DropdownMenuItem className="text-xs font-bold flex items-center gap-2 cursor-pointer">
+            <DropdownMenuItem onClick={() => window.location.reload()} className="text-xs font-bold flex items-center gap-2 cursor-pointer text-foreground">
               <span>🇫🇷</span> Français
             </DropdownMenuItem>
-            <DropdownMenuItem className="text-xs text-muted-foreground flex items-center gap-2 cursor-not-allowed">
-              <span className="opacity-50">🇬🇧</span> English (Bientôt)
+            <DropdownMenuItem onClick={() => window.location.reload()} className="text-xs flex items-center gap-2 cursor-pointer text-muted-foreground">
+              <span className="opacity-50">🇬🇧</span> English
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-
-        {/* Theme Toggle */}
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          className="h-9 w-9 rounded-full text-navy/60 dark:text-muted-foreground hover:bg-navy/5 dark:hover:bg-muted transition-colors relative"
-        >
-          <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 text-amber-500" />
-          <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 text-blue-400" />
-        </Button>
 
         {/* Notifications */}
         <Popover>
@@ -612,29 +601,42 @@ function TopBar({ profile, open, setOpen }: { profile: Profile | null, open: boo
               <ChevronDown className="h-3 w-3 opacity-50 hidden md:block" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-60 rounded-2xl shadow-xl border-border/50 mt-2">
-            <DropdownMenuLabel className="font-normal flex items-start gap-3 p-4 bg-muted/20 rounded-t-xl">
+          <DropdownMenuContent align="end" className="w-64 rounded-2xl shadow-xl border-border/50 mt-2">
+            <DropdownMenuLabel className="font-normal flex items-start gap-3 p-4 bg-muted/20 rounded-t-xl text-foreground">
               <Avatar className="h-10 w-10 ring-2 ring-white dark:ring-card shadow-sm">
                 <AvatarFallback className="bg-gradient-to-br from-primary to-blue-600 text-white text-sm font-bold">{initials}</AvatarFallback>
               </Avatar>
-              <div className="flex flex-col space-y-1">
-                <p className="text-sm font-bold leading-none">{profile?.full_name}</p>
+              <div className="flex flex-col space-y-1 text-foreground">
+                <p className="text-sm font-bold leading-none text-foreground">{profile?.full_name}</p>
                 <p className="text-[11px] leading-tight text-muted-foreground truncate w-36">{profile?.email}</p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator className="m-0" />
-            <div className="p-1">
+            <div className="p-2">
               <DropdownMenuGroup>
-                <DropdownMenuItem asChild className="cursor-pointer rounded-lg text-xs py-2.5">
+                <DropdownMenuItem asChild className="cursor-pointer rounded-lg text-xs py-2.5 font-medium text-foreground">
                   <Link to="/dashboard/settings"><User className="mr-3 h-4 w-4 text-muted-foreground" /> Mon profil</Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild className="cursor-pointer rounded-lg text-xs py-2.5">
+                <DropdownMenuItem asChild className="cursor-pointer rounded-lg text-xs py-2.5 font-medium text-foreground">
                   <Link to="/dashboard/wallet"><CreditCard className="mr-3 h-4 w-4 text-muted-foreground" /> Mon Portefeuille</Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild className="cursor-pointer rounded-lg text-xs py-2.5">
+                <DropdownMenuItem asChild className="cursor-pointer rounded-lg text-xs py-2.5 font-medium text-foreground">
                   <Link to="/dashboard/settings"><SettingsIcon className="mr-3 h-4 w-4 text-muted-foreground" /> Paramètres</Link>
                 </DropdownMenuItem>
               </DropdownMenuGroup>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                onClick={(e) => { e.preventDefault(); setTheme(theme === "dark" ? "light" : "dark"); }} 
+                className="cursor-pointer rounded-lg text-xs py-2.5 font-medium flex items-center justify-between text-foreground"
+              >
+                <div className="flex items-center">
+                  {theme === "dark" ? <Moon className="mr-3 h-4 w-4 text-blue-400" /> : <Sun className="mr-3 h-4 w-4 text-amber-500" />}
+                  <span>Mode {theme === "dark" ? "Sombre" : "Clair"}</span>
+                </div>
+                <div className="flex w-8 h-4 bg-muted rounded-full p-0.5 border border-border shadow-inner transition-all">
+                  <div className={cn("w-3 h-3 bg-foreground rounded-full shadow-sm transition-transform", theme === "dark" ? "translate-x-4 bg-primary" : "")} />
+                </div>
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleSignOut} className="text-red-600 dark:text-red-400 focus:text-red-700 focus:bg-red-50 dark:focus:bg-red-500/10 cursor-pointer rounded-lg text-xs py-2.5 font-medium">
                 <LogOut className="mr-3 h-4 w-4" />
