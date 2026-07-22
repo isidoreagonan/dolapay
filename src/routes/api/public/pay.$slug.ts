@@ -194,7 +194,7 @@ export const Route = createFileRoute("/api/public/pay/$slug")({
                 .from("transactions")
                 .update({
                   status: "failed",
-                  description: `[${params.slug}] ${link.title} · ${parsed.data.customer_name}${emailInfo} · ${parsed.data.provider} ${parsed.data.customer_phone}${extraDesc}`
+                  description: `[${params.slug}] ${link.title} · ${parsed.data.customer_name} (${emailStr}) · ${parsed.data.provider} ${parsed.data.customer_phone}${extraDesc}`
                 } as any)
                 .eq("id", tx!.id);
 
@@ -227,7 +227,7 @@ export const Route = createFileRoute("/api/public/pay/$slug")({
                 .from("transactions")
                 .update({ 
                   status: "failed",
-                  description: `[${params.slug}] ${link.title} · ${parsed.data.customer_name}${emailInfo} · ${parsed.data.provider} ${parsed.data.customer_phone}${extraDesc}`
+                  description: `[${params.slug}] ${link.title} · ${parsed.data.customer_name} (${emailStr}) · ${parsed.data.provider} ${parsed.data.customer_phone}${extraDesc}`
                 } as any)
                 .eq("id", tx!.id);
               
@@ -247,7 +247,7 @@ export const Route = createFileRoute("/api/public/pay/$slug")({
               .from("transactions")
               .update({ 
                 status: "failed",
-                description: `[${params.slug}] ${link.title} · ${parsed.data.customer_name}${emailInfo} · ${parsed.data.provider} ${parsed.data.customer_phone}${extraDesc}`
+                description: `[${params.slug}] ${link.title} · ${parsed.data.customer_name} (${emailStr}) · ${parsed.data.provider} ${parsed.data.customer_phone}${extraDesc}`
               } as any)
               .eq("id", tx!.id);
             
