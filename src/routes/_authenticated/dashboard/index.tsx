@@ -204,10 +204,13 @@ function Overview() {
     };
   });
 
-  // Top opérateurs (Mobile Money ou canal)
+  // Top opérateurs (Mobile Money ou canal) - uniquement pour les encaissements
   const typeMap = new Map<string, number>();
-  successful.forEach((t) => {
-    const { providerName } = parseTxDetails(t.description, t.type);
+  successful.filter((t) => t.type === "pay-in" || t.type === "payment_link").forEach((t) => {
+    let { providerName } = parseTxDetails(t.description, t.type);
+    if (providerName === "pay in" || providerName === "payment link") {
+      providerName = "Autre";
+    }
     const p = providerName || "Autre";
     typeMap.set(p, (typeMap.get(p) || 0) + Number(t.amount));
   });
@@ -303,18 +306,35 @@ function Overview() {
       </Card>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Card className="p-6">
-          <div className="mb-3 text-sm font-semibold">Top opérateurs · 30 jours</div>
-          <div className="h-56 w-full">
+        <Card className="p-6 flex flex-col">
+          <div className="mb-6">
+            <h3 className="text-base font-bold text-foreground">Top opérateurs</h3>
+            <p className="text-xs text-muted-foreground mt-1">Répartition des encaissements (30 jours)</p>
+          </div>
+          <div className="flex-1 flex flex-col justify-center gap-4">
             {topProviders.length ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={topProviders} layout="vertical" margin={{ left: 20 }}>
-                  <XAxis type="number" hide tickFormatter={(v) => fmt(v as number)} />
-                  <YAxis type="category" dataKey="name" stroke="hsl(var(--muted-foreground))" tickLine={false} axisLine={false} fontSize={12} width={80} />
-                  <Tooltip contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 12 }} formatter={(v: number) => fmt(v)} />
-                  <Bar dataKey="volume" fill="hsl(var(--primary))" radius={[0, 8, 8, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+              topProviders.map((p, i) => {
+                const max = Math.max(...topProviders.map((x) => x.volume));
+                const pct = max > 0 ? (p.volume / max) * 100 : 0;
+                return (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="w-24 text-xs font-bold text-right truncate text-muted-foreground uppercase tracking-wider" title={p.name}>
+                      {p.name}
+                    </div>
+                    <div className="flex-1 h-8 bg-muted/40 rounded-r-md relative group">
+                      <div
+                        className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-blue-600 to-blue-400 rounded-r-md shadow-[0_2px_8px_rgba(59,130,246,0.3)] transition-all duration-1000 ease-out group-hover:opacity-90"
+                        style={{ width: `${Math.max(pct, 2)}%` }}
+                      ></div>
+                      <div className="absolute inset-y-0 left-0 flex items-center pl-3">
+                        <span className="text-xs font-black text-white drop-shadow-md z-10 whitespace-nowrap">
+                          {fmt(p.volume)} XOF
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
             ) : (
               <div className="grid h-full place-items-center text-sm text-muted-foreground">Pas encore de données opérateurs.</div>
             )}
