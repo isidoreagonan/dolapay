@@ -26,7 +26,7 @@ export const blogPosts: BlogPost[] = [
       role: "CEO & Fondateur",
       avatarUrl: "/images/blog/isidore-ceo.jpg"
     },
-    coverImage: "/images/blog/cover-story.png",
+    coverImage: "/images/blog/cover-dolapay-name.png",
     category: "Branding",
     content: `
 Beaucoup de gens nous l'écrivent "Dolapay". Parfois même "dolapay" (aïe !). Et soyons honnêtes, on ne vous en veut pas. C'est le correcteur orthographique qui fait souvent des siennes.
@@ -73,7 +73,7 @@ Bienvenue chez **DolaPay**.
       role: "CEO & Fondateur",
       avatarUrl: "/images/blog/isidore-ceo.jpg"
     },
-    coverImage: "/images/blog/cover-story.png",
+    coverImage: "/images/blog/cover-magic-solution.png",
     category: "Company News",
     content: `
 Mon nom est **Agonan Isidore Abraham**, et je suis le CEO et fondateur de DolaPay.
@@ -122,7 +122,7 @@ Bienvenue sur DolaPay.
       role: "CEO & Fondateur",
       avatarUrl: "/images/blog/isidore-ceo.jpg"
     },
-    coverImage: "/images/blog/cover-ecommerce.png",
+    coverImage: "/images/blog/cover-bulk-payout.png",
     category: "Product Updates",
     content: `
 L'une des demandes les plus fréquentes que nous recevons chez DolaPay concerne les **décaissements de masse** (Bulk Pay-outs).
