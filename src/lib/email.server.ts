@@ -627,17 +627,28 @@ export async function notifyPayoutStatus(supabaseAdmin: any, payoutIdOrItem: any
     }
     if (!item) return;
 
+    // Récupérer la transaction correspondante pour vérifier si c'est un retrait API ou Manuel
+    let txDesc = item.description || "";
+    if (!txDesc && idStr) {
+      const { data: tx } = await supabaseAdmin.from("transactions").select("description").eq("id", idStr).maybeSingle();
+      if (tx) txDesc = tx.description || "";
+    }
+    let isApiPayout = txDesc.includes("[API_PAYOUT]") || item.name?.includes("Payout API");
+
     let profileId = item.profile_id || item.user_id || item.merchant_id || item.owner_id;
     if (!profileId && item.batch_id) {
       const { data: batch } = await supabaseAdmin.from("payout_batches").select("*").eq("id", item.batch_id).maybeSingle();
-      if (batch) profileId = batch.profile_id || batch.owner_id || batch.user_id;
+      if (batch) {
+        profileId = batch.profile_id || batch.owner_id || batch.user_id;
+        if (batch.name?.includes("Payout API")) isApiPayout = true;
+      }
     }
     if (!profileId) return;
 
     const { data: prof } = await supabaseAdmin.from("profiles").select("email, full_name, company_name").eq("id", profileId).maybeSingle();
     if (!prof || !prof.email) return;
 
-    // Vérification des préférences utilisateur pour désactiver les emails
+    // Vérification des préférences utilisateur pour désactiver les emails (UNIQUEMENT pour les flux API)
     let merchantWantsEmails = true;
     try {
       const { data: userAuth } = await supabaseAdmin.auth.admin.getUserById(profileId);
@@ -648,7 +659,9 @@ export async function notifyPayoutStatus(supabaseAdmin: any, payoutIdOrItem: any
       console.error("[email.server] Error fetching user metadata", e);
     }
 
-    if (!merchantWantsEmails) return;
+    // On bloque l'email SEULEMENT si c'est un flux API ET que le marchand a désactivé les notifications.
+    // Un retrait manuel depuis le dashboard (isApiPayout = false) enverra toujours un email.
+    if (isApiPayout && !merchantWantsEmails) return;
 
     const merchantName = prof.company_name || prof.full_name || "Marchand DolaPay";
 
