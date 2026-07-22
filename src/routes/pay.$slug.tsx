@@ -172,7 +172,10 @@ function hexToHsl(hex: string) {
     h = Math.round(h * 60);
     if (h < 0) h += 360;
   }
-  return `${h} ${(s * 100).toFixed(1)}% ${(l * 100).toFixed(1)}%`;
+  return {
+    hsl: `${h} ${(s * 100).toFixed(1)}% ${(l * 100).toFixed(1)}%`,
+    lightness: l * 100
+  };
 }
 
 function PayPage() {
@@ -468,13 +471,16 @@ function PayPage() {
   const theme = link.theme_config || {};
   const isDark = theme.themeMode === "dark";
   const primaryColor = theme.primaryColor || "#0066FF";
+  const primaryTheme = hexToHsl(primaryColor);
+  const primaryForeground = primaryTheme.lightness > 65 ? "222.2 47.4% 11.2%" : "210 40% 98%";
   const fontFam = theme.fontFamily || "Inter";
 
   return (
     <div className={cn("custom-theme-wrapper", isDark ? "dark" : "")}>
       <style>{`
         .custom-theme-wrapper {
-          --primary: ${hexToHsl(primaryColor)};
+          --primary: ${primaryTheme.hsl};
+          --primary-foreground: ${primaryForeground};
           ${fontFam === 'Inter' ? `font-family: 'Inter', sans-serif;` : ''}
           ${fontFam === 'serif' ? `font-family: ui-serif, Georgia, serif;` : ''}
           ${fontFam === 'system-ui' ? `font-family: system-ui, sans-serif;` : ''}
