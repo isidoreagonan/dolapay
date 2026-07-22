@@ -241,17 +241,17 @@ function Overview() {
       />
 
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <Stat icon={TrendingUp} label="Volume total" value={fmt(totalVolume)} hint="XOF · 30j" trend={trend} />
-        <Stat icon={ArrowDownRight} label="Encaissements" value={fmt(payinVol)} hint={`${payin.length} transactions`} />
-        <Stat icon={ArrowUpRight} label="Décaissements" value={fmt(payoutVol)} hint={`${payout.length} transactions`} />
-        <Stat icon={Wallet} label="Solde net" value={fmt(balance)} hint="Pay-in − Pay-out" />
+        <Stat icon={ArrowDownRight} label="Encaissements" value={fmt(payinVol)} hint={`${payin.length} tx`} />
+        <Stat icon={ArrowUpRight} label="Décaissements" value={fmt(payoutVol)} hint={`${payout.length} tx`} />
+        <Stat icon={Wallet} label="Solde net" value={fmt(balance)} hint="In − Out" />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <Stat icon={CheckCircle2} label="Taux de succès" value={`${successRate.toFixed(1)}%`} hint={`${payinFailedCount} échecs`} />
-        <Stat icon={Target} label="Panier moyen" value={fmt(avgTicket)} hint="XOF par transaction" />
-        <Stat icon={Layers} label="Volume cumulé" value={`${usagePct.toFixed(0)}%`} hint={limit ? `de ${fmt(limit)} XOF` : "Limite non définie"} />
+        <Stat icon={Target} label="Panier moyen" value={fmt(avgTicket)} hint="XOF / tx" />
+        <Stat icon={Layers} label="Volume cumulé" value={`${usagePct.toFixed(0)}%`} hint={limit ? `de ${fmt(limit)}` : "Illimité"} />
         <UsageCard pct={usagePct} />
       </div>
 
@@ -404,14 +404,14 @@ function Overview() {
 function Stat({ icon: Icon, label, value, hint, trend }: { icon: typeof Wallet; label: string; value: string; hint: string; trend?: number }) {
   const up = (trend ?? 0) >= 0;
   return (
-    <Card className="p-5">
-      <div className="flex items-center justify-between">
-        <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</div>
-        <div className="grid h-8 w-8 place-items-center rounded-lg bg-primary/10 text-primary"><Icon className="h-4 w-4" /></div>
+    <Card className="p-4 sm:p-5">
+      <div className="flex items-center justify-between gap-2">
+        <div className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground truncate" title={label}>{label}</div>
+        <div className="grid h-7 w-7 sm:h-8 sm:w-8 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"><Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" /></div>
       </div>
-      <div className="mt-2 text-2xl font-bold">{value}</div>
-      <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-        <span>{hint}</span>
+      <div className="mt-2 text-lg sm:text-2xl font-bold truncate" title={value}>{value}</div>
+      <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground">
+        <span className="truncate">{hint}</span>
         {trend !== undefined && Number.isFinite(trend) && trend !== 0 && (
           <span className={cn("inline-flex items-center gap-0.5 font-semibold", up ? "text-emerald-500" : "text-rose-500")}>
             {up ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
@@ -425,15 +425,15 @@ function Stat({ icon: Icon, label, value, hint, trend }: { icon: typeof Wallet; 
 
 function UsageCard({ pct }: { pct: number }) {
   return (
-    <Card className="p-5">
-      <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Utilisation limite</div>
+    <Card className="p-4 sm:p-5 flex flex-col justify-center">
+      <div className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground truncate" title="Utilisation limite">Utilisation limite</div>
       <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-muted">
         <div
           className={cn("h-full transition-all", pct > 80 ? "bg-rose-500" : pct > 50 ? "bg-amber-500" : "bg-emerald-500")}
           style={{ width: `${pct}%` }}
         />
       </div>
-      <div className="mt-2 text-xs text-muted-foreground">{pct.toFixed(1)}% du plafond mensuel</div>
+      <div className="mt-2 text-[10px] sm:text-xs text-muted-foreground truncate">{pct.toFixed(1)}% du plafond</div>
     </Card>
   );
 }
