@@ -171,6 +171,17 @@ function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
+    // Read tx_id from URL if returning from an external gateway like LigdiCash
+    const params = new URLSearchParams(window.location.search);
+    const returnTxId = params.get("tx_id");
+    if (returnTxId && !txId) {
+      setTxId(returnTxId);
+      setStatus("pending");
+      setSubmitting(true);
+    }
+  }, []);
+
+  useEffect(() => {
     if (session) {
       if (session.customer_name && !name) setName(session.customer_name);
       if (session.customer_email && !email) setEmail(session.customer_email);

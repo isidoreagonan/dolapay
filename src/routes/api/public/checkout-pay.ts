@@ -121,6 +121,7 @@ export const Route = createFileRoute("/api/public/checkout-pay")({
               await supabaseAdmin.from("transactions").update({ provider_tx_id: txId }).eq("id", txId);
             }
           } else if (gateway === "ligdicash") {
+            const origin = new URL(request.url).origin;
             const ligdiRes = await createLigdiCashPayin({
               amount: session.amount,
               description: `Checkout ${sessionId}`,
@@ -130,6 +131,8 @@ export const Route = createFileRoute("/api/public/checkout-pay")({
                 lastname: session.customer_name?.split(" ").slice(1).join(" ") || "DolaPay",
                 phone: customer_phone,
               },
+              returnUrl: `${origin}/checkout/${sessionId}?tx_id=${txId}`,
+              callbackUrl: `${origin}/api/public/ligdicash-webhook`,
             });
             if (ligdiRes.response_code !== "00") {
               await supabaseAdmin.from("transactions").update({ status: "failed" }).eq("id", txId);
