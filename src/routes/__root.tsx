@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useLocation,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -138,6 +139,7 @@ s0.parentNode.insertBefore(s1,s0);
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
+  const location = useLocation();
   const lastUserIdRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -168,9 +170,17 @@ function RootComponent() {
     };
   }, [queryClient, router]);
 
+  const isDashboard = location.pathname.startsWith("/dashboard");
+
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+      <ThemeProvider 
+        attribute="class" 
+        defaultTheme="system" 
+        enableSystem 
+        disableTransitionOnChange
+        forcedTheme={!isDashboard ? "light" : undefined}
+      >
         <Outlet />
         <Toaster />
       </ThemeProvider>
