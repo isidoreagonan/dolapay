@@ -793,8 +793,8 @@ const CTA = () => (
 /* ---------- Page ---------- */
 const Home = () => (
   <PageShell
-    title="DolaPay — L'infrastructure de paiement qui propulse l'Afrique"
-    description="Mobile Money, cartes bancaires, payouts instantanés et liens no-code unifiés derrière une seule API. Déployé sur 12 économies africaines."
+    title="DolaPay — Encaissez facilement vos clients partout en Afrique"
+    description="Vendez sur les réseaux sociaux avec nos liens de paiement, ou intégrez notre API sur votre site. Acceptez le Mobile Money et les cartes bancaires sans effort."
     canonicalUrl="/"
   >
     <div>
