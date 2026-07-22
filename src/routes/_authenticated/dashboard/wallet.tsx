@@ -335,7 +335,7 @@ function WalletPage() {
                 results.push({
                   id: item.id,
                   amount: amt,
-                  fee: undefined,
+                  fee: b.fee_amount ? Number(b.fee_amount) / (b.total_count || 1) : undefined,
                   currency: item.currency || b.currency || "XOF",
                   method: `Virement de masse (Batch: ${b.name || b.id})`,
                   recipient_phone: item.recipient_phone || "---",
