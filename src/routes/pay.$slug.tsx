@@ -509,7 +509,7 @@ function PayPage() {
             <span>Frais DolaPay</span>
             <span className="font-semibold text-slate-700 dark:text-slate-300">
               {link.fees_paid_by === "customer" ? (
-                customerFee > 0 ? `+ ${fmt(customerFee)} ${link.currency}` : (isQuoteLoading ? <Loader2 className="h-3 w-3 animate-spin inline-block" /> : "Calcul en cours...")
+                (quote?.totalFees || 0) > 0 ? `+ ${fmt(quote!.totalFees)} ${link.currency}` : (isQuoteLoading ? <Loader2 className="h-3 w-3 animate-spin inline-block" /> : "Calcul en cours...")
               ) : "0 F (Pris en charge)"}
             </span>
           </div>
