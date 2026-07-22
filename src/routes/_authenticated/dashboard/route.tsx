@@ -544,10 +544,10 @@ function TopBar({ profile, open, setOpen }: { profile: Profile | null, open: boo
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="min-w-32 rounded-xl shadow-lg border-border/50">
-            <DropdownMenuItem onClick={() => window.location.reload()} className="text-xs font-bold flex items-center gap-2 cursor-pointer text-foreground">
+            <DropdownMenuItem onClick={() => toast("Déjà en Français", { description: "Vous utilisez déjà la version française du tableau de bord." })} className="text-xs font-bold flex items-center gap-2 cursor-pointer text-foreground">
               <span>🇫🇷</span> Français
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => window.location.reload()} className="text-xs flex items-center gap-2 cursor-pointer text-muted-foreground">
+            <DropdownMenuItem onClick={() => toast.info("Bientôt disponible", { description: "La version anglaise est en cours de préparation et sera bientôt disponible." })} className="text-xs flex items-center gap-2 cursor-pointer text-muted-foreground">
               <span className="opacity-50">🇬🇧</span> English
             </DropdownMenuItem>
           </DropdownMenuContent>
