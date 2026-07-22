@@ -24,9 +24,9 @@ export const blogPosts: BlogPost[] = [
     author: {
       name: "Agonan Isidore Abraham",
       role: "CEO & Fondateur",
-      avatarUrl: "/images/team/ceo.jpg"
+      avatarUrl: "/images/blog/isidore-ceo.jpg"
     },
-    coverImage: "/images/blog/cover_origin.png",
+    coverImage: "/images/blog/cover-story.png",
     category: "Company News",
     content: `
 Mon nom est **Agonan Isidore Abraham**, et je suis le CEO et fondateur de DolaPay.
@@ -73,9 +73,9 @@ Bienvenue sur DolaPay.
     author: {
       name: "Agonan Isidore Abraham",
       role: "CEO & Fondateur",
-      avatarUrl: "/images/team/ceo.jpg"
+      avatarUrl: "/images/blog/isidore-ceo.jpg"
     },
-    coverImage: "/images/blog/cover_payout.png",
+    coverImage: "/images/blog/cover-ecommerce.png",
     category: "Product Updates",
     content: `
 L'une des demandes les plus fréquentes que nous recevons chez DolaPay concerne les **décaissements de masse** (Bulk Pay-outs).
@@ -109,9 +109,9 @@ Nous traitons aujourd'hui plus de 20 000 décaissements par jour pour nos parten
     author: {
       name: "Agonan Isidore Abraham",
       role: "CEO & Fondateur",
-      avatarUrl: "/images/team/ceo.jpg"
+      avatarUrl: "/images/blog/isidore-ceo.jpg"
     },
-    coverImage: "/images/blog/cover_security.png",
+    coverImage: "/images/blog/cover-security.png",
     category: "Industry Insights",
     content: `
 Quand on manipule l'argent des autres, la confiance n'est pas une option. C'est le cœur même du produit.
@@ -149,9 +149,9 @@ DolaPay n'est pas qu'une API élégante. C'est un **coffre-fort technologique** 
     author: {
       name: "Agonan Isidore Abraham",
       role: "CEO & Fondateur",
-      avatarUrl: "/images/team/ceo.jpg"
+      avatarUrl: "/images/blog/isidore-ceo.jpg"
     },
-    coverImage: "/images/blog/cover_freelance.png",
+    coverImage: "/images/blog/cover-story.png",
     category: "Case Studies",
     content: `
 L'économie des créateurs et des freelances explose en Afrique. Designers, développeurs, copywriters, community managers... De plus en plus de talents africains travaillent à leur propre compte, souvent pour des clients situés dans d'autres pays.
