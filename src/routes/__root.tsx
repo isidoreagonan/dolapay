@@ -86,8 +86,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "author", content: "DolaPay" },
       { name: "google-site-verification", content: "AMPu5aOAwc5zNXRYuXsKvoPx-EzDtJDBYlQMuNIaYfs" },
       { name: "twitter:card", content: "summary_large_image" },
-      { property: "og:image", content: "/og-image.png" },
-      { name: "twitter:image", content: "/og-image.png" },
+      { property: "og:image", content: "https://dola-pay.com/og-image.png" },
+      { name: "twitter:image", content: "https://dola-pay.com/og-image.png" },
     ],
     links: [
       { rel: "icon", type: "image/png", href: logoIcon.url },
