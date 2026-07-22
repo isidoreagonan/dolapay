@@ -277,87 +277,9 @@ export const Route = createFileRoute("/api/public/withdraw")({
               return Response.json({ error: "Code PIN secret incorrect." }, { status: 403 });
             }
 
-            // Vérifier le solde exhaustif (wallets, profiles, transactions, user_metadata)
-            let currentBalance = Number(wallet.balance ?? wallet.amount ?? wallet.solde ?? 0);
-            
-            const { data: colTxs } = await (supabaseAdmin.from("transactions") as any)
-              .select("*")
-              .eq("profile_id", user.id);
-              
-            const allTxsMap = new Map<string, any>();
-            if (colTxs) {
-              colTxs.forEach((t: any) => {
-                if (t && t.id) allTxsMap.set(String(t.id), t);
-                else allTxsMap.set(JSON.stringify(t), t);
-              });
-            }
-            
-            const allTxs = Array.from(allTxsMap.values());
-            let livePayin = 0, livePayout = 0;
-            for (const t of allTxs) {
-              const st = String(t.status || "").toLowerCase();
-              const isSuccess = st === "completed" || st === "successful" || st === "success" || st === "paid" || st === "validé" || st === "validated" || st === "settled" || st === "ok" || st === "confirmed";
-              if (!isSuccess) continue;
-              const amt = Number(t.net_amount || t.amount || 0);
-              const desc = String(t.description || "").toLowerCase();
-              const mode = String((t as any).mode || "").toLowerCase();
-              const isTestTx = desc.includes("_test") || desc.includes("sandbox") || mode === "test" || mode === "sandbox";
-              if (isTestTx) continue;
-              const isPayout = String(t.type || "").toLowerCase().includes("payout") || String(t.type || "").toLowerCase().includes("pay-out") || String(t.type || "").toLowerCase().includes("withdraw");
-              if (isPayout) livePayout += amt;
-              else livePayin += amt;
-            }
-
-            const { data: profData } = await supabaseAdmin.from("profiles").select("*").eq("id", user.id).maybeSingle();
-            const profBalance = Number((profData as any)?.balance ?? (profData as any)?.wallet_balance ?? (profData as any)?.solde ?? (profData as any)?.amount ?? 0);
-            const { data: userData } = await supabaseAdmin.auth.admin.getUserById(user.id);
-            const metaBalance = Number(userData?.user?.user_metadata?.wallet_balance || 0);
-
-            // Sommation exhaustive de tous les retraits (transactions + withdrawal_requests)
-            const seenWIds = new Set<string>();
-            for (const t of allTxs) {
-              if (t && t.id) seenWIds.add(String(t.id));
-            }
-            
-            const { data: wrs } = await (supabaseAdmin.from("withdrawal_requests") as any)
-              .select("*")
-              .eq("profile_id", user.id);
-              
-            if (wrs) {
-              wrs.forEach((w: any) => {
-                const st = String(w.status || "").toLowerCase();
-                if (st === "success" || st === "completed" || st === "processing" || st === "validé" || st === "validated" || st === "pending") {
-                  if (!seenWIds.has(String(w.id))) {
-                    seenWIds.add(String(w.id));
-                    const amt = Number(w.amount || 0);
-                    if (amt > 0) livePayout += amt;
-                  }
-                }
-              });
-            }
-
-            // Sommation exhaustive des virements de masse
-            const { data: batches } = await (supabaseAdmin.from("payout_batches") as any)
-              .select("*, payout_batch_items(*)")
-              .eq("owner_id", user.id);
-            if (batches && batches.length > 0) {
-              for (const b of batches) {
-                if (b.payout_batch_items && Array.isArray(b.payout_batch_items)) {
-                  for (const item of b.payout_batch_items) {
-                    const st = String(item.status || "").toLowerCase();
-                    if (st === "success" || st === "completed" || st === "validé" || st === "validated" || st === "processing" || st === "pending") {
-                      if (!seenWIds.has(String(item.id))) {
-                        seenWIds.add(String(item.id));
-                        const amt = Number(item.amount || b.total_amount || 0) + Number(b.fee_amount || 0);
-                        if (amt > 0) livePayout += amt;
-                      }
-                    }
-                  }
-                }
-              }
-            }
-            const baseDeposit = livePayin > 0 ? livePayin : Math.max(currentBalance + livePayout, profBalance + livePayout, 0);
-            currentBalance = Math.max(0, baseDeposit - livePayout);
+            // Vérifier le solde de manière exhaustive et centralisée
+            const { calculateExactBalance } = await import("@/lib/balance.server");
+            let currentBalance = await calculateExactBalance(supabaseAdmin, user.id);
 
             const { getCorrespondentCode, detectCountryFromPhone } = await import("@/lib/pawapay.server");
             const correspondentCode = getCorrespondentCode(method, phone);

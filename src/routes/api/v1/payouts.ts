@@ -52,27 +52,9 @@ export const Route = createFileRoute("/api/v1/payouts")({
         // Calculer les marges et frais pour le payout
         const margins = await calculateMargin(supabaseAdmin, amount, "pay-out", correspondent, "pawapay");
 
-        // 🚨 VÉRIFICATION DE SÉCURITÉ DU SOLDE 🚨
-        let currentBalance = 0;
-        try {
-          // Utilisation de sync-wallet pour avoir le calcul exact et exhaustif en temps réel
-          const syncUrl = new URL("/api/public/sync-wallet", request.url).toString();
-          const syncRes = await fetch(syncUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ userId: auth.profile_id })
-          });
-          if (syncRes.ok) {
-            const syncData = await syncRes.json();
-            currentBalance = syncData.balance || 0;
-          } else {
-            throw new Error("Sync failed");
-          }
-        } catch (e) {
-          // Fallback de secours si le fetch interne échoue
-          const { data: profData } = await supabaseAdmin.from("profiles").select("balance").eq("id", auth.profile_id).maybeSingle();
-          currentBalance = Number(profData?.balance || 0);
-        }
+        // 🚨 VÉRIFICATION DE SÉCURITÉ DU SOLDE (Native & Centralisée) 🚨
+        const { calculateExactBalance } = await import("@/lib/balance.server");
+        const currentBalance = await calculateExactBalance(supabaseAdmin, auth.profile_id);
 
         if (currentBalance < margins.net_amount) {
           return Response.json(
