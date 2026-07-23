@@ -502,7 +502,7 @@ export async function sendKycRejectedEmail(params: {
     </p>
 
     <div class="btn-container">
-      <a href="https://dola-pay.com/verify" class="btn" style="background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);">Soumettre mes nouveaux documents</a>
+      <a href="https://dola-pay.com/dashboard/resubmit" class="btn" style="background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);">Soumettre mes nouveaux documents</a>
     </div>
   `);
 

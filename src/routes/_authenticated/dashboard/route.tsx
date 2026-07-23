@@ -249,7 +249,7 @@ function DashboardLayout() {
     
     // GATING GLOBAL: Si KYC n'est pas approuvé, bloquer l'accès aux autres pages
     if (profile && profile.kyc_status !== "approved" && profile.onboarding_completed) {
-      if (pathname !== "/dashboard" && pathname !== "/dashboard/" && !pathname.startsWith("/dashboard/settings") && !pathname.startsWith("/dashboard/verify")) {
+      if (pathname !== "/dashboard" && pathname !== "/dashboard/" && !pathname.startsWith("/dashboard/settings") && !pathname.startsWith("/dashboard/verify") && !pathname.startsWith("/dashboard/resubmit")) {
         navigate({ to: "/dashboard", replace: true });
         return;
       }
