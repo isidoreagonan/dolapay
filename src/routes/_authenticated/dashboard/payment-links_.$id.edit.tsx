@@ -176,7 +176,7 @@ function EditPaymentLinkPage() {
                 <div className="grid gap-4 sm:grid-cols-[2fr_1fr]">
                   <div>
                     <Label className="text-muted-foreground">Montant *</Label>
-                    <Input className="mt-1.5 h-12 text-lg font-bold" type="number" min={100} step="any" value={amount} onChange={(e) => setAmount(e.target.value)} required placeholder="10000" />
+                    <Input className="mt-1.5 h-12 text-lg font-bold" type="number" min={10} step="any" value={amount} onChange={(e) => setAmount(e.target.value)} required placeholder="10000" />
                   </div>
                   <div>
                     <Label className="text-muted-foreground">Devise</Label>
