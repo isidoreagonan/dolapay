@@ -164,6 +164,11 @@ function RootComponent() {
           lastUserIdRef.current = newUserId;
           if (event === "SIGNED_IN") {
             router.invalidate();
+            // Redirection automatique vers le dashboard si on est sur la landing page ou les pages d'auth
+            const path = window.location.pathname;
+            if (path === "/" || path.startsWith("/auth")) {
+              router.navigate({ to: "/dashboard" });
+            }
           }
         }
       });

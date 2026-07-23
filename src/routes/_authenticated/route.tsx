@@ -28,23 +28,8 @@ export const Route = createFileRoute("/_authenticated")({
       }
     }
 
-    // 2. Échange explicite si access_token (Implicit) est présent dans le hash
-    if (!user && window.location.hash.includes("access_token=")) {
-      try {
-        const hashParams = new URLSearchParams(window.location.hash.slice(1));
-        const access_token = hashParams.get("access_token");
-        const refresh_token = hashParams.get("refresh_token");
-        if (access_token && refresh_token) {
-          const { data: sessData } = await supabase.auth.setSession({ access_token, refresh_token });
-          if (sessData?.session?.user) {
-            user = sessData.session.user;
-            window.history.replaceState({}, document.title, window.location.pathname);
-          }
-        }
-      } catch (err) {
-        console.error("[Auth] Erreur setSession depuis hash:", err);
-      }
-    }
+    // 2. Le client Supabase gère automatiquement le access_token dans le hash (Implicit Flow).
+    // Nous n'avons pas besoin de faire un setSession manuel ici, cela crée des conditions de course.
 
     // 3. Boucle de secours robuste : on attend si un token est dans l'URL OU dans le localStorage
     const hasLocalToken = Object.keys(localStorage).some(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
