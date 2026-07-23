@@ -145,7 +145,7 @@ export async function createLigdiCashPayin(
         website_url: "https://dola-pay.com",
       },
       actions: {
-        cancel_url: "https://dola-pay.com/cancel",
+        cancel_url: req.cancelUrl || req.returnUrl || "https://dola-pay.com/cancel",
         return_url: req.returnUrl || "https://dola-pay.com/success",
         callback_url: req.callbackUrl || "https://dola-pay.com/api/public/ligdicash-webhook",
       },
