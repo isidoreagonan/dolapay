@@ -14,6 +14,7 @@ export const Route = createFileRoute("/api/public/ligdicash-webhook")({
         let payload: LigdiCashWebhookPayload;
         try {
           payload = await request.json();
+          console.log("[LIGDICASH WEBHOOK RECEIVED]", JSON.stringify(payload, null, 2));
         } catch {
           return Response.json({ error: "Invalid JSON payload" }, { status: 400 });
         }
