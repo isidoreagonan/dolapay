@@ -136,13 +136,13 @@ const Hero = () => {
             className="hidden md:flex absolute -left-8 top-8 items-center gap-3 rounded-2xl bg-white/90 backdrop-blur border border-border shadow-card p-4 min-w-[240px]"
           >
             <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-              <TrendingUp className="h-5 w-5 text-primary" />
+              <ShieldCheck className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <div className="text-xs text-navy/50">Volume traité · 7j</div>
-              <div className="text-base font-semibold text-navy">2 847 320 FCFA</div>
+              <div className="text-xs text-navy/50">Fiabilité API</div>
+              <div className="text-base font-semibold text-navy">99.9% Uptime</div>
             </div>
-            <span className="ml-auto text-xs font-semibold text-emerald-600">+18%</span>
+            <span className="ml-auto text-xs font-semibold text-emerald-600">Pro</span>
           </motion.div>
 
           <motion.div
