@@ -1,10 +1,12 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Building2, CheckCircle2, Mail, Snowflake, Crown, ShieldAlert, FileText, ExternalLink } from "lucide-react";
+import { ArrowLeft, Building2, CheckCircle2, Mail, Snowflake, Crown, ShieldAlert, FileText, ExternalLink, XCircle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/_authenticated/admin/merchants/$id")({
   component: Merchant360,
@@ -14,6 +16,8 @@ export const Route = createFileRoute("/_authenticated/admin/merchants/$id")({
 function Merchant360() {
   const { id } = useParams({ from: "/_authenticated/admin/merchants/$id" });
   const qc = useQueryClient();
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
 
   const { data: profile } = useQuery({
     queryKey: ["admin-merchant", id],
@@ -193,6 +197,15 @@ function Merchant360() {
           <Button
             size="sm"
             variant="outline"
+            className="border-rose-400/40 bg-rose-400/10 text-rose-300 hover:bg-rose-400/20"
+            disabled={profile.kyc_status === "rejected" || profile.kyc_status === "frozen" || action.isPending}
+            onClick={() => { setRejectReason(""); setRejectModalOpen(true); }}
+          >
+            <XCircle className="h-3.5 w-3.5" /> Rejeter
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
             className="border-violet-400/40 bg-violet-400/10 text-violet-300 hover:bg-violet-400/20"
             disabled={profile.account_type === "enterprise" || action.isPending}
             onClick={() => action.mutate({ account_type: "enterprise" })}
@@ -215,9 +228,16 @@ function Merchant360() {
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-slate-400">Statut KYC / KYB :</span>
+            {profile?.kyc_status === "in_compliance_review" && profile?.kyc_rejection_reason === "[RESSOUMIS]" && (
+              <span className="inline-flex items-center gap-1 bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2.5 py-1 rounded-full text-xs font-bold uppercase mr-1 animate-pulse">
+                <RefreshCw className="h-3 w-3" /> Dossier Resoumis
+              </span>
+            )}
             <span className={cn(
               "px-2.5 py-1 rounded-full text-xs font-semibold uppercase font-mono",
-              profile?.kyc_status === "approved" ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" : "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+              profile?.kyc_status === "approved" ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" : 
+              profile?.kyc_status === "rejected" ? "bg-rose-500/20 text-rose-300 border border-rose-500/30" :
+              "bg-amber-500/20 text-amber-300 border border-amber-500/30"
             )}>
               {profile?.kyc_status || "En attente"}
             </span>
@@ -337,6 +357,39 @@ function Merchant360() {
           )}
         </Panel>
       </section>
+
+      <Dialog open={rejectModalOpen} onOpenChange={setRejectModalOpen}>
+        <DialogContent className="border-white/10 bg-[#0b1d3a] text-white">
+          <DialogHeader>
+            <DialogTitle>Rejeter le dossier KYC</DialogTitle>
+            <DialogDescription className="text-slate-400">
+              Veuillez indiquer le motif du rejet. L'utilisateur recevra un email avec ce motif et sera invité à resoumettre ses documents.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <textarea
+              className="w-full h-32 p-3 text-sm rounded-md border border-white/10 bg-white/5 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-rose-500/50"
+              placeholder="Ex: Le document d'identité est expiré. Veuillez fournir une pièce en cours de validité."
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setRejectModalOpen(false)}>Annuler</Button>
+            <Button 
+              variant="destructive" 
+              className="bg-rose-600 hover:bg-rose-700 text-white"
+              disabled={!rejectReason.trim() || action.isPending}
+              onClick={() => {
+                action.mutate({ kyc_status: "rejected", kyc_rejection_reason: rejectReason.trim() });
+                setRejectModalOpen(false);
+              }}
+            >
+              Confirmer le rejet
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

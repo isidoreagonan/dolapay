@@ -70,6 +70,7 @@ import { Route as AuthenticatedDashboardVerifyRouteImport } from './routes/_auth
 import { Route as AuthenticatedDashboardTransactionsRouteImport } from './routes/_authenticated/dashboard/transactions'
 import { Route as AuthenticatedDashboardTeamRouteImport } from './routes/_authenticated/dashboard/team'
 import { Route as AuthenticatedDashboardSettingsRouteImport } from './routes/_authenticated/dashboard/settings'
+import { Route as AuthenticatedDashboardResubmitRouteImport } from './routes/_authenticated/dashboard/resubmit'
 import { Route as AuthenticatedDashboardPayoutsRouteImport } from './routes/_authenticated/dashboard/payouts'
 import { Route as AuthenticatedDashboardPaymentLinksRouteImport } from './routes/_authenticated/dashboard/payment-links'
 import { Route as AuthenticatedDashboardApiKeysRouteImport } from './routes/_authenticated/dashboard/api-keys'
@@ -408,6 +409,12 @@ const AuthenticatedDashboardSettingsRoute =
     path: '/settings',
     getParentRoute: () => AuthenticatedDashboardRouteRoute,
   } as any)
+const AuthenticatedDashboardResubmitRoute =
+  AuthenticatedDashboardResubmitRouteImport.update({
+    id: '/resubmit',
+    path: '/resubmit',
+    getParentRoute: () => AuthenticatedDashboardRouteRoute,
+  } as any)
 const AuthenticatedDashboardPayoutsRoute =
   AuthenticatedDashboardPayoutsRouteImport.update({
     id: '/payouts',
@@ -561,6 +568,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/api-keys': typeof AuthenticatedDashboardApiKeysRoute
   '/dashboard/payment-links': typeof AuthenticatedDashboardPaymentLinksRoute
   '/dashboard/payouts': typeof AuthenticatedDashboardPayoutsRoute
+  '/dashboard/resubmit': typeof AuthenticatedDashboardResubmitRoute
   '/dashboard/settings': typeof AuthenticatedDashboardSettingsRoute
   '/dashboard/team': typeof AuthenticatedDashboardTeamRoute
   '/dashboard/transactions': typeof AuthenticatedDashboardTransactionsRoute
@@ -640,6 +648,7 @@ export interface FileRoutesByTo {
   '/dashboard/api-keys': typeof AuthenticatedDashboardApiKeysRoute
   '/dashboard/payment-links': typeof AuthenticatedDashboardPaymentLinksRoute
   '/dashboard/payouts': typeof AuthenticatedDashboardPayoutsRoute
+  '/dashboard/resubmit': typeof AuthenticatedDashboardResubmitRoute
   '/dashboard/settings': typeof AuthenticatedDashboardSettingsRoute
   '/dashboard/team': typeof AuthenticatedDashboardTeamRoute
   '/dashboard/transactions': typeof AuthenticatedDashboardTransactionsRoute
@@ -724,6 +733,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/api-keys': typeof AuthenticatedDashboardApiKeysRoute
   '/_authenticated/dashboard/payment-links': typeof AuthenticatedDashboardPaymentLinksRoute
   '/_authenticated/dashboard/payouts': typeof AuthenticatedDashboardPayoutsRoute
+  '/_authenticated/dashboard/resubmit': typeof AuthenticatedDashboardResubmitRoute
   '/_authenticated/dashboard/settings': typeof AuthenticatedDashboardSettingsRoute
   '/_authenticated/dashboard/team': typeof AuthenticatedDashboardTeamRoute
   '/_authenticated/dashboard/transactions': typeof AuthenticatedDashboardTransactionsRoute
@@ -808,6 +818,7 @@ export interface FileRouteTypes {
     | '/dashboard/api-keys'
     | '/dashboard/payment-links'
     | '/dashboard/payouts'
+    | '/dashboard/resubmit'
     | '/dashboard/settings'
     | '/dashboard/team'
     | '/dashboard/transactions'
@@ -887,6 +898,7 @@ export interface FileRouteTypes {
     | '/dashboard/api-keys'
     | '/dashboard/payment-links'
     | '/dashboard/payouts'
+    | '/dashboard/resubmit'
     | '/dashboard/settings'
     | '/dashboard/team'
     | '/dashboard/transactions'
@@ -970,6 +982,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/api-keys'
     | '/_authenticated/dashboard/payment-links'
     | '/_authenticated/dashboard/payouts'
+    | '/_authenticated/dashboard/resubmit'
     | '/_authenticated/dashboard/settings'
     | '/_authenticated/dashboard/team'
     | '/_authenticated/dashboard/transactions'
@@ -1489,6 +1502,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardSettingsRouteImport
       parentRoute: typeof AuthenticatedDashboardRouteRoute
     }
+    '/_authenticated/dashboard/resubmit': {
+      id: '/_authenticated/dashboard/resubmit'
+      path: '/resubmit'
+      fullPath: '/dashboard/resubmit'
+      preLoaderRoute: typeof AuthenticatedDashboardResubmitRouteImport
+      parentRoute: typeof AuthenticatedDashboardRouteRoute
+    }
     '/_authenticated/dashboard/payouts': {
       id: '/_authenticated/dashboard/payouts'
       path: '/payouts'
@@ -1668,6 +1688,7 @@ interface AuthenticatedDashboardRouteRouteChildren {
   AuthenticatedDashboardApiKeysRoute: typeof AuthenticatedDashboardApiKeysRoute
   AuthenticatedDashboardPaymentLinksRoute: typeof AuthenticatedDashboardPaymentLinksRoute
   AuthenticatedDashboardPayoutsRoute: typeof AuthenticatedDashboardPayoutsRoute
+  AuthenticatedDashboardResubmitRoute: typeof AuthenticatedDashboardResubmitRoute
   AuthenticatedDashboardSettingsRoute: typeof AuthenticatedDashboardSettingsRoute
   AuthenticatedDashboardTeamRoute: typeof AuthenticatedDashboardTeamRoute
   AuthenticatedDashboardTransactionsRoute: typeof AuthenticatedDashboardTransactionsRoute
@@ -1687,6 +1708,7 @@ const AuthenticatedDashboardRouteRouteChildren: AuthenticatedDashboardRouteRoute
     AuthenticatedDashboardPaymentLinksRoute:
       AuthenticatedDashboardPaymentLinksRoute,
     AuthenticatedDashboardPayoutsRoute: AuthenticatedDashboardPayoutsRoute,
+    AuthenticatedDashboardResubmitRoute: AuthenticatedDashboardResubmitRoute,
     AuthenticatedDashboardSettingsRoute: AuthenticatedDashboardSettingsRoute,
     AuthenticatedDashboardTeamRoute: AuthenticatedDashboardTeamRoute,
     AuthenticatedDashboardTransactionsRoute:

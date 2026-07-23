@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ShieldAlert, Clock, Sparkles, X, RefreshCw } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-export function ComplianceReviewScreen() {
+export function ComplianceReviewScreen({ isResubmission = false }: { isResubmission?: boolean }) {
   return (
     <div className="grid min-h-[70vh] place-items-center px-4">
       <Card className="relative w-full max-w-xl overflow-hidden border-primary/30 bg-card/60 p-8 text-center shadow-2xl backdrop-blur-xl">
@@ -19,10 +19,13 @@ export function ComplianceReviewScreen() {
             <Clock className="relative h-9 w-9 text-primary" />
           </div>
           <Badge className="mb-3 bg-primary/15 text-primary hover:bg-primary/20">Conformité · AML/CFT</Badge>
-          <h1 className="text-2xl font-bold tracking-tight">Examen de conformité en cours</h1>
+          <h1 className="text-2xl font-bold tracking-tight">
+            {isResubmission ? "Révision du dossier en cours" : "Examen de conformité en cours"}
+          </h1>
           <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-            Votre dossier d'identité a été reçu de manière sécurisée. Notre moteur de risque automatisé
-            et notre département juridique procèdent aux vérifications AML standard.
+            {isResubmission 
+              ? "Vos nouveaux documents ont été transmis à notre équipe de conformité de manière sécurisée. Nous les analysons manuellement."
+              : "Votre dossier d'identité a été reçu de manière sécurisée. Notre moteur de risque automatisé et notre département juridique procèdent aux vérifications AML standard."}
             <br />
             <span className="font-medium text-foreground">Délai estimé : 12 à 24 heures.</span>
           </p>
@@ -71,8 +74,8 @@ export function RejectedScreen({ reason }: { reason?: string | null }) {
         </Alert>
 
         <Button asChild size="lg" className="mt-6 w-full bg-rose-600 text-white hover:bg-rose-700">
-          <Link to="/dashboard/verify">
-            <RefreshCw className="h-4 w-4" /> Soumettre à nouveau les documents
+          <Link to="/dashboard/resubmit">
+            <RefreshCw className="h-4 w-4 mr-2" /> Soumettre à nouveau les documents
           </Link>
         </Button>
         <p className="mt-3 text-center text-xs text-muted-foreground">

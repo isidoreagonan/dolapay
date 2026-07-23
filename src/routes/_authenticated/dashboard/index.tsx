@@ -69,7 +69,7 @@ function Overview() {
 
   // Compliance state gating
   if (profile?.kyc_status === "in_compliance_review" || (profile?.kyc_status === "pending" && profile?.onboarding_completed)) {
-    return <ComplianceReviewScreen />;
+    return <ComplianceReviewScreen isResubmission={profile?.kyc_rejection_reason === "[RESSOUMIS]"} />;
   }
   if (profile?.kyc_status === "rejected") {
     return <RejectedScreen reason={profile.kyc_rejection_reason} />;
