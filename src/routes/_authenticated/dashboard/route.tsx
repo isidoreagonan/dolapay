@@ -242,6 +242,14 @@ function DashboardLayout() {
         }
       }, 300);
     }
+    
+    if (!profileLoading && !profile) {
+      supabase.auth.signOut().then(() => {
+        window.location.href = "/auth/sign-in";
+      });
+      return;
+    }
+
     if (profile && !profile.onboarding_completed) {
       navigate({ to: "/onboarding", replace: true });
       return;
