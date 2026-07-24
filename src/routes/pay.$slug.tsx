@@ -477,7 +477,7 @@ function PayPage() {
               {link.title}
             </h1>
             <span className="text-xl font-medium text-slate-600 dark:text-slate-400 shrink-0 ml-4">
-              {fmt(link.amount)} {link.currency}
+              {link.amount.toLocaleString("fr-FR")} {link.currency}
             </span>
           </div>
 
