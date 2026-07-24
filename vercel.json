@@ -1,8 +1,0 @@
-{
-  "crons": [
-    {
-      "path": "/api/cron/sync-pawapay",
-      "schedule": "*/15 * * * *"
-    }
-  ]
-}
