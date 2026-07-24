@@ -59,35 +59,35 @@ type CountryConfig = {
 
 const COUNTRIES: CountryConfig[] = [
   {
-    code: "BFA", name: "Burkina Faso", flag: "🇧🇫", prefix: "226",
+    code: "bf", name: "Burkina Faso", flag: "🇧🇫", prefix: "226",
     operators: [
       { id: "Orange", name: "Orange Money", logoUrl: "/methods/orange.png", color: "bg-[#FF6600]" },
       { id: "MOOV", name: "Moov Africa", logoUrl: "/methods/moov.png", color: "bg-[#005B94]" },
     ]
   },
   {
-    code: "BEN", name: "Bénin", flag: "🇧🇯", prefix: "229",
+    code: "bj", name: "Bénin", flag: "🇧🇯", prefix: "229",
     operators: [
       { id: "MTN", name: "MTN MoMo", logoUrl: "/methods/mtn.png", color: "bg-[#FFCC00]" },
       { id: "MOOV", name: "Moov Africa", logoUrl: "/methods/moov.png", color: "bg-[#005B94]" },
     ]
   },
   {
-    code: "CIV", name: "Côte d'Ivoire", flag: "🇨🇮", prefix: "225",
+    code: "ci", name: "Côte d'Ivoire", flag: "🇨🇮", prefix: "225",
     operators: [
       { id: "Orange", name: "Orange Money", logoUrl: "/methods/orange.png", color: "bg-[#FF6600]" },
       { id: "MTN", name: "MTN MoMo", logoUrl: "/methods/mtn.png", color: "bg-[#FFCC00]" },
     ]
   },
   {
-    code: "CMR", name: "Cameroun", flag: "🇨🇲", prefix: "237",
+    code: "cm", name: "Cameroun", flag: "🇨🇲", prefix: "237",
     operators: [
       { id: "MTN", name: "MTN MoMo", logoUrl: "/methods/mtn.png", color: "bg-[#FFCC00]" },
       { id: "ORANGE", name: "Orange Money", logoUrl: "/methods/orange.png", color: "bg-[#FF6600]" },
     ]
   },
   {
-    code: "COD", name: "RD Congo", flag: "🇨🇩", prefix: "243",
+    code: "cd", name: "RD Congo", flag: "🇨🇩", prefix: "243",
     operators: [
       { id: "Orange", name: "Orange Money", logoUrl: "/methods/orange.png", color: "bg-[#FF6600]" },
       { id: "Airtel", name: "Airtel Money", logoUrl: null, color: "bg-[#FF0000]" },
@@ -95,53 +95,53 @@ const COUNTRIES: CountryConfig[] = [
     ]
   },
   {
-    code: "COG", name: "Congo", flag: "🇨🇬", prefix: "242",
+    code: "cg", name: "Congo", flag: "🇨🇬", prefix: "242",
     operators: [
       { id: "MTN", name: "MTN MoMo", logoUrl: "/methods/mtn.png", color: "bg-[#FFCC00]" },
       { id: "Airtel", name: "Airtel Money", logoUrl: null, color: "bg-[#FF0000]" },
     ]
   },
   {
-    code: "GAB", name: "Gabon", flag: "🇬🇦", prefix: "241",
+    code: "ga", name: "Gabon", flag: "🇬🇦", prefix: "241",
     operators: [
       { id: "Airtel", name: "Airtel Money", logoUrl: null, color: "bg-[#FF0000]" },
     ]
   },
   {
-    code: "KEN", name: "Kenya", flag: "🇰🇪", prefix: "254",
+    code: "ke", name: "Kenya", flag: "🇰🇪", prefix: "254",
     operators: [
       { id: "Safaricom", name: "M-Pesa", logoUrl: null, color: "bg-[#009900]" },
     ]
   },
   {
-    code: "RWA", name: "Rwanda", flag: "🇷🇼", prefix: "250",
+    code: "rw", name: "Rwanda", flag: "🇷🇼", prefix: "250",
     operators: [
       { id: "MTN", name: "MTN MoMo", logoUrl: "/methods/mtn.png", color: "bg-[#FFCC00]" },
       { id: "Airtel", name: "Airtel Money", logoUrl: null, color: "bg-[#FF0000]" },
     ]
   },
   {
-    code: "SEN", name: "Sénégal", flag: "🇸🇳", prefix: "221",
+    code: "sn", name: "Sénégal", flag: "🇸🇳", prefix: "221",
     operators: [
       { id: "Orange", name: "Orange Money", logoUrl: "/methods/orange.png", color: "bg-[#FF6600]" },
       { id: "Free", name: "Free Money", logoUrl: "/methods/free.png", color: "bg-[#E30613]" },
     ]
   },
   {
-    code: "SLE", name: "Sierra Leone", flag: "🇸🇱", prefix: "232",
+    code: "sl", name: "Sierra Leone", flag: "🇸🇱", prefix: "232",
     operators: [
       { id: "Orange", name: "Orange Money", logoUrl: "/methods/orange.png", color: "bg-[#FF6600]" },
     ]
   },
   {
-    code: "UGA", name: "Ouganda", flag: "🇺🇬", prefix: "256",
+    code: "ug", name: "Ouganda", flag: "🇺🇬", prefix: "256",
     operators: [
       { id: "MTN", name: "MTN MoMo", logoUrl: "/methods/mtn.png", color: "bg-[#FFCC00]" },
       { id: "Airtel", name: "Airtel Money", logoUrl: null, color: "bg-[#FF0000]" },
     ]
   },
   {
-    code: "ZMB", name: "Zambie", flag: "🇿🇲", prefix: "260",
+    code: "zm", name: "Zambie", flag: "🇿🇲", prefix: "260",
     operators: [
       { id: "MTN", name: "MTN MoMo", logoUrl: "/methods/mtn.png", color: "bg-[#FFCC00]" },
       { id: "Zamtel", name: "Zamtel", logoUrl: null, color: "bg-[#008000]" },
@@ -170,7 +170,7 @@ function PayPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [selectedCountryCode, setSelectedCountryCode] = useState("BFA");
+  const [selectedCountryCode, setSelectedCountryCode] = useState<string>("bf");
   const [provider, setProvider] = useState("Orange");
   const [userSelectedProvider, setUserSelectedProvider] = useState(false);
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
@@ -261,20 +261,20 @@ function PayPage() {
     }
 
     // Operator specific auto-detection patterns inside the selected country
-    if (selectedCountryCode === "BFA") {
+    if (selectedCountryCode === "bf") {
       if (/^2267[0145678]/.test(clean) || /^7[0145678]/.test(clean)) setProvider("Orange");
       else if (/^2266[0123]/.test(clean) || /^6[0123]/.test(clean)) setProvider("MOOV");
       else if (/^2265[89]/.test(clean) || /^5[89]/.test(clean)) setProvider("Telecel");
-    } else if (selectedCountryCode === "CIV") {
+    } else if (selectedCountryCode === "ci") {
       if (/^22507/.test(clean) || /^07/.test(clean)) setProvider("Orange");
       else if (/^22505/.test(clean) || /^05/.test(clean)) setProvider("MTN");
       else if (/^22501/.test(clean) || /^01/.test(clean)) setProvider("MOOV");
       else if (/^22506/.test(clean) || /^06/.test(clean)) setProvider("Wave");
-    } else if (selectedCountryCode === "SEN") {
+    } else if (selectedCountryCode === "sn") {
       if (/^2217[78]/.test(clean) || /^7[78]/.test(clean)) setProvider("Orange");
       else if (/^22176/.test(clean) || /^76/.test(clean)) setProvider("Wave");
       else if (/^22170/.test(clean) || /^70/.test(clean)) setProvider("Free");
-    } else if (selectedCountryCode === "BEN") {
+    } else if (selectedCountryCode === "bj") {
       if (/^229(61|62|66|67|69|90|91|96|97)/.test(clean)) setProvider("MTN");
       else if (/^229(60|63|94|95)/.test(clean)) setProvider("MOOV");
       else if (/^22950/.test(clean)) setProvider("Celtiis");
@@ -511,10 +511,10 @@ function PayPage() {
           <div className="max-w-[500px] mx-auto w-full">
             <div className="mb-10">
               <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
-                Payment Details
+                Informations de paiement
               </h2>
               <p className="mt-2 text-[15px] text-slate-500 dark:text-slate-400">
-                Complete your purchase by providing your payment details.
+                Complétez votre achat en fournissant vos détails de paiement.
               </p>
             </div>
 
@@ -524,7 +524,7 @@ function PayPage() {
                 {/* Email Address */}
                 <div className="space-y-2">
                   <Label htmlFor="email" className="text-sm font-bold text-slate-800 dark:text-slate-200">
-                    Email address
+                    Adresse e-mail
                   </Label>
                   <Input
                     id="email"
@@ -539,7 +539,7 @@ function PayPage() {
                 {/* Customer Name */}
                 <div className="space-y-2">
                   <Label htmlFor="name" className="text-sm font-bold text-slate-800 dark:text-slate-200">
-                    Cardholder name
+                    Prénom et Nom
                   </Label>
                   <Input
                     id="name"
@@ -555,7 +555,7 @@ function PayPage() {
                 {/* Country Selection (Billing address equivalent) */}
                 <div className="space-y-2 relative">
                   <Label className="text-sm font-bold text-slate-800 dark:text-slate-200">
-                    Billing address
+                    Pays
                   </Label>
                   <button
                     type="button"
@@ -604,7 +604,7 @@ function PayPage() {
                         onChange={(e) => setPhone(e.target.value)}
                         required
                         maxLength={20}
-                        placeholder={`Phone: +${activeCountry.prefix} ...`}
+                        placeholder={`Téléphone: +${activeCountry.prefix} ...`}
                         className="h-12 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary rounded-lg text-[15px] transition-all shadow-sm px-4"
                      />
                   </div>
@@ -613,7 +613,7 @@ function PayPage() {
                 {/* Operator Selection (Payment Method) */}
                 <div className="space-y-2 pt-2">
                   <Label className="text-sm font-bold text-slate-800 dark:text-slate-200">
-                    Payment Method
+                    Moyen de paiement
                   </Label>
                   <div className="grid grid-cols-2 gap-3">
                     {activeCountry.operators.map((op) => {
@@ -656,11 +656,11 @@ function PayPage() {
                 {/* Order Summary (Subtotal, VAT, Total) */}
                 <div className="mt-12 pt-8 border-t border-slate-100 dark:border-slate-800/50 space-y-3">
                   <div className="flex justify-between items-center text-[14px] text-slate-600 dark:text-slate-400">
-                    <span>Subtotal</span>
+                    <span>Sous-total</span>
                     <span className="font-semibold text-slate-900 dark:text-white">{fmt(link.amount)} {link.currency}</span>
                   </div>
                   <div className="flex justify-between items-center text-[14px] text-slate-600 dark:text-slate-400">
-                    <span>VAT (Fees)</span>
+                    <span>TVA (Frais)</span>
                     <span className="font-semibold text-slate-900 dark:text-white">
                       {link.fees_paid_by === "customer" ? (
                         (quote?.totalFees || 0) > 0 ? `${fmt(quote!.totalFees)} ${link.currency}` : (isQuoteLoading ? <Loader2 className="h-3 w-3 animate-spin inline-block" /> : "Calcul...")
@@ -683,7 +683,7 @@ function PayPage() {
                   disabled={submitting || (link.fees_paid_by === "customer" && !quote)}
                 >
                   {submitting ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : null}
-                  Pay {fmt(finalAmount)}
+                  Payer {fmt(finalAmount)} {link.currency}
                 </Button>
 
               </form>
