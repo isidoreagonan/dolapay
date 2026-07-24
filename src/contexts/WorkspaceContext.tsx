@@ -21,7 +21,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [currentWorkspaceId, setCurrentWorkspaceId] = useState<string | null>(null);
 
   // Get current user
-  const { data: user } = useQuery({
+  const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ["current-user-workspace"],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -30,7 +30,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   });
 
   // Get all workspaces the user has access to
-  const { data: workspaces = [], isLoading } = useQuery({
+  const { data: workspaces = [], isLoading: workspacesLoading, isPending: workspacesPending } = useQuery({
     queryKey: ["user-workspaces", user?.id],
     enabled: !!user,
     queryFn: async (): Promise<Workspace[]> => {
@@ -99,10 +99,11 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     if (workspaces.some(w => w.id === id) && id !== currentWorkspaceId) {
       setCurrentWorkspaceId(id);
       localStorage.setItem("dola_workspace_id", id);
-      // Force reload to ensure all queries re-fetch with the new owner_id context
-      window.location.reload(); 
+      window.location.reload();
     }
   };
+
+  const isLoading = userLoading || workspacesPending || workspacesLoading;
 
   return (
     <WorkspaceContext.Provider value={{ currentWorkspace, workspaces, setWorkspace, isLoading }}>
