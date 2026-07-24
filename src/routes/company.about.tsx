@@ -20,8 +20,9 @@ const stats = [
   { kpi: "24/7", label: "Support technique dédié" },
 ];
 
-const About = () => (
-  <PageShell
+function About() {
+  return (
+    <PageShell
     title="À propos de DolaPay — Redéfinir le paiement"
     description="Découvrez la vision et l'équipe derrière DolaPay, l'infrastructure de paiement nouvelle génération."
     canonicalUrl="/company/about"
@@ -140,6 +141,7 @@ const About = () => (
       </div>
     </section>
   </PageShell>
-);
+  );
+}
 
 export default About;
