@@ -181,6 +181,7 @@ function RootComponent() {
   }, [queryClient, router]);
 
   const isDashboard = location.pathname.startsWith("/dashboard");
+  const isStatus = location.pathname.startsWith("/status");
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -189,7 +190,7 @@ function RootComponent() {
         defaultTheme="system" 
         enableSystem 
         disableTransitionOnChange
-        forcedTheme={!isDashboard ? "light" : undefined}
+        forcedTheme={(!isDashboard && !isStatus) ? "light" : undefined}
       >
         <Outlet />
         <Toaster />

@@ -23,12 +23,13 @@ export const getRouter = () => {
     const getCrossDomainUrl = (path: string) => {
       const hn = window.location.hostname;
       const isProd = hn.includes('dola-pay.com');
-      const baseDomain = isProd ? 'dola-pay.com' : hn.replace('docs.', '').replace('dashboard.', '');
+      const baseDomain = isProd ? 'dola-pay.com' : hn.replace('docs.', '').replace('dashboard.', '').replace('status.', '');
       const scheme = hn.includes('localhost') ? 'http://' : 'https://';
 
       const isDashboardPath = path.startsWith('/dashboard') || path.startsWith('/auth');
       const isDocsPath = path.startsWith('/developers');
-      const isMainPath = !isDashboardPath && !isDocsPath;
+      const isStatusPath = path.startsWith('/status');
+      const isMainPath = !isDashboardPath && !isDocsPath && !isStatusPath;
 
       if (isDashboardPath && !hn.startsWith('dashboard')) {
         const cleanPath = path.startsWith('/dashboard') ? path.replace('/dashboard', '') : path;
@@ -39,8 +40,13 @@ export const getRouter = () => {
         const cleanPath = path.replace('/developers', '');
         return `${scheme}docs.${baseDomain}${cleanPath === '' ? '/' : cleanPath}`;
       }
+
+      if (isStatusPath && !hn.startsWith('status')) {
+        const cleanPath = path.replace('/status', '');
+        return `${scheme}status.${baseDomain}${cleanPath === '' ? '/' : cleanPath}`;
+      }
       
-      if (isMainPath && (hn.startsWith('dashboard') || hn.startsWith('docs'))) {
+      if (isMainPath && (hn.startsWith('dashboard') || hn.startsWith('docs') || hn.startsWith('status'))) {
         return `${scheme}${baseDomain}${path}`;
       }
       
@@ -55,6 +61,9 @@ export const getRouter = () => {
       if (hn.startsWith('dashboard') && path.startsWith('/dashboard')) {
         return path.replace('/dashboard', '') || '/';
       }
+      if (hn.startsWith('status') && path.startsWith('/status')) {
+        return path.replace('/status', '') || '/';
+      }
       return path;
     };
 
@@ -65,6 +74,9 @@ export const getRouter = () => {
       }
       if (hn.startsWith('dashboard') && !path.startsWith('/dashboard') && !path.startsWith('/auth')) {
         return '/dashboard' + (path === '/' ? '' : path);
+      }
+      if (hn.startsWith('status') && !path.startsWith('/status')) {
+        return '/status' + (path === '/' ? '' : path);
       }
       return path;
     };

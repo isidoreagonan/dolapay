@@ -9,9 +9,11 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as StatusRouteImport } from './routes/status'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as StatusIndexRouteImport } from './routes/status/index'
 import { Route as DevelopersIndexRouteImport } from './routes/developers/index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as ResourcesUseCasesRouteImport } from './routes/resources.use-cases'
@@ -93,6 +95,11 @@ import { Route as AuthenticatedDashboardPaymentLinksNewRouteImport } from './rou
 import { Route as AuthenticatedAdminMerchantsIdRouteImport } from './routes/_authenticated/admin/merchants.$id'
 import { Route as AuthenticatedDashboardPaymentLinksIdEditRouteImport } from './routes/_authenticated/dashboard/payment-links_.$id.edit'
 
+const StatusRoute = StatusRouteImport.update({
+  id: '/status',
+  path: '/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -106,6 +113,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const StatusIndexRoute = StatusIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => StatusRoute,
 } as any)
 const DevelopersIndexRoute = DevelopersIndexRouteImport.update({
   id: '/developers/',
@@ -536,6 +548,7 @@ const AuthenticatedDashboardPaymentLinksIdEditRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/settings': typeof SettingsRoute
+  '/status': typeof StatusRouteWithChildren
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRouteRouteWithChildren
   '/developers/api': typeof DevelopersApiRouteRouteWithChildren
@@ -565,6 +578,7 @@ export interface FileRoutesByFullPath {
   '/resources/use-cases': typeof ResourcesUseCasesRoute
   '/blog/': typeof BlogIndexRoute
   '/developers/': typeof DevelopersIndexRoute
+  '/status/': typeof StatusIndexRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/compliance': typeof AuthenticatedAdminComplianceRoute
   '/admin/finance': typeof AuthenticatedAdminFinanceRoute
@@ -646,6 +660,7 @@ export interface FileRoutesByTo {
   '/resources/use-cases': typeof ResourcesUseCasesRoute
   '/blog': typeof BlogIndexRoute
   '/developers': typeof DevelopersIndexRoute
+  '/status': typeof StatusIndexRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/compliance': typeof AuthenticatedAdminComplianceRoute
   '/admin/finance': typeof AuthenticatedAdminFinanceRoute
@@ -703,6 +718,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/settings': typeof SettingsRoute
+  '/status': typeof StatusRouteWithChildren
   '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteRouteWithChildren
   '/developers/api': typeof DevelopersApiRouteRouteWithChildren
@@ -732,6 +748,7 @@ export interface FileRoutesById {
   '/resources/use-cases': typeof ResourcesUseCasesRoute
   '/blog/': typeof BlogIndexRoute
   '/developers/': typeof DevelopersIndexRoute
+  '/status/': typeof StatusIndexRoute
   '/_authenticated/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/_authenticated/admin/compliance': typeof AuthenticatedAdminComplianceRoute
   '/_authenticated/admin/finance': typeof AuthenticatedAdminFinanceRoute
@@ -789,6 +806,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/settings'
+    | '/status'
     | '/admin'
     | '/dashboard'
     | '/developers/api'
@@ -818,6 +836,7 @@ export interface FileRouteTypes {
     | '/resources/use-cases'
     | '/blog/'
     | '/developers/'
+    | '/status/'
     | '/admin/audit'
     | '/admin/compliance'
     | '/admin/finance'
@@ -899,6 +918,7 @@ export interface FileRouteTypes {
     | '/resources/use-cases'
     | '/blog'
     | '/developers'
+    | '/status'
     | '/admin/audit'
     | '/admin/compliance'
     | '/admin/finance'
@@ -955,6 +975,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/settings'
+    | '/status'
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
     | '/developers/api'
@@ -984,6 +1005,7 @@ export interface FileRouteTypes {
     | '/resources/use-cases'
     | '/blog/'
     | '/developers/'
+    | '/status/'
     | '/_authenticated/admin/audit'
     | '/_authenticated/admin/compliance'
     | '/_authenticated/admin/finance'
@@ -1041,6 +1063,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   SettingsRoute: typeof SettingsRoute
+  StatusRoute: typeof StatusRouteWithChildren
   DevelopersApiRouteRoute: typeof DevelopersApiRouteRouteWithChildren
   AuthSignInRoute: typeof AuthSignInRoute
   AuthSignUpRoute: typeof AuthSignUpRoute
@@ -1088,6 +1111,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/status': {
+      id: '/status'
+      path: '/status'
+      fullPath: '/status'
+      preLoaderRoute: typeof StatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/settings': {
       id: '/settings'
       path: '/settings'
@@ -1108,6 +1138,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/status/': {
+      id: '/status/'
+      path: '/'
+      fullPath: '/status/'
+      preLoaderRoute: typeof StatusIndexRouteImport
+      parentRoute: typeof StatusRoute
     }
     '/developers/': {
       id: '/developers/'
@@ -1768,6 +1805,17 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface StatusRouteChildren {
+  StatusIndexRoute: typeof StatusIndexRoute
+}
+
+const StatusRouteChildren: StatusRouteChildren = {
+  StatusIndexRoute: StatusIndexRoute,
+}
+
+const StatusRouteWithChildren =
+  StatusRoute._addFileChildren(StatusRouteChildren)
+
 interface DevelopersApiRouteRouteChildren {
   DevelopersApiAuthRoute: typeof DevelopersApiAuthRoute
   DevelopersApiCheckoutPayRoute: typeof DevelopersApiCheckoutPayRoute
@@ -1809,6 +1857,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   SettingsRoute: SettingsRoute,
+  StatusRoute: StatusRouteWithChildren,
   DevelopersApiRouteRoute: DevelopersApiRouteRouteWithChildren,
   AuthSignInRoute: AuthSignInRoute,
   AuthSignUpRoute: AuthSignUpRoute,
