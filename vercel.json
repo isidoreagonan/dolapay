@@ -1,0 +1,24 @@
+{
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "docs.dola-pay.com"
+        }
+      ],
+      "destination": "/developers/$1"
+    },
+    {
+      "source": "/(.*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "dashboard.dola-pay.com"
+        }
+      ],
+      "destination": "/dashboard/$1"
+    }
+  ]
+}
