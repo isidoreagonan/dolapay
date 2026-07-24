@@ -36,7 +36,7 @@ function AdminOverview() {
       const since = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
       const { data, error } = await supabase
         .from("transactions")
-        .select("id,amount,status,type,created_at,profile_id,dola_margin,description,currency,fee_amount,net_amount,payment_method,customer_phone,provider,profiles(id,full_name,email)")
+        .select("id,amount,status,type,created_at,profile_id,dola_margin,description,currency,net_amount,payment_method,customer_phone,provider,profiles(id,full_name,email)")
         .gte("created_at", since)
         .order("created_at", { ascending: false })
         .limit(10000);

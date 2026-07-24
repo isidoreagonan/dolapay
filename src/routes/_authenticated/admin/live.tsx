@@ -38,7 +38,7 @@ function LivePage() {
     (async () => {
       const { data } = await supabase
         .from("transactions")
-        .select("id,amount,currency,status,type,created_at,profile_id,description,fee_amount,net_amount,dola_margin,payment_method,customer_phone,provider,profiles(id,full_name,email)")
+        .select("id,amount,currency,status,type,created_at,profile_id,description,net_amount,dola_margin,payment_method,customer_phone,provider,profiles(id,full_name,email)")
         .order("created_at", { ascending: false })
         .limit(50);
       if (mounted && data) setTxs(data as Tx[]);
