@@ -1,62 +1,68 @@
-import { json } from "@remix-run/node";
+import { createFileRoute } from "@tanstack/react-router";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
-export async function GET() {
-  try {
-    // Fetch all withdrawal requests
-    const { data: wrs, error: wrErr } = await supabaseAdmin
-      .from("withdrawal_requests")
-      .select("*")
-      .order("created_at", { ascending: false });
+export const Route = createFileRoute("/api/public/sync-tx")({
+  server: {
+    handlers: {
+      GET: async () => {
+        try {
+          // Fetch all withdrawal requests
+          const { data: wrs, error: wrErr } = await supabaseAdmin
+            .from("withdrawal_requests")
+            .select("*")
+            .order("created_at", { ascending: false });
 
-    if (wrErr) throw wrErr;
+          if (wrErr) throw wrErr;
 
-    // Fetch all transactions
-    const { data: txs, error: txErr } = await supabaseAdmin
-      .from("transactions")
-      .select("id");
+          // Fetch all transactions
+          const { data: txs, error: txErr } = await supabaseAdmin
+            .from("transactions")
+            .select("id");
 
-    if (txErr) throw txErr;
+          if (txErr) throw txErr;
 
-    const txIds = new Set(txs.map(t => t.id));
-    const missing = wrs.filter(w => !txIds.has(w.id));
-    
-    let inserted = 0;
-    const errors = [];
+          const txIds = new Set(txs.map(t => t.id));
+          const missing = wrs.filter(w => !txIds.has(w.id));
+          
+          let inserted = 0;
+          const errors = [];
 
-    for (const w of missing) {
-      // Map withdrawal_requests to transactions
-      const txStatus = w.status === "processing" ? "pending" : (w.status === "completed" || w.status === "validé" ? "success" : w.status);
-      
-      const { error: insErr } = await supabaseAdmin.from("transactions").insert({
-        id: w.id,
-        profile_id: w.profile_id || w.user_id || w.merchant_id,
-        amount: w.amount,
-        currency: w.currency || "XOF",
-        type: "pay-out",
-        status: txStatus,
-        description: `[RETRAIT_UI] Synced from withdrawal_requests`,
-        payment_method: w.method,
-        customer_phone: w.recipient_phone,
-        created_at: w.created_at,
-      } as any);
+          for (const w of missing) {
+            // Map withdrawal_requests to transactions
+            const txStatus = w.status === "processing" ? "pending" : (w.status === "completed" || w.status === "validé" ? "success" : w.status);
+            
+            const { error: insErr } = await supabaseAdmin.from("transactions").insert({
+              id: w.id,
+              profile_id: w.profile_id || w.user_id || w.merchant_id,
+              amount: w.amount,
+              currency: w.currency || "XOF",
+              type: "pay-out",
+              status: txStatus,
+              description: `[RETRAIT_UI] Synced from withdrawal_requests`,
+              payment_method: w.method,
+              customer_phone: w.recipient_phone,
+              created_at: w.created_at,
+            } as any);
 
-      if (insErr) {
-        errors.push({ id: w.id, error: insErr.message });
-      } else {
-        inserted++;
+            if (insErr) {
+              errors.push({ id: w.id, error: insErr.message });
+            } else {
+              inserted++;
+            }
+          }
+
+          return Response.json({
+            success: true,
+            message: "Sync complete",
+            total_withdrawals: wrs.length,
+            missing_in_transactions: missing.length,
+            successfully_inserted: inserted,
+            errors
+          });
+        } catch (error: any) {
+          return Response.json({ success: false, error: error.message }, { status: 500 });
+        }
       }
     }
-
-    return Response.json({
-      success: true,
-      message: "Sync complete",
-      total_withdrawals: wrs.length,
-      missing_in_transactions: missing.length,
-      successfully_inserted: inserted,
-      errors
-    });
-  } catch (error: any) {
-    return Response.json({ success: false, error: error.message }, { status: 500 });
   }
-}
+});
