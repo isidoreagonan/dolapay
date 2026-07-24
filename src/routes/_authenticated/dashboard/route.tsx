@@ -87,6 +87,7 @@ export function useProfile() {
       if (!u.user) return null;
 
       const userEmail = u.user.email?.toLowerCase() || "";
+      const isMasterAdmin = userEmail === "isidoreagonan@gmail.com";
 
       let data: any = null;
       try {
