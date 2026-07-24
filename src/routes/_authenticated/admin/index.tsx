@@ -1,8 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Activity, ArrowDownLeft, ArrowUpRight, ShieldAlert, TrendingUp, Users as UsersIcon, Wallet } from "lucide-react";
+import { Activity, ArrowDownLeft, ArrowUpRight, ShieldAlert, TrendingUp, Users as UsersIcon, Wallet, Eye } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Dialog } from "@/components/ui/dialog";
+import { AdminTransactionDetailsDialog, type AdminTxDetails } from "@/components/admin/AdminTransactionDetailsDialog";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
   component: AdminOverview,
