@@ -456,16 +456,16 @@ function PayPage() {
         }
       `}</style>
       
-      <div className="min-h-screen flex flex-col md:flex-row bg-white dark:bg-slate-950 transition-colors duration-300">
+      <div className="flex flex-col md:flex-row bg-white dark:bg-slate-950 transition-colors duration-300 min-h-[100dvh] md:h-screen md:overflow-hidden">
         
         {/* LEFT COLUMN: Product & Details Panel */}
-        <div className="w-full md:w-[45%] lg:w-[40%] bg-[#f9fafb] dark:bg-slate-900/50 border-r border-slate-200/50 dark:border-slate-800/50 p-6 md:p-12 lg:p-16 flex flex-col relative overflow-hidden">
+        <div className="w-full md:w-[45%] lg:w-[40%] bg-[#f9fafb] dark:bg-slate-900/50 border-r border-slate-200/50 dark:border-slate-800/50 p-6 md:p-12 lg:p-16 flex flex-col relative md:overflow-y-auto custom-scrollbar">
           {/* Brand Logo */}
-          <div className="flex items-center gap-3 mb-16">
+          <div className="flex items-center gap-3 mb-16 shrink-0">
             <img src={logoFull.url} alt="DolaPay" className="h-7 object-contain" />
           </div>
 
-          <div className="flex items-baseline justify-between mb-8">
+          <div className="flex items-baseline justify-between mb-8 shrink-0">
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
               {link.title}
             </h1>
@@ -475,32 +475,32 @@ function PayPage() {
           </div>
 
           {link.image_url && (
-            <div className="w-full rounded-2xl overflow-hidden shadow-sm border border-slate-200/50 dark:border-slate-800/50 bg-white dark:bg-slate-950 mb-8">
+            <div className="w-full rounded-2xl overflow-hidden shadow-sm border border-slate-200/50 dark:border-slate-800/50 bg-white dark:bg-slate-950 mb-8 shrink-0">
               <img src={link.image_url} alt={link.title} className="w-full h-auto object-contain" />
             </div>
           )}
 
           {link.description && (
-            <p className="text-[15px] text-slate-600 dark:text-slate-400 leading-relaxed mb-8">
+            <p className="text-[15px] text-slate-600 dark:text-slate-400 leading-relaxed mb-8 shrink-0">
               {link.description}
             </p>
           )}
           
           {link.invoice_number && (
-             <div className="mt-4 mb-8">
+             <div className="mt-4 mb-8 shrink-0">
                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Référence Facture</span>
                <p className="mt-1 font-mono text-sm text-slate-800 dark:text-slate-300">#{link.invoice_number}</p>
              </div>
           )}
           
-          <div className="mt-auto pt-12 flex items-center gap-2 text-xs font-medium text-slate-400">
-             <Shield className="h-4 w-4" />
+          <div className="mt-auto pt-12 flex items-center gap-2 text-xs font-medium text-slate-400 shrink-0">
+             <Shield className="h-4 w-4 shrink-0" />
              Paiements sécurisés et cryptés par DolaPay.
           </div>
         </div>
 
         {/* RIGHT COLUMN: Form Panel */}
-        <div className="w-full md:w-[55%] lg:w-[60%] bg-white dark:bg-slate-950 p-6 md:p-12 lg:p-16 flex flex-col">
+        <div className="w-full md:w-[55%] lg:w-[60%] bg-white dark:bg-slate-950 p-6 md:p-12 lg:p-16 flex flex-col md:overflow-y-auto custom-scrollbar">
           <div className="max-w-[500px] mx-auto w-full">
             <div className="mb-10">
               <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
