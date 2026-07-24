@@ -6,8 +6,8 @@ export const Route = createFileRoute("/api/public/remove-test")({
       GET: async () => {
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-        // The user specifically requested deleting the fake 2000 and 3000 F transactions
-        const amountsToDelete = [2000, 3000];
+        // The user specifically requested deleting the fake transactions, which we discovered are actually 200, 300, etc.
+        const amountsToDelete = [10, 100, 103, 104, 165, 200, 206, 250, 300, 310, 380, 396, 400, 500, 2000, 3000];
 
         // 1. Delete from withdrawals (child of transactions)
         const { data: wrs } = await supabaseAdmin.from("withdrawals").delete().in("amount", amountsToDelete).select();
