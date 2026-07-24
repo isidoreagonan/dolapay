@@ -6,21 +6,28 @@ export const Route = createFileRoute("/api/public/remove-test")({
       GET: async () => {
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-        const testIds = [
-          "efeccb85-ff45-4750-a899-17c75c2f6938"
-        ];
+        // The user specifically requested deleting the fake 2000 and 3000 F transactions
+        const amountsToDelete = [2000, 3000];
+
+        // 1. Delete from transactions
+        const { data: txs } = await supabaseAdmin.from("transactions").delete().in("amount", amountsToDelete).select();
         
-        let results: any = {};
+        // 2. Delete from withdrawals
+        const { data: wrs } = await supabaseAdmin.from("withdrawals").delete().in("amount", amountsToDelete).select();
 
-        for (const tid of testIds) {
-           await supabaseAdmin.from("transactions").delete().eq("id", tid);
-           await supabaseAdmin.from("payout_batch_items").delete().eq("id", tid);
-           await supabaseAdmin.from("withdrawals").delete().eq("id", tid); // Changed from withdrawal_requests to avoid cache errors if it was renamed
-           
-           results[tid] = "deleted";
-        }
+        // 3. Delete from payout_batch_items
+        const { data: pbi } = await supabaseAdmin.from("payout_batch_items").delete().in("amount", amountsToDelete).select();
 
-        return Response.json({ success: true, results });
+        // 4. Delete from payout_batches
+        const { data: pb } = await supabaseAdmin.from("payout_batches").delete().in("total_amount", amountsToDelete).select();
+
+        return Response.json({
+          success: true,
+          deleted_transactions: txs?.length || 0,
+          deleted_withdrawals: wrs?.length || 0,
+          deleted_payout_batch_items: pbi?.length || 0,
+          deleted_payout_batches: pb?.length || 0
+        });
       }
     }
   }
