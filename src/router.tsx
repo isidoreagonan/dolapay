@@ -78,7 +78,15 @@ export const getRouter = () => {
       if (hn.startsWith('docs') && !path.startsWith('/developers')) {
         return '/developers' + (path === '/' ? '' : path);
       }
-      if (hn.startsWith('dashboard') && !path.startsWith('/dashboard') && !path.startsWith('/auth')) {
+      const isDashboardAppNativePath = 
+        path.startsWith('/dashboard') || 
+        path.startsWith('/auth') || 
+        path.startsWith('/admin') || 
+        path.startsWith('/onboarding') || 
+        path.startsWith('/complete-profile') || 
+        path.startsWith('/accept-invite');
+        
+      if (hn.startsWith('dashboard') && !isDashboardAppNativePath) {
         return '/dashboard' + (path === '/' ? '' : path);
       }
       if (hn.startsWith('status') && !path.startsWith('/status')) {
