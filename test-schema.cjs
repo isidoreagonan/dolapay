@@ -6,19 +6,18 @@ const supabase = createClient(
 );
 
 async function test() {
-  // Let's first test the query exactly as it is in the admin index
-  const { data, error } = await supabase
-    .from("transactions")
-    .select("id,amount,status,type,created_at,profile_id,dola_margin,description,currency,net_amount,payment_method,customer_phone,provider,profiles(id,full_name,email)")
-    .limit(1);
+  const { data: txs } = await supabase.from("transactions").select("*").order("created_at", { ascending: false }).limit(20);
+  const { data: wrs } = await supabase.from("withdrawal_requests").select("*").order("created_at", { ascending: false }).limit(20);
+  const { data: oldWrs } = await supabase.from("withdrawals").select("*").order("created_at", { ascending: false }).limit(20);
+  
+  console.log("=== TRANSACTIONS ===");
+  if (txs) txs.filter(t => t.amount == 200 || t.amount == 300).forEach(t => console.log(t.id, t.amount, t.type, t.status, t.created_at));
+  
+  console.log("\n=== WITHDRAWAL REQUESTS ===");
+  if (wrs) wrs.filter(t => t.amount == 200 || t.amount == 300).forEach(t => console.log(t.id, t.amount, t.status, t.created_at));
 
-  console.log("Error:", error);
-  if (data && data.length > 0) {
-    console.log("Keys in transactions:", Object.keys(data[0]));
-    console.log("Row:", data[0]);
-  } else {
-    console.log("No data returned or error.");
-  }
+  console.log("\n=== WITHDRAWALS ===");
+  if (oldWrs) oldWrs.filter(t => t.amount == 200 || t.amount == 300).forEach(t => console.log(t.id, t.amount, t.status, t.created_at));
 }
 
 test();

@@ -101,6 +101,32 @@ function LivePage() {
         }
       }
 
+      const { data: oldWrs } = await supabase
+        .from("withdrawals")
+        .select("id,amount,status,created_at,merchant_id")
+        .order("created_at", { ascending: false })
+        .limit(20);
+      if (oldWrs && oldWrs.length > 0) {
+        for (const w of oldWrs) {
+          if (!existingIds.has(w.id)) {
+            const amt = Number(w.amount || 0);
+            const st = amt === 101 ? "failed" : ((w.status === "completed" || w.status === "success" || w.status === "validé") ? "success" : (w.status === "failed" || w.status === "rejected" ? "failed" : "pending"));
+            if (amt > 0 && amt !== 101) {
+              existingIds.add(w.id);
+              results.push({
+                id: w.id,
+                amount: amt,
+                status: st as any,
+                type: "pay-out",
+                currency: "XOF",
+                created_at: w.created_at,
+                profile_id: w.merchant_id,
+              } as any);
+            }
+          }
+        }
+      }
+
       results = results.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 50);
 
       if (mounted) setTxs(results);
@@ -131,6 +157,28 @@ function LivePage() {
           currency: "XOF",
           created_at: payload.new.created_at,
           profile_id: payload.new.profile_id,
+        } as Tx;
+
+        if (payload.eventType === "INSERT") {
+          setTxs((prev) => [row, ...prev].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 100));
+          setPulse(row.id);
+          setTimeout(() => setPulse(null), 1500);
+        } else if (payload.eventType === "UPDATE") {
+          setTxs((prev) => prev.map((t) => (t.id === row.id ? { ...t, ...row } : t)));
+        }
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "withdrawals" }, (payload) => {
+        const amt = Number(payload.new.amount || 0);
+        if (amt === 101) return;
+        const st = (payload.new.status === "completed" || payload.new.status === "success" || payload.new.status === "validé") ? "success" : (payload.new.status === "failed" || payload.new.status === "rejected" ? "failed" : "pending");
+        const row = {
+          id: payload.new.id,
+          amount: amt,
+          status: st,
+          type: "pay-out",
+          currency: "XOF",
+          created_at: payload.new.created_at,
+          profile_id: payload.new.merchant_id,
         } as Tx;
 
         if (payload.eventType === "INSERT") {
