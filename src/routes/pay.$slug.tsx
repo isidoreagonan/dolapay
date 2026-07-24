@@ -475,8 +475,8 @@ function PayPage() {
           </div>
 
           {link.image_url && (
-            <div className="w-full rounded-2xl overflow-hidden shadow-sm border border-slate-200/50 dark:border-slate-800/50 bg-white dark:bg-slate-950 mb-8 aspect-video">
-              <img src={link.image_url} alt={link.title} className="w-full h-full object-cover" />
+            <div className="w-full rounded-2xl overflow-hidden shadow-sm border border-slate-200/50 dark:border-slate-800/50 bg-white dark:bg-slate-950 mb-8">
+              <img src={link.image_url} alt={link.title} className="w-full h-auto object-contain" />
             </div>
           )}
 
