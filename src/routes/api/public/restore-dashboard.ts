@@ -59,6 +59,7 @@ export const Route = createFileRoute("/api/public/restore-dashboard")({
           txsToInsert.push({
             profile_id: profileId,
             amount: 5000,
+            net_amount: 5000,
             currency: "XOF",
             type: "pay-out",
             status: "success",
