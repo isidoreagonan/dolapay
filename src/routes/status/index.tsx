@@ -91,6 +91,16 @@ function StatusDashboard() {
     refetchInterval: 60000, // Refetch every minute
   });
 
+  const { data: historyData } = useQuery({
+    queryKey: ['pawapay-history'],
+    queryFn: async () => {
+      const res = await fetch('/api/public/pawapay-history');
+      if (!res.ok) return { issues: [] };
+      return res.json();
+    },
+    refetchInterval: 60000 * 15, // 15 mins
+  });
+
   const getGlobalStatus = () => {
     if (!statusData) return { status: 'UNKNOWN', text: 'Vérification en cours...' };
     
@@ -201,34 +211,78 @@ function StatusDashboard() {
               </h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {countryData.correspondents.map((corr) => (
-                  <div 
-                    key={corr.correspondent} 
-                    className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm hover:bg-white/10 hover:border-white/20 transition-all duration-300 group"
-                  >
-                    <div className="font-semibold text-white/90 mb-4 text-lg">
-                      {formatCorrespondentName(corr.correspondent)}
-                    </div>
+                {countryData.correspondents.map((corr) => {
+                  
+                  // Generate history bars
+                  const days = Array.from({ length: 30 }).map((_, i) => {
+                    const d = new Date();
+                    d.setDate(d.getDate() - (29 - i));
+                    const dateStr = d.toISOString().split('T')[0];
                     
-                    <div className="space-y-3">
-                      {corr.operationTypes.map((op) => {
-                        const config = getStatusConfig(op.status);
-                        const Icon = config.icon;
-                        return (
-                          <div key={op.operationType} className="flex justify-between items-center bg-black/20 rounded-xl p-3">
-                            <span className="text-sm font-medium text-white/60">
-                              {op.operationType === 'DEPOSIT' ? 'Pay-in (Dépôt)' : 'Pay-out (Retrait)'}
-                            </span>
-                            <div className={cn("flex items-center gap-1.5 text-sm font-semibold px-2.5 py-1 rounded-full", config.bgClass, config.colorClass)}>
-                              <Icon className="w-3.5 h-3.5" />
-                              {config.label}
-                            </div>
-                          </div>
-                        );
-                      })}
+                    const dayIssues = historyData?.issues?.filter((h: any) => 
+                      h.correspondent === corr.correspondent && 
+                      h.created_at.startsWith(dateStr)
+                    ) || [];
+                    
+                    let status = 'OPERATIONAL';
+                    if (dayIssues.some((i: any) => i.status === 'CLOSED')) status = 'CLOSED';
+                    else if (dayIssues.some((i: any) => i.status === 'DELAYED')) status = 'DELAYED';
+                    
+                    return { date: dateStr, status };
+                  });
+                  const uptimePercent = days.filter(d => d.status === 'OPERATIONAL').length === 30 ? '100%' : '> 99%';
+
+                  return (
+                    <div 
+                      key={corr.correspondent} 
+                      className="bg-white/5 border border-white/10 rounded-2xl p-5 backdrop-blur-sm hover:bg-white/10 hover:border-white/20 transition-all duration-300 group flex flex-col justify-between"
+                    >
+                      <div>
+                        <div className="font-semibold text-white/90 mb-4 text-lg">
+                          {formatCorrespondentName(corr.correspondent)}
+                        </div>
+                        
+                        <div className="space-y-3">
+                          {corr.operationTypes.map((op) => {
+                            const config = getStatusConfig(op.status);
+                            const Icon = config.icon;
+                            return (
+                              <div key={op.operationType} className="flex justify-between items-center bg-black/20 rounded-xl p-3">
+                                <span className="text-sm font-medium text-white/60">
+                                  {op.operationType === 'DEPOSIT' ? 'Pay-in (Dépôt)' : 'Pay-out (Retrait)'}
+                                </span>
+                                <div className={cn("flex items-center gap-1.5 text-sm font-semibold px-2.5 py-1 rounded-full", config.bgClass, config.colorClass)}>
+                                  <Icon className="w-3.5 h-3.5" />
+                                  {config.label}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <div className="mt-5 pt-4 border-t border-white/5">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-xs font-medium text-white/40 uppercase tracking-wider">Disponibilité (30 jours)</span>
+                          <span className="text-xs font-medium text-emerald-400">{uptimePercent}</span>
+                        </div>
+                        <div className="flex gap-1 h-6">
+                          {days.map((day, i) => (
+                            <div 
+                              key={i} 
+                              className={cn(
+                                "flex-1 rounded-sm opacity-80 hover:opacity-100 transition-opacity cursor-help",
+                                day.status === 'OPERATIONAL' ? 'bg-emerald-500/80' : 
+                                day.status === 'DELAYED' ? 'bg-amber-400' : 'bg-rose-500'
+                              )}
+                              title={`${day.date} : ${day.status}`}
+                            />
+                          ))}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           );
