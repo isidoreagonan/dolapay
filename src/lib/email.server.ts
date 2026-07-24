@@ -246,7 +246,7 @@ export async function sendPaymentReceivedMerchantEmail(params: {
     </p>
 
     <div class="btn-container">
-      <a href="https://dola-pay.com/dashboard/transactions" class="btn">Voir la transaction dans mon espace</a>
+      <a href="https://dashboard.dola-pay.com/transactions" class="btn">Voir la transaction dans mon espace</a>
     </div>
   `);
 
@@ -379,7 +379,7 @@ export async function sendPayoutNotificationEmail(params: {
     </p>` : ""}
 
     <div class="btn-container">
-      <a href="https://dola-pay.com/dashboard/wallet" class="btn">Consulter mon portefeuille DolaPay</a>
+      <a href="https://dashboard.dola-pay.com/wallet" class="btn">Consulter mon portefeuille DolaPay</a>
     </div>
   `);
 
@@ -414,7 +414,7 @@ export async function sendWelcomeEmail(params: {
     </div>
 
     <div class="btn-container">
-      <a href="https://dola-pay.com/dashboard" class="btn">Accéder à mon tableau de bord</a>
+      <a href="https://dashboard.dola-pay.com" class="btn">Accéder à mon tableau de bord</a>
     </div>
 
     <p class="text" style="margin-top: 25px; font-size: 13px;">
@@ -466,7 +466,7 @@ export async function sendKycApprovedEmail(params: {
     </p>
 
     <div class="btn-container">
-      <a href="https://dola-pay.com/dashboard" class="btn" style="background: linear-gradient(135deg, #059669 0%, #047857 100%);">Accéder à mon espace vérifié</a>
+      <a href="https://dashboard.dola-pay.com" class="btn" style="background: linear-gradient(135deg, #059669 0%, #047857 100%);">Accéder à mon espace vérifié</a>
     </div>
   `);
 
@@ -502,7 +502,7 @@ export async function sendKycRejectedEmail(params: {
     </p>
 
     <div class="btn-container">
-      <a href="https://dola-pay.com/dashboard/resubmit" class="btn" style="background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);">Soumettre mes nouveaux documents</a>
+      <a href="https://dashboard.dola-pay.com/resubmit" class="btn" style="background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);">Soumettre mes nouveaux documents</a>
     </div>
   `);
 
@@ -719,7 +719,7 @@ export async function sendTeamInvitationEmail(params: {
     </p>
 
     <div class="btn-container">
-      <a href="https://dola-pay.com/accept-invite" class="btn">Accepter l'invitation</a>
+      <a href="https://dashboard.dola-pay.com/accept-invite" class="btn">Accepter l'invitation</a>
     </div>
   `);
 
