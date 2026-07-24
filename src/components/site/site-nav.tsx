@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowUpRight, ChevronDown, Menu, X, Wallet, Zap, Link2, BookOpen, LifeBuoy, Layers, Building2, Globe2 } from "lucide-react";
+import { ArrowUpRight, ChevronDown, Menu, X, Wallet, Zap, Link2, BookOpen, LifeBuoy, Layers, Building2, Globe2, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type Item = { to: string; label: string; desc: string; icon: any };
@@ -13,6 +13,7 @@ const products: Item[] = [
 ];
 const resources: Item[] = [
   { to: "/developers/api", label: "Documentation API", desc: "Guides, SDK, référence complète", icon: BookOpen },
+  { to: "/status", label: "Statut des services", desc: "État du réseau en temps réel", icon: Activity },
   { to: "/resources/support", label: "Support marchand", desc: "Une équipe humaine, 7j/7", icon: LifeBuoy },
   { to: "/resources/use-cases", label: "Cas d'usage", desc: "E-commerce, freelances, startups tech", icon: Layers },
 ];

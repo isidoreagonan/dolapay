@@ -15,6 +15,7 @@ const cols = [
     title: "Ressources",
     links: [
       { to: "/developers/api", label: "Documentation API" },
+      { to: "/status", label: "Statut des services" },
       { to: "/resources/support", label: "Support marchand" },
       { to: "/resources/use-cases", label: "Cas d'usage" },
       { to: "/blog", label: "Blog" },
