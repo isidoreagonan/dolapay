@@ -2,6 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { Dialog } from "@/components/ui/dialog";
+import { AdminTransactionDetailsDialog, type AdminTxDetails } from "@/components/admin/AdminTransactionDetailsDialog";
+import { Eye } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/admin/live")({
   component: LivePage,
@@ -16,18 +19,26 @@ type Tx = {
   created_at: string;
   profile_id: string;
   description: string | null;
+  fee_amount?: number | null;
+  net_amount?: number | null;
+  dola_margin?: number | null;
+  payment_method?: string | null;
+  customer_phone?: string | null;
+  provider?: string | null;
+  profiles?: any;
 };
 
 function LivePage() {
   const [txs, setTxs] = useState<Tx[]>([]);
   const [pulse, setPulse] = useState<string | null>(null);
+  const [selectedTx, setSelectedTx] = useState<AdminTxDetails | null>(null);
 
   useEffect(() => {
     let mounted = true;
     (async () => {
       const { data } = await supabase
         .from("transactions")
-        .select("id,amount,currency,status,type,created_at,profile_id,description")
+        .select("id,amount,currency,status,type,created_at,profile_id,description,fee_amount,net_amount,dola_margin,payment_method,customer_phone,provider,profiles(id,full_name,email)")
         .order("created_at", { ascending: false })
         .limit(50);
       if (mounted && data) setTxs(data as Tx[]);
@@ -88,8 +99,9 @@ function LivePage() {
               {txs.map((t) => (
                 <tr
                   key={t.id}
+                  onClick={() => setSelectedTx(t as any)}
                   className={cn(
-                    "border-b border-white/[0.04] transition-colors",
+                    "cursor-pointer border-b border-white/[0.04] transition-colors group",
                     pulse === t.id ? "bg-emerald-400/10" : "hover:bg-white/[0.03]",
                   )}
                 >
@@ -99,7 +111,10 @@ function LivePage() {
                   <td className="px-3 py-2 text-right font-mono text-white">{Number(t.amount).toLocaleString("fr-FR")}</td>
                   <td className="px-3 py-2 text-slate-400">{t.currency}</td>
                   <td className="px-3 py-2"><StatusDot status={t.status} /></td>
-                  <td className="px-3 py-2 font-mono text-[10px] text-slate-500">acc_{t.profile_id.replace(/-/g, "").slice(0, 12)}</td>
+                  <td className="px-3 py-2 flex items-center justify-between">
+                    <span className="font-mono text-[10px] text-slate-500">acc_{t.profile_id.replace(/-/g, "").slice(0, 12)}</span>
+                    <Eye className="h-4 w-4 text-sky-400/50 opacity-0 transition-opacity group-hover:opacity-100" />
+                  </td>
                 </tr>
               ))}
               {txs.length === 0 && (
@@ -109,6 +124,10 @@ function LivePage() {
           </table>
         </div>
       </div>
+      
+      <Dialog open={!!selectedTx} onOpenChange={(v) => !v && setSelectedTx(null)}>
+        {selectedTx && <AdminTransactionDetailsDialog tx={selectedTx} onClose={() => setSelectedTx(null)} />}
+      </Dialog>
     </div>
   );
 }

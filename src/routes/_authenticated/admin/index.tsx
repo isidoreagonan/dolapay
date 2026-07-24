@@ -18,16 +18,25 @@ type Tx = {
   dola_margin?: number;
   description?: string;
   mode?: string;
+  currency?: string;
+  fee_amount?: number | null;
+  net_amount?: number | null;
+  payment_method?: string | null;
+  customer_phone?: string | null;
+  provider?: string | null;
+  profiles?: any;
 };
 
 function AdminOverview() {
+  const [selectedTx, setSelectedTx] = useState<AdminTxDetails | null>(null);
+
   const { data: txs = [], isLoading } = useQuery({
     queryKey: ["admin-overview-txs"],
     queryFn: async (): Promise<Tx[]> => {
       const since = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
       const { data, error } = await supabase
         .from("transactions")
-        .select("id,amount,status,type,created_at,profile_id,dola_margin,description")
+        .select("id,amount,status,type,created_at,profile_id,dola_margin,description,currency,fee_amount,net_amount,payment_method,customer_phone,provider,profiles(id,full_name,email)")
         .gte("created_at", since)
         .order("created_at", { ascending: false })
         .limit(10000);
@@ -262,12 +271,21 @@ function AdminOverview() {
               </thead>
               <tbody>
                 {txs.slice(0, 8).map((t) => (
-                  <tr key={t.id} className="border-b border-white/[0.04]">
+                  <tr 
+                    key={t.id} 
+                    onClick={() => setSelectedTx(t as any)}
+                    className="group cursor-pointer border-b border-white/[0.04] transition-colors hover:bg-white/[0.03]"
+                  >
                     <td className="py-2 pr-3 font-mono text-slate-300">{t.id.slice(0, 10)}…</td>
                     <td className="py-2 pr-3 capitalize text-slate-400">{t.type}</td>
                     <td className="py-2 pr-3 text-right font-mono text-white">{Number(t.amount).toLocaleString("fr-FR")}</td>
                     <td className="py-2 pr-3"><StatusDot status={t.status} /></td>
-                    <td className="py-2 text-right text-slate-500">{timeAgo(t.created_at)}</td>
+                    <td className="py-2 text-right text-slate-500">
+                      <div className="flex items-center justify-end gap-2">
+                        <span>{timeAgo(t.created_at)}</span>
+                        <Eye className="h-4 w-4 text-sky-400/50 opacity-0 transition-opacity group-hover:opacity-100" />
+                      </div>
+                    </td>
                   </tr>
                 ))}
                 {txs.length === 0 && (
@@ -291,6 +309,10 @@ function AdminOverview() {
           </div>
         </div>
       </section>
+      
+      <Dialog open={!!selectedTx} onOpenChange={(v) => !v && setSelectedTx(null)}>
+        {selectedTx && <AdminTransactionDetailsDialog tx={selectedTx} onClose={() => setSelectedTx(null)} />}
+      </Dialog>
     </div>
   );
 }
