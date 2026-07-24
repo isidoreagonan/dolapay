@@ -17,13 +17,31 @@ export const Route = createFileRoute("/api/public/debug2")({
           return Response.json({ success: false, error: "Profiles not found", details: profileError });
         }
         
+        // Count transactions per profile
+        const { data: txs, error: txError } = await supabaseAdmin
+          .from("transactions")
+          .select("profile_id");
+
+        if (txError) {
+          return Response.json({ success: false, error: txError });
+        }
+
+        const counts: Record<string, number> = {};
+        if (txs) {
+          for (const tx of txs) {
+            if (tx.profile_id) {
+              counts[tx.profile_id] = (counts[tx.profile_id] || 0) + 1;
+            }
+          }
+        }
+
         const mappedProfiles = profiles.map(p => ({
           email: p.email,
           accId: `acc_${p.id.replace(/-/g, "").slice(0, 16)}`,
           fullId: p.id
         }));
 
-        return Response.json({ success: true, profiles: mappedProfiles });
+        return Response.json({ success: true, counts, profiles: mappedProfiles });
 
 
       }
