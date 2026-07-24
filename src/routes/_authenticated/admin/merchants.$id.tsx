@@ -1,7 +1,8 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Building2, CheckCircle2, Mail, Snowflake, Crown, ShieldAlert, FileText, ExternalLink, XCircle, RefreshCw } from "lucide-react";
+import { ArrowLeft, Building2, CheckCircle2, Mail, Snowflake, Crown, ShieldAlert, FileText, ExternalLink, XCircle, RefreshCw, Link2, Key, Link as LinkIcon, Activity } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -129,6 +130,22 @@ function Merchant360() {
     },
   });
 
+  const { data: paymentLinks = [] } = useQuery({
+    queryKey: ["admin-merchant-payment-links", id],
+    queryFn: async () => {
+      const { data } = await supabase.from("payment_links").select("*").eq("profile_id", id).order("created_at", { ascending: false }).limit(50);
+      return data ?? [];
+    },
+  });
+
+  const { data: apiKeys = [] } = useQuery({
+    queryKey: ["admin-merchant-api-keys", id],
+    queryFn: async () => {
+      const { data } = await supabase.from("api_keys").select("*").eq("profile_id", id).order("created_at", { ascending: false }).limit(20);
+      return data ?? [];
+    },
+  });
+
   const { data: reps = [] } = useQuery({
     queryKey: ["admin-merchant-reps", id],
     queryFn: async () => {
@@ -200,6 +217,8 @@ function Merchant360() {
   }
 
   const volume = txs.filter((t) => t.status === "success").reduce((s, t) => s + Number(t.amount), 0);
+  const payIns = txs.filter((t) => t.type === "pay-in");
+  const payOuts = txs.filter((t) => t.type === "pay-out");
 
   return (
     <div className="space-y-6">
@@ -278,148 +297,252 @@ function Merchant360() {
         </div>
       </header>
 
-      {/* DOSSIER KYC / KYB */}
-      <div className="rounded-xl border border-white/10 bg-white/[0.03] p-5 space-y-6">
-        <div className="flex items-center justify-between border-b border-white/10 pb-4">
-          <div>
-            <h2 className="text-base font-bold text-white flex items-center gap-2">
-              <ShieldAlert className="h-5 w-5 text-violet-400" /> Dossier de Conformité (KYC/KYB)
-            </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Vérification manuelle des documents (Identité, RCCM, IFU) téléversés par l'utilisateur.
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400">Statut KYC / KYB :</span>
-            {profile?.kyc_status === "in_compliance_review" && profile?.kyc_rejection_reason === "[RESSOUMIS]" && (
-              <span className="inline-flex items-center gap-1 bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2.5 py-1 rounded-full text-xs font-bold uppercase mr-1 animate-pulse">
-                <RefreshCw className="h-3 w-3" /> Dossier Resoumis
-              </span>
-            )}
-            <span className={cn(
-              "px-2.5 py-1 rounded-full text-xs font-semibold uppercase font-mono",
-              profile?.kyc_status === "approved" ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" : 
-              profile?.kyc_status === "rejected" ? "bg-rose-500/20 text-rose-300 border border-rose-500/30" :
-              "bg-amber-500/20 text-amber-300 border border-amber-500/30"
-            )}>
-              {profile?.kyc_status || "En attente"}
-            </span>
-          </div>
-        </div>
+      <Tabs defaultValue="kyc" className="mt-6">
+        <TabsList className="bg-white/[0.03] border border-white/10 flex-wrap h-auto justify-start mb-6 rounded-lg p-1">
+          <TabsTrigger value="kyc" className="data-[state=active]:bg-white/10 data-[state=active]:text-white">Conformité (KYC)</TabsTrigger>
+          <TabsTrigger value="payin" className="data-[state=active]:bg-white/10 data-[state=active]:text-white">Paiements (Entrées)</TabsTrigger>
+          <TabsTrigger value="payout" className="data-[state=active]:bg-white/10 data-[state=active]:text-white">Retraits (Sorties)</TabsTrigger>
+          <TabsTrigger value="links" className="data-[state=active]:bg-white/10 data-[state=active]:text-white">Liens de Paiement</TabsTrigger>
+          <TabsTrigger value="api" className="data-[state=active]:bg-white/10 data-[state=active]:text-white">API & Dév</TabsTrigger>
+        </TabsList>
 
-        {/* 1. Infos Société & Registre Officiel */}
-        {profile?.account_type === "enterprise" && (
-          <div>
-            <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">1. Informations Société & Registre d'État</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-white/[0.02] p-4 rounded-lg border border-white/5 text-xs">
+        <TabsContent value="kyc" className="space-y-6">
+          {/* DOSSIER KYC / KYB */}
+          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-5 space-y-6">
+            <div className="flex items-center justify-between border-b border-white/10 pb-4">
               <div>
-                <span className="text-slate-500 block">Raison Sociale</span>
-                <span className="text-white font-medium">{business?.company_name || "—"}</span>
+                <h2 className="text-base font-bold text-white flex items-center gap-2">
+                  <ShieldAlert className="h-5 w-5 text-violet-400" /> Dossier de Conformité (KYC/KYB)
+                </h2>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Vérification manuelle des documents (Identité, RCCM, IFU) téléversés par l'utilisateur.
+                </p>
               </div>
-              <div>
-                <span className="text-slate-500 block">N° RCCM / Registre</span>
-                <span className="text-white font-mono">{business?.registration_number || "—"}</span>
-              </div>
-              <div>
-                <span className="text-slate-500 block">N° IFU / Tax ID</span>
-                <span className="text-white font-mono">{business?.tax_id || "—"}</span>
-              </div>
-              <div>
-                <span className="text-slate-500 block">Siège Social</span>
-                <span className="text-white">
-                  {business?.headquarters_address 
-                    ? `${business.headquarters_address}${business.hq_city ? `, ${business.hq_city}` : ""}${business.hq_country ? ` (${business.hq_country})` : ""}`
-                    : profile?.address
-                      ? `${profile.address}, ${profile.city || ""} (${profile.country || ""})`
-                      : "—"}
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-slate-400">Statut KYC / KYB :</span>
+                {profile?.kyc_status === "in_compliance_review" && profile?.kyc_rejection_reason === "[RESSOUMIS]" && (
+                  <span className="inline-flex items-center gap-1 bg-blue-500/20 text-blue-300 border border-blue-500/30 px-2.5 py-1 rounded-full text-xs font-bold uppercase mr-1 animate-pulse">
+                    <RefreshCw className="h-3 w-3" /> Dossier Resoumis
+                  </span>
+                )}
+                <span className={cn(
+                  "px-2.5 py-1 rounded-full text-xs font-semibold uppercase font-mono",
+                  profile?.kyc_status === "approved" ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" : 
+                  profile?.kyc_status === "rejected" ? "bg-rose-500/20 text-rose-300 border border-rose-500/30" :
+                  "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                )}>
+                  {profile?.kyc_status || "En attente"}
                 </span>
               </div>
             </div>
-          </div>
-        )}
 
-
-        <div className="bg-slate-900/50 rounded-xl border border-white/5 p-4">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-4">Pièces Justificatives</h3>
-          {allDocs.length === 0 ? (
-            <p className="text-xs text-slate-500 italic">Aucun document téléversé.</p>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-              {allDocs.map((doc: any) => {
-                // Parse real document type from file_path: "kyc-documents/UID/rccm-123456.pdf" -> "rccm"
-                const parts = doc.file_path.split("/");
-                const filename = parts[parts.length - 1] || "";
-                const realType = filename.split("-")[0] || doc.document_type;
-                
-                return (
-                  <div key={doc.id} className="flex items-center justify-between p-3 rounded-lg border border-white/10 bg-white/[0.02]">
-                    <div className="flex items-center gap-2.5 overflow-hidden">
-                      <FileText className="h-4 w-4 text-violet-400 shrink-0" />
-                      <div className="overflow-hidden">
-                        <span className="text-xs font-medium text-white block truncate uppercase">{realType}</span>
-                        <span className="text-[10px] text-slate-500 font-mono">{doc.status}</span>
-                      </div>
-                    </div>
-                    {doc.signedUrl ? (
-                      <a
-                        href={doc.signedUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex h-7 items-center justify-center rounded-md px-2 text-xs font-medium text-slate-300 hover:bg-white/10 hover:text-white transition-colors"
-                      >
-                        <ExternalLink className="h-3 w-3 mr-1" /> Voir
-                      </a>
-                    ) : (
-                      <span className="text-[10px] text-slate-500 italic px-2">Lien expiré</span>
-                    )}
+            {/* 1. Infos Société & Registre Officiel */}
+            {profile?.account_type === "enterprise" && (
+              <div>
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">1. Informations Société & Registre d'État</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-white/[0.02] p-4 rounded-lg border border-white/5 text-xs">
+                  <div>
+                    <span className="text-slate-500 block">Raison Sociale</span>
+                    <span className="text-white font-medium">{business?.company_name || "—"}</span>
                   </div>
-                );
-              })}
+                  <div>
+                    <span className="text-slate-500 block">N° RCCM / Registre</span>
+                    <span className="text-white font-mono">{business?.registration_number || "—"}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 block">N° IFU / Tax ID</span>
+                    <span className="text-white font-mono">{business?.tax_id || "—"}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 block">Siège Social</span>
+                    <span className="text-white">
+                      {business?.headquarters_address 
+                        ? `${business.headquarters_address}${business.hq_city ? `, ${business.hq_city}` : ""}${business.hq_country ? ` (${business.hq_country})` : ""}`
+                        : profile?.address
+                          ? `${profile.address}, ${profile.city || ""} (${profile.country || ""})`
+                          : "—"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+
+            <div className="bg-slate-900/50 rounded-xl border border-white/5 p-4">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-4">Pièces Justificatives</h3>
+              {allDocs.length === 0 ? (
+                <p className="text-xs text-slate-500 italic">Aucun document téléversé.</p>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                  {allDocs.map((doc: any) => {
+                    // Parse real document type from file_path: "kyc-documents/UID/rccm-123456.pdf" -> "rccm"
+                    const parts = doc.file_path.split("/");
+                    const filename = parts[parts.length - 1] || "";
+                    const realType = filename.split("-")[0] || doc.document_type;
+                    
+                    return (
+                      <div key={doc.id} className="flex items-center justify-between p-3 rounded-lg border border-white/10 bg-white/[0.02]">
+                        <div className="flex items-center gap-2.5 overflow-hidden">
+                          <FileText className="h-4 w-4 text-violet-400 shrink-0" />
+                          <div className="overflow-hidden">
+                            <span className="text-xs font-medium text-white block truncate uppercase">{realType}</span>
+                            <span className="text-[10px] text-slate-500 font-mono">{doc.status}</span>
+                          </div>
+                        </div>
+                        {doc.signedUrl ? (
+                          <a
+                            href={doc.signedUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex h-7 items-center justify-center rounded-md px-2 text-xs font-medium text-slate-300 hover:bg-white/10 hover:text-white transition-colors"
+                          >
+                            <ExternalLink className="h-3 w-3 mr-1" /> Voir
+                          </a>
+                        ) : (
+                          <span className="text-[10px] text-slate-500 italic px-2">Lien expiré</span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      </div>
+          </div>
+        </TabsContent>
 
-      <section className="grid gap-4 lg:grid-cols-2">
+        <TabsContent value="payin">
+          <Panel title={`Paiements Entrants (${payIns.length})`}>
+            {payIns.length === 0 ? (
+              <Empty>Aucun paiement entrant</Empty>
+            ) : (
+              <table className="w-full text-xs">
+                <tbody>
+                  {payIns.map((t) => (
+                    <tr key={t.id} className="border-b border-white/[0.04] hover:bg-white/5 transition-colors">
+                      <td className="py-3 px-2 font-mono text-slate-500">{t.id.slice(0, 10)}…</td>
+                      <td className="py-3 px-2 capitalize text-slate-400">{new Date(t.created_at).toLocaleString("fr-FR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</td>
+                      <td className="py-3 px-2 text-right font-mono text-emerald-400 font-semibold">+{Number(t.amount).toLocaleString("fr-FR")} {t.currency}</td>
+                      <td className="py-3 px-2 text-right"><StatusDot s={t.status} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </Panel>
+        </TabsContent>
 
-        <Panel title={`Transactions (${txs.length})`}>
-          {txs.length === 0 ? (
-            <Empty>Aucune transaction</Empty>
-          ) : (
-            <table className="w-full text-xs">
-              <tbody>
-                {txs.slice(0, 12).map((t) => (
-                  <tr key={t.id} className="border-b border-white/[0.04]">
-                    <td className="py-2 font-mono text-slate-500">{t.id.slice(0, 10)}…</td>
-                    <td className="py-2 capitalize text-slate-400">{t.type}</td>
-                    <td className="py-2 text-right font-mono text-white">{Number(t.amount).toLocaleString("fr-FR")} {t.currency}</td>
-                    <td className="py-2 text-right"><StatusDot s={t.status} /></td>
+        <TabsContent value="payout" className="space-y-6">
+          <Panel title={`Retraits & Décaissements (${payOuts.length})`}>
+            {payOuts.length === 0 ? (
+              <Empty>Aucun retrait</Empty>
+            ) : (
+              <table className="w-full text-xs">
+                <tbody>
+                  {payOuts.map((t) => (
+                    <tr key={t.id} className="border-b border-white/[0.04] hover:bg-white/5 transition-colors">
+                      <td className="py-3 px-2 font-mono text-slate-500">{t.id.slice(0, 10)}…</td>
+                      <td className="py-3 px-2 capitalize text-slate-400">{t.description || "Retrait"}</td>
+                      <td className="py-3 px-2 text-slate-400">{new Date(t.created_at).toLocaleString("fr-FR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</td>
+                      <td className="py-3 px-2 text-right font-mono text-rose-400 font-semibold">-{Number(t.amount).toLocaleString("fr-FR")} {t.currency}</td>
+                      <td className="py-3 px-2 text-right"><StatusDot s={t.status} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </Panel>
+
+          <Panel title={`Lots de virement groupés (${payouts.length})`}>
+            {payouts.length === 0 ? (
+              <Empty>Aucun lot</Empty>
+            ) : (
+              <table className="w-full text-xs">
+                <tbody>
+                  {payouts.map((p) => (
+                    <tr key={p.id} className="border-b border-white/[0.04] hover:bg-white/5 transition-colors">
+                      <td className="py-3 px-2 text-slate-300">{p.name}</td>
+                      <td className="py-3 px-2 text-slate-500">{p.total_count} bénéficiaires</td>
+                      <td className="py-3 px-2 text-slate-400">{new Date(p.created_at).toLocaleString("fr-FR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</td>
+                      <td className="py-3 px-2 text-right font-mono text-white">{Number(p.total_amount).toLocaleString("fr-FR")} {p.currency}</td>
+                      <td className="py-3 px-2 text-right"><StatusDot s={p.status} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </Panel>
+        </TabsContent>
+
+        <TabsContent value="links">
+          <Panel title={`Liens de Paiement (${paymentLinks.length})`}>
+            {paymentLinks.length === 0 ? (
+              <Empty>Aucun lien de paiement</Empty>
+            ) : (
+              <table className="w-full text-xs">
+                <thead className="text-left text-[10px] text-slate-500 uppercase tracking-wider border-b border-white/10">
+                  <tr>
+                    <th className="py-2 px-2 font-medium">Titre</th>
+                    <th className="py-2 px-2 font-medium">Créé le</th>
+                    <th className="py-2 px-2 font-medium">Statut</th>
+                    <th className="py-2 px-2 text-right font-medium">Montant</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </Panel>
+                </thead>
+                <tbody>
+                  {paymentLinks.map((l: any) => (
+                    <tr key={l.id} className="border-b border-white/[0.04] hover:bg-white/5 transition-colors">
+                      <td className="py-3 px-2 font-medium text-white flex items-center gap-2">
+                        <LinkIcon className="h-3 w-3 text-slate-500" /> {l.title}
+                      </td>
+                      <td className="py-3 px-2 text-slate-400">{new Date(l.created_at).toLocaleString("fr-FR", { day: "2-digit", month: "short" })}</td>
+                      <td className="py-3 px-2">
+                        <span className={cn("px-2 py-0.5 rounded-full text-[10px] font-semibold", l.status === "active" ? "bg-emerald-500/20 text-emerald-300" : "bg-slate-500/20 text-slate-300")}>
+                          {l.status}
+                        </span>
+                      </td>
+                      <td className="py-3 px-2 text-right font-mono text-slate-300">{l.amount ? `${Number(l.amount).toLocaleString("fr-FR")} ${l.currency || "XOF"}` : "Ouvert"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </Panel>
+        </TabsContent>
 
-        <Panel title={`Lots de décaissement (${payouts.length})`}>
-          {payouts.length === 0 ? (
-            <Empty>Aucun lot</Empty>
-          ) : (
-            <table className="w-full text-xs">
-              <tbody>
-                {payouts.map((p) => (
-                  <tr key={p.id} className="border-b border-white/[0.04]">
-                    <td className="py-2 text-slate-300">{p.name}</td>
-                    <td className="py-2 text-slate-500">{p.total_count} bénéficiaires</td>
-                    <td className="py-2 text-right font-mono text-white">{Number(p.total_amount).toLocaleString("fr-FR")} {p.currency}</td>
-                    <td className="py-2 text-right"><StatusDot s={p.status} /></td>
+        <TabsContent value="api">
+          <Panel title={`Clés API (${apiKeys.length})`}>
+            {apiKeys.length === 0 ? (
+              <Empty>Aucune clé API</Empty>
+            ) : (
+              <table className="w-full text-xs">
+                <thead className="text-left text-[10px] text-slate-500 uppercase tracking-wider border-b border-white/10">
+                  <tr>
+                    <th className="py-2 px-2 font-medium">Nom</th>
+                    <th className="py-2 px-2 font-medium">Mode</th>
+                    <th className="py-2 px-2 font-medium">Prefix</th>
+                    <th className="py-2 px-2 text-right font-medium">Créé le</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </Panel>
-      </section>
+                </thead>
+                <tbody>
+                  {apiKeys.map((k: any) => (
+                    <tr key={k.id} className="border-b border-white/[0.04] hover:bg-white/5 transition-colors">
+                      <td className="py-3 px-2 font-medium text-white flex items-center gap-2">
+                        <Key className="h-3 w-3 text-slate-500" /> {k.name || "API Key"}
+                      </td>
+                      <td className="py-3 px-2">
+                        <span className={cn("px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase", k.mode === "live" ? "bg-rose-500/20 text-rose-300 border border-rose-500/30" : "bg-blue-500/20 text-blue-300 border border-blue-500/30")}>
+                          {k.mode}
+                        </span>
+                      </td>
+                      <td className="py-3 px-2 font-mono text-slate-400">{k.key_prefix}...</td>
+                      <td className="py-3 px-2 text-right text-slate-400">{new Date(k.created_at).toLocaleString("fr-FR", { day: "2-digit", month: "short", year: "numeric" })}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </Panel>
+        </TabsContent>
+      </Tabs>
 
       <Dialog open={rejectModalOpen} onOpenChange={setRejectModalOpen}>
         <DialogContent className="border-white/10 bg-[#0b1d3a] text-white">
