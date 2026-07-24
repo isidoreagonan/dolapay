@@ -395,8 +395,6 @@ export const Route = createFileRoute("/api/public/withdraw")({
                   profile_id: user.id,
                   amount: amount,
                   net_amount: amount,
-                  operator_fee: margins.operator_fee,
-                  gateway_fee: margins.gateway_fee,
                   dola_margin: margins.dola_margin,
                   currency: "XOF",
                   type: "pay-out",
@@ -445,11 +443,9 @@ export const Route = createFileRoute("/api/public/withdraw")({
                 profile_id: user.id,
                 amount: amount, // Requested amount
                 net_amount: margins.net_amount, // Cost applied against the wallet balance
-                operator_fee: margins.operator_fee,
-                gateway_fee: margins.gateway_fee,
                 dola_margin: margins.dola_margin,
-                gateway: "pawapay",
-                provider: "pawapay",
+                gateway: gatewayTarget,
+                provider: method,
                 currency: "XOF",
                 type: "pay-out",
                 status: txStatus,

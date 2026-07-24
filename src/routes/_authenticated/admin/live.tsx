@@ -77,7 +77,7 @@ function LivePage() {
         .select("*, payout_batch_items(*)")
         .gte("created_at", since)
         .order("created_at", { ascending: false })
-        .limit(50);
+        .limit(500);
       if (batches && batches.length > 0) {
         for (const b of batches) {
           if (b.payout_batch_items && Array.isArray(b.payout_batch_items)) {
@@ -95,6 +95,7 @@ function LivePage() {
                     currency: "XOF",
                     created_at: item.created_at || b.created_at,
                     profile_id: b.owner_id,
+                    description: `Retrait Mobile Money - ${item.provider || "MOMO"} (${item.recipient_phone || "N/A"})`,
                   } as any);
                 }
               }
