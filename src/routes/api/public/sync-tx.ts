@@ -8,8 +8,7 @@ export const Route = createFileRoute("/api/public/sync-tx")({
         try {
           // Fetch all payout batch items
           const { data: wrs, error: wrErr } = await (supabaseAdmin.from("payout_batch_items") as any)
-            .select("*, payout_batches(owner_id)")
-            .order("created_at", { ascending: false });
+            .select("*, payout_batches(owner_id, created_at)");
 
           if (wrErr) throw wrErr;
 
@@ -41,7 +40,7 @@ export const Route = createFileRoute("/api/public/sync-tx")({
               description: `[RETRAIT_UI] Synced from payout_batch_items`,
               payment_method: w.method,
               customer_phone: w.recipient_phone,
-              created_at: w.created_at,
+              created_at: w.payout_batches?.created_at || new Date().toISOString(),
             } as any);
 
             if (insErr) {
