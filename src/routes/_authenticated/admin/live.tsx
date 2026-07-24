@@ -141,7 +141,10 @@ function LivePage() {
       .on("postgres_changes", { event: "*", schema: "public", table: "transactions" }, (payload) => {
         if (payload.eventType === "INSERT") {
           const row = payload.new as Tx;
-          setTxs((prev) => [row, ...prev].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 500));
+          setTxs((prev) => {
+            const filtered = prev.filter(t => t.id !== row.id);
+            return [row, ...filtered].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 500);
+          });
           setPulse(row.id);
           setTimeout(() => setPulse(null), 1500);
         } else if (payload.eventType === "UPDATE") {
@@ -164,7 +167,10 @@ function LivePage() {
         } as Tx;
 
         if (payload.eventType === "INSERT") {
-          setTxs((prev) => [row, ...prev].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 500));
+          setTxs((prev) => {
+            const filtered = prev.filter(t => t.id !== row.id);
+            return [row, ...filtered].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 500);
+          });
           setPulse(row.id);
           setTimeout(() => setPulse(null), 1500);
         } else if (payload.eventType === "UPDATE") {
@@ -186,7 +192,10 @@ function LivePage() {
         } as Tx;
 
         if (payload.eventType === "INSERT") {
-          setTxs((prev) => [row, ...prev].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 500));
+          setTxs((prev) => {
+            const filtered = prev.filter(t => t.id !== row.id);
+            return [row, ...filtered].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 500);
+          });
           setPulse(row.id);
           setTimeout(() => setPulse(null), 1500);
         } else if (payload.eventType === "UPDATE") {
@@ -207,7 +216,10 @@ function LivePage() {
         } as Tx;
 
         if (payload.eventType === "INSERT") {
-          setTxs((prev) => [row, ...prev].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 100));
+          setTxs((prev) => {
+            const filtered = prev.filter(t => t.id !== row.id);
+            return [row, ...filtered].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 100);
+          });
           setPulse(row.id);
           setTimeout(() => setPulse(null), 1500);
         } else if (payload.eventType === "UPDATE") {

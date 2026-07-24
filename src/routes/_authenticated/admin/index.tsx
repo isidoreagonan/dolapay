@@ -50,6 +50,7 @@ function AdminOverview() {
       const { data: wrs } = await (supabase.from("withdrawal_requests") as any)
         .select("id,amount,status,created_at,profile_id")
         .gte("created_at", since)
+        .order("created_at", { ascending: false })
         .limit(10000);
       if (wrs && wrs.length > 0) {
         for (const w of wrs) {
@@ -75,6 +76,7 @@ function AdminOverview() {
         .from("withdrawals")
         .select("id,amount,status,created_at,merchant_id")
         .gte("created_at", since)
+        .order("created_at", { ascending: false })
         .limit(10000);
       if (oldWrs && oldWrs.length > 0) {
         for (const w of oldWrs) {
@@ -99,6 +101,7 @@ function AdminOverview() {
       const { data: batches } = await (supabase.from("payout_batches") as any)
         .select("*, payout_batch_items(*)")
         .gte("created_at", since)
+        .order("created_at", { ascending: false })
         .limit(10000);
       if (batches && batches.length > 0) {
         for (const b of batches) {

@@ -48,8 +48,71 @@ function Merchant360() {
         .select("id,amount,currency,status,type,created_at,description")
         .eq("profile_id", id)
         .order("created_at", { ascending: false })
-        .limit(50);
-      return data ?? [];
+        .limit(100);
+      
+      let results: any[] = data ?? [];
+      const existingIds = new Set(results.map((t) => t.id));
+
+      const { data: wrs } = await (supabase.from("withdrawal_requests") as any)
+        .select("id,amount,status,created_at,currency,profile_id,method")
+        .eq("profile_id", id)
+        .order("created_at", { ascending: false })
+        .limit(100);
+        
+      if (wrs && wrs.length > 0) {
+        for (const w of wrs) {
+          if (!existingIds.has(w.id)) {
+            const amt = Number(w.amount || 0);
+            const st = amt === 101 ? "failed" : ((w.status === "completed" || w.status === "success" || w.status === "validé") ? "success" : (w.status === "failed" || w.status === "rejected" ? "failed" : "pending"));
+            if (amt > 0 && amt !== 101) {
+              existingIds.add(w.id);
+              results.push({
+                id: w.id,
+                amount: amt,
+                status: st,
+                type: "pay-out",
+                currency: w.currency || "XOF",
+                created_at: w.created_at,
+                description: w.method || "Mobile Money",
+              });
+            }
+          }
+        }
+      }
+
+      const { data: batches } = await (supabase.from("payout_batches") as any)
+        .select("*, payout_batch_items(*)")
+        .eq("owner_id", id)
+        .order("created_at", { ascending: false })
+        .limit(100);
+        
+      if (batches && batches.length > 0) {
+        for (const b of batches) {
+          if (b.payout_batch_items && Array.isArray(b.payout_batch_items)) {
+            for (const item of b.payout_batch_items) {
+              const realId = item.payout_id || item.id;
+              if (!existingIds.has(realId)) {
+                const amt = Number(item.amount || b.total_amount || 0);
+                const st = amt === 101 ? "failed" : ((item.status === "completed" || item.status === "success" || item.status === "validé") ? "success" : (item.status === "failed" || item.status === "rejected" ? "failed" : "pending"));
+                if (amt > 0 && amt !== 101) {
+                  existingIds.add(realId);
+                  results.push({
+                    id: item.id,
+                    amount: amt,
+                    status: st,
+                    type: "pay-out",
+                    currency: item.currency || b.currency || "XOF",
+                    created_at: item.created_at || b.created_at,
+                    description: `Batch: ${b.name || b.id}`,
+                  });
+                }
+              }
+            }
+          }
+        }
+      }
+
+      return results.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
     },
   });
 
