@@ -65,6 +65,7 @@ import { Route as ApiPublicTestFeesRouteImport } from './routes/api/public/test-
 import { Route as ApiPublicTestEmailRouteImport } from './routes/api/public/test-email'
 import { Route as ApiPublicSyncWalletRouteImport } from './routes/api/public/sync-wallet'
 import { Route as ApiPublicSendNotificationRouteImport } from './routes/api/public/send-notification'
+import { Route as ApiPublicRestoreDashboardRouteImport } from './routes/api/public/restore-dashboard'
 import { Route as ApiPublicRestoreAdminRouteImport } from './routes/api/public/restore-admin'
 import { Route as ApiPublicRemoveTestRouteImport } from './routes/api/public/remove-test'
 import { Route as ApiPublicQuoteRouteImport } from './routes/api/public/quote'
@@ -390,6 +391,12 @@ const ApiPublicSendNotificationRoute =
     path: '/api/public/send-notification',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicRestoreDashboardRoute =
+  ApiPublicRestoreDashboardRouteImport.update({
+    id: '/api/public/restore-dashboard',
+    path: '/api/public/restore-dashboard',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicRestoreAdminRoute = ApiPublicRestoreAdminRouteImport.update({
   id: '/api/public/restore-admin',
   path: '/api/public/restore-admin',
@@ -664,6 +671,7 @@ export interface FileRoutesByFullPath {
   '/api/public/quote': typeof ApiPublicQuoteRoute
   '/api/public/remove-test': typeof ApiPublicRemoveTestRoute
   '/api/public/restore-admin': typeof ApiPublicRestoreAdminRoute
+  '/api/public/restore-dashboard': typeof ApiPublicRestoreDashboardRoute
   '/api/public/send-notification': typeof ApiPublicSendNotificationRoute
   '/api/public/sync-wallet': typeof ApiPublicSyncWalletRoute
   '/api/public/test-email': typeof ApiPublicTestEmailRoute
@@ -755,6 +763,7 @@ export interface FileRoutesByTo {
   '/api/public/quote': typeof ApiPublicQuoteRoute
   '/api/public/remove-test': typeof ApiPublicRemoveTestRoute
   '/api/public/restore-admin': typeof ApiPublicRestoreAdminRoute
+  '/api/public/restore-dashboard': typeof ApiPublicRestoreDashboardRoute
   '/api/public/send-notification': typeof ApiPublicSendNotificationRoute
   '/api/public/sync-wallet': typeof ApiPublicSyncWalletRoute
   '/api/public/test-email': typeof ApiPublicTestEmailRoute
@@ -852,6 +861,7 @@ export interface FileRoutesById {
   '/api/public/quote': typeof ApiPublicQuoteRoute
   '/api/public/remove-test': typeof ApiPublicRemoveTestRoute
   '/api/public/restore-admin': typeof ApiPublicRestoreAdminRoute
+  '/api/public/restore-dashboard': typeof ApiPublicRestoreDashboardRoute
   '/api/public/send-notification': typeof ApiPublicSendNotificationRoute
   '/api/public/sync-wallet': typeof ApiPublicSyncWalletRoute
   '/api/public/test-email': typeof ApiPublicTestEmailRoute
@@ -949,6 +959,7 @@ export interface FileRouteTypes {
     | '/api/public/quote'
     | '/api/public/remove-test'
     | '/api/public/restore-admin'
+    | '/api/public/restore-dashboard'
     | '/api/public/send-notification'
     | '/api/public/sync-wallet'
     | '/api/public/test-email'
@@ -1040,6 +1051,7 @@ export interface FileRouteTypes {
     | '/api/public/quote'
     | '/api/public/remove-test'
     | '/api/public/restore-admin'
+    | '/api/public/restore-dashboard'
     | '/api/public/send-notification'
     | '/api/public/sync-wallet'
     | '/api/public/test-email'
@@ -1136,6 +1148,7 @@ export interface FileRouteTypes {
     | '/api/public/quote'
     | '/api/public/remove-test'
     | '/api/public/restore-admin'
+    | '/api/public/restore-dashboard'
     | '/api/public/send-notification'
     | '/api/public/sync-wallet'
     | '/api/public/test-email'
@@ -1210,6 +1223,7 @@ export interface RootRouteChildren {
   ApiPublicQuoteRoute: typeof ApiPublicQuoteRoute
   ApiPublicRemoveTestRoute: typeof ApiPublicRemoveTestRoute
   ApiPublicRestoreAdminRoute: typeof ApiPublicRestoreAdminRoute
+  ApiPublicRestoreDashboardRoute: typeof ApiPublicRestoreDashboardRoute
   ApiPublicSendNotificationRoute: typeof ApiPublicSendNotificationRoute
   ApiPublicSyncWalletRoute: typeof ApiPublicSyncWalletRoute
   ApiPublicTestEmailRoute: typeof ApiPublicTestEmailRoute
@@ -1619,6 +1633,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/send-notification'
       fullPath: '/api/public/send-notification'
       preLoaderRoute: typeof ApiPublicSendNotificationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/restore-dashboard': {
+      id: '/api/public/restore-dashboard'
+      path: '/api/public/restore-dashboard'
+      fullPath: '/api/public/restore-dashboard'
+      preLoaderRoute: typeof ApiPublicRestoreDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/restore-admin': {
@@ -2077,6 +2098,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicQuoteRoute: ApiPublicQuoteRoute,
   ApiPublicRemoveTestRoute: ApiPublicRemoveTestRoute,
   ApiPublicRestoreAdminRoute: ApiPublicRestoreAdminRoute,
+  ApiPublicRestoreDashboardRoute: ApiPublicRestoreDashboardRoute,
   ApiPublicSendNotificationRoute: ApiPublicSendNotificationRoute,
   ApiPublicSyncWalletRoute: ApiPublicSyncWalletRoute,
   ApiPublicTestEmailRoute: ApiPublicTestEmailRoute,
