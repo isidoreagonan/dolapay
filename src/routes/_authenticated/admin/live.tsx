@@ -36,21 +36,22 @@ function LivePage() {
   useEffect(() => {
     let mounted = true;
     (async () => {
-      const since = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
+      const since = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString(); // Last 7 days for live feed
       const { data } = await supabase
         .from("transactions")
         .select("id,amount,currency,status,type,created_at,profile_id,description,net_amount,dola_margin,payment_method,customer_phone,provider,profiles(id,full_name,email)")
         .gte("created_at", since)
         .order("created_at", { ascending: false })
-        .limit(50);
+        .limit(500);
       
       let results: Tx[] = (data ?? []) as Tx[];
       const existingIds = new Set(results.map((t) => t.id));
 
       const { data: wrs } = await (supabase.from("withdrawal_requests") as any)
         .select("id,amount,status,created_at,profile_id")
+        .gte("created_at", since)
         .order("created_at", { ascending: false })
-        .limit(20);
+        .limit(500);
       if (wrs && wrs.length > 0) {
         for (const w of wrs) {
           if (!existingIds.has(w.id)) {
@@ -74,8 +75,9 @@ function LivePage() {
 
       const { data: batches } = await (supabase.from("payout_batches") as any)
         .select("*, payout_batch_items(*)")
+        .gte("created_at", since)
         .order("created_at", { ascending: false })
-        .limit(5);
+        .limit(50);
       if (batches && batches.length > 0) {
         for (const b of batches) {
           if (b.payout_batch_items && Array.isArray(b.payout_batch_items)) {
@@ -104,8 +106,9 @@ function LivePage() {
       const { data: oldWrs } = await supabase
         .from("withdrawals")
         .select("id,amount,status,created_at,merchant_id")
+        .gte("created_at", since)
         .order("created_at", { ascending: false })
-        .limit(20);
+        .limit(500);
       if (oldWrs && oldWrs.length > 0) {
         for (const w of oldWrs) {
           if (!existingIds.has(w.id)) {
@@ -127,7 +130,7 @@ function LivePage() {
         }
       }
 
-      results = results.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 50);
+      results = results.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 500);
 
       if (mounted) setTxs(results);
     })();
@@ -137,7 +140,7 @@ function LivePage() {
       .on("postgres_changes", { event: "*", schema: "public", table: "transactions" }, (payload) => {
         if (payload.eventType === "INSERT") {
           const row = payload.new as Tx;
-          setTxs((prev) => [row, ...prev].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 100));
+          setTxs((prev) => [row, ...prev].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 500));
           setPulse(row.id);
           setTimeout(() => setPulse(null), 1500);
         } else if (payload.eventType === "UPDATE") {
@@ -160,7 +163,7 @@ function LivePage() {
         } as Tx;
 
         if (payload.eventType === "INSERT") {
-          setTxs((prev) => [row, ...prev].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 100));
+          setTxs((prev) => [row, ...prev].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 500));
           setPulse(row.id);
           setTimeout(() => setPulse(null), 1500);
         } else if (payload.eventType === "UPDATE") {
@@ -182,7 +185,7 @@ function LivePage() {
         } as Tx;
 
         if (payload.eventType === "INSERT") {
-          setTxs((prev) => [row, ...prev].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 100));
+          setTxs((prev) => [row, ...prev].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 500));
           setPulse(row.id);
           setTimeout(() => setPulse(null), 1500);
         } else if (payload.eventType === "UPDATE") {
