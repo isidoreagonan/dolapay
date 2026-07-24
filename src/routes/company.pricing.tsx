@@ -57,8 +57,7 @@ const excluded = [
   "Aucune marge cachée sur les frais opérateur",
 ];
 
-function PricingPage() {
-  return (
+const PricingPage = () => (
   <PageShell
     title="Tarifs DolaPay — Transparence totale, aucun frais caché"
     description="Mobile Money 2%, Pay-out 1%, Cartes 2,5% + 100 FCFA. Aucun frais d'installation, aucun abonnement. Les frais opérateur réels répercutés à l'identique."
@@ -161,8 +160,7 @@ function PricingPage() {
       </div>
     </section>
   </PageShell>
-  );
-}
+);
 
 
 

@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import LegalPage from "@/components/site/legal-page";
 
-function Terms() {
-  return (
+const Terms = () => (
   <LegalPage
     title="Conditions Générales de Vente et d'Utilisation (CGV/CGU) — DolaPay"
     description="Lisez nos conditions générales pour comprendre vos droits et obligations lors de l'utilisation de nos services de paiement."
@@ -81,5 +80,4 @@ function Terms() {
 
 export default Terms;
 
-export const Route = createFileRoute("/legal/terms")({ component: Terms }  );
-}
+export const Route = createFileRoute("/legal/terms")({ component: Terms });

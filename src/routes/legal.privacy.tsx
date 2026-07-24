@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import LegalPage from "@/components/site/legal-page";
 
-function Privacy() {
-  return (
+const Privacy = () => (
   <LegalPage
     title="Politique de confidentialité — DolaPay"
     description="Comment DolaPay collecte, utilise et protège vos données personnelles."
@@ -91,5 +90,4 @@ function Privacy() {
 
 export default Privacy;
 
-export const Route = createFileRoute("/legal/privacy")({ component: Privacy }  );
-}
+export const Route = createFileRoute("/legal/privacy")({ component: Privacy });

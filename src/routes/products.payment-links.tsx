@@ -3,8 +3,7 @@ export const Route = createFileRoute("/products/payment-links")({ component: NoC
 import { Link2, Share2, Palette, QrCode, Globe2, BarChart3 } from "lucide-react";
 import ProductPage from "@/components/site/product-page";
 
-function NoCode() {
-  return (
+const NoCode = () => (
   <ProductPage
     seoTitle="Liens de paiement no-code — DolaPay"
     seoDescription="Créez un lien de paiement en 30 secondes, sans coder. Partagez sur WhatsApp, Instagram, TikTok — encaissez en Mobile Money ou par carte."
@@ -27,8 +26,7 @@ function NoCode() {
       { icon: BarChart3, title: "Suivi en temps réel", desc: "Voyez qui a payé, qui a cliqué sans finaliser, et les canaux les plus efficaces." },
     ]}
   />
-  );
-}
+);
 
 
 

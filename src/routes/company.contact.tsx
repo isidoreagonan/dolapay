@@ -5,8 +5,7 @@ import PageShell from "@/components/site/page-shell";
 import PageHero from "@/components/site/page-hero";
 import { Button } from "@/components/ui/button";
 
-function ContactPage() {
-  return (
+const ContactPage = () => (
   <PageShell
     title="Contactez DolaPay — Ventes et Partenariats"
     description="Prenez contact avec nos équipes commerciales, nos experts en intégration, ou venez nous rencontrer à notre siège."
@@ -147,5 +146,4 @@ function ContactPage() {
 
 export default ContactPage;
 
-export const Route = createFileRoute("/company/contact")({ component: ContactPage }  );
-}
+export const Route = createFileRoute("/company/contact")({ component: ContactPage });

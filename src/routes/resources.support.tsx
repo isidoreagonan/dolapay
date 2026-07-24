@@ -6,8 +6,7 @@ import PageShell from "@/components/site/page-shell";
 import PageHero from "@/components/site/page-hero";
 import { Button } from "@/components/ui/button";
 
-function SupportPage() {
-  return (
+const SupportPage = () => (
   <PageShell
     title="Support Marchand — DolaPay"
     description="Une équipe dédiée à la réussite de votre entreprise. Obtenez de l'aide technique, financière ou commerciale en quelques minutes."
@@ -133,5 +132,4 @@ function SupportPage() {
 
 export default SupportPage;
 
-export const Route = createFileRoute("/resources/support")({ component: SupportPage }  );
-}
+export const Route = createFileRoute("/resources/support")({ component: SupportPage });
