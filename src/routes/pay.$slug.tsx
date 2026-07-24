@@ -445,7 +445,7 @@ function PayPage() {
   const fontFam = theme.fontFamily || "Inter";
 
   return (
-    <div className={cn("custom-theme-wrapper", isDark ? "dark" : "")}>
+    <div className={cn("custom-theme-wrapper font-sans antialiased", isDark ? "dark" : "")}>
       <style>{`
         .custom-theme-wrapper {
           --primary: ${primaryColor};
@@ -455,264 +455,243 @@ function PayPage() {
           ${fontFam === 'system-ui' ? `font-family: system-ui, sans-serif;` : ''}
         }
       `}</style>
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col md:flex-row text-slate-900 dark:text-slate-50 transition-colors duration-300">
-      {/* LEFT COLUMN: Product & Details Panel */}
-      <div className="w-full md:w-1/2 bg-slate-100 dark:bg-slate-900 border-r border-slate-200/80 dark:border-slate-800/80 p-6 md:p-12 flex flex-col justify-between">
-        <div className="space-y-8">
+      
+      <div className="min-h-screen flex flex-col md:flex-row bg-white dark:bg-slate-950 transition-colors duration-300">
+        
+        {/* LEFT COLUMN: Product & Details Panel */}
+        <div className="w-full md:w-[45%] lg:w-[40%] bg-[#f9fafb] dark:bg-slate-900/50 border-r border-slate-200/50 dark:border-slate-800/50 p-6 md:p-12 lg:p-16 flex flex-col relative overflow-hidden">
           {/* Brand Logo */}
-          <div className="flex items-center gap-2">
-            <img src={logoFull.url} alt="DolaPay" className="h-7" />
+          <div className="flex items-center gap-3 mb-16">
+            <img src={logoFull.url} alt="DolaPay" className="h-7 object-contain" />
           </div>
 
-          {/* Product Info */}
-          <div className="space-y-6">
-            {link.image_url && (
-              <div className="relative w-full rounded-3xl overflow-hidden shadow-xl bg-white/50 dark:bg-slate-950/50 border border-slate-200/60 dark:border-slate-800/60 backdrop-blur-sm">
-                <div className="flex items-center justify-center bg-slate-50/50 dark:bg-slate-900/50 p-2">
-                  <img src={link.image_url} alt="" className="max-h-72 w-auto object-contain rounded-2xl shadow-sm" />
-                </div>
-              </div>
-            )}
-
-            <div>
-              {link.invoice_number && (
-                <span className="inline-flex items-center rounded-full bg-slate-200 dark:bg-slate-800 px-2.5 py-0.5 text-xs font-medium text-slate-800 dark:text-slate-200 mb-2">
-                  #{link.invoice_number}
-                </span>
-              )}
-              <h1 className="text-2xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
-                {link.title}
-              </h1>
-              {link.description && (
-                <p className="mt-3 text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                  {link.description}
-                </p>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Pricing Summary */}
-        <div className="mt-10 pt-8 border-t border-slate-200 dark:border-slate-800 space-y-4">
-          <div className="flex justify-between items-baseline">
-            <span className="text-sm text-slate-500 dark:text-slate-400 font-semibold tracking-wide uppercase">Montant à régler</span>
-            <div className="text-right">
-              <span className="text-4xl md:text-5xl font-black tracking-tighter text-slate-900 dark:text-white">
-                {fmt(finalAmount)}
-              </span>
-              <span className="ml-2 text-lg font-bold text-slate-500 dark:text-slate-400 uppercase">
-                {link.currency}
-              </span>
-            </div>
-          </div>
-
-          <div className="flex justify-between items-center text-xs text-slate-500 dark:text-slate-400">
-            <span>Frais DolaPay</span>
-            <span className="font-semibold text-slate-700 dark:text-slate-300">
-              {link.fees_paid_by === "customer" ? (
-                (quote?.totalFees || 0) > 0 ? `+ ${fmt(quote!.totalFees)} ${link.currency}` : (isQuoteLoading ? <Loader2 className="h-3 w-3 animate-spin inline-block" /> : "Calcul en cours...")
-              ) : "0 F (Pris en charge)"}
+          <div className="flex items-baseline justify-between mb-8">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+              {link.title}
+            </h1>
+            <span className="text-xl font-medium text-slate-600 dark:text-slate-400 shrink-0 ml-4">
+              {fmt(link.amount)} {link.currency}
             </span>
           </div>
 
-          <div className="flex items-center gap-2 rounded-xl bg-slate-200/50 dark:bg-slate-800/50 px-3 py-2 text-[11px] text-slate-500 dark:text-slate-400">
-            <Shield className="h-3.5 w-3.5 text-primary shrink-0" />
-            <span>Paiement traité de manière sécurisée en direct via le réseau d'opérateurs agrégé.</span>
+          {link.image_url && (
+            <div className="w-full rounded-2xl overflow-hidden shadow-sm border border-slate-200/50 dark:border-slate-800/50 bg-white dark:bg-slate-950 mb-8 aspect-video">
+              <img src={link.image_url} alt={link.title} className="w-full h-full object-cover" />
+            </div>
+          )}
+
+          {link.description && (
+            <p className="text-[15px] text-slate-600 dark:text-slate-400 leading-relaxed mb-8">
+              {link.description}
+            </p>
+          )}
+          
+          {link.invoice_number && (
+             <div className="mt-4 mb-8">
+               <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Référence Facture</span>
+               <p className="mt-1 font-mono text-sm text-slate-800 dark:text-slate-300">#{link.invoice_number}</p>
+             </div>
+          )}
+          
+          <div className="mt-auto pt-12 flex items-center gap-2 text-xs font-medium text-slate-400">
+             <Shield className="h-4 w-4" />
+             Paiements sécurisés et cryptés par DolaPay.
           </div>
         </div>
-      </div>
 
-      {/* RIGHT COLUMN: Form Panel */}
-      <div className="w-full md:w-1/2 bg-white dark:bg-slate-950 p-6 md:p-12 flex flex-col justify-between">
-        <div className="max-w-md mx-auto w-full my-auto space-y-8">
-          <div>
-            <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
-              Détails du paiement
-            </h2>
-            <p className="mt-1.5 text-xs text-slate-500 dark:text-slate-400">
-              Complétez vos coordonnées pour valider le paiement Mobile Money par USSD.
-            </p>
-          </div>
+        {/* RIGHT COLUMN: Form Panel */}
+        <div className="w-full md:w-[55%] lg:w-[60%] bg-white dark:bg-slate-950 p-6 md:p-12 lg:p-16 flex flex-col">
+          <div className="max-w-[500px] mx-auto w-full">
+            <div className="mb-10">
+              <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+                Payment Details
+              </h2>
+              <p className="mt-2 text-[15px] text-slate-500 dark:text-slate-400">
+                Complete your purchase by providing your payment details.
+              </p>
+            </div>
 
-          {!txId && !submitting ? (
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Email Address */}
-              <div className="space-y-1.5">
-                <Label htmlFor="email" className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  Adresse email <span className="text-slate-400">(Facultatif)</span>
-                </Label>
-                <div className="relative">
-                  <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            {!txId && !submitting ? (
+              <form onSubmit={handleSubmit} className="space-y-6">
+                
+                {/* Email Address */}
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                    Email address
+                  </Label>
                   <Input
                     id="email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="nom@exemple.com"
-                    className="pl-10 h-12 bg-slate-50/50 hover:bg-slate-100/50 dark:bg-slate-900/50 dark:hover:bg-slate-900 border-slate-200 dark:border-slate-800 focus-visible:ring-4 focus-visible:ring-primary/10 focus-visible:border-primary rounded-xl transition-all shadow-sm"
+                    placeholder="luke@skywalker.com"
+                    className="h-12 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary rounded-lg transition-all shadow-sm text-[15px] px-4"
                   />
                 </div>
-              </div>
-
-              {/* Customer Name */}
-              <div className="space-y-1.5">
-                <Label htmlFor="name" className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  Nom complet
-                </Label>
-                <div className="relative">
-                  <User className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                
+                {/* Customer Name */}
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                    Cardholder name
+                  </Label>
                   <Input
                     id="name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
                     maxLength={100}
-                    placeholder="Votre nom complet"
-                    className="pl-10 h-12 bg-slate-50/50 hover:bg-slate-100/50 dark:bg-slate-900/50 dark:hover:bg-slate-900 border-slate-200 dark:border-slate-800 focus-visible:ring-4 focus-visible:ring-primary/10 focus-visible:border-primary rounded-xl transition-all shadow-sm"
+                    placeholder="Prénom et Nom"
+                    className="h-12 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary rounded-lg transition-all shadow-sm text-[15px] px-4"
                   />
                 </div>
-              </div>
 
-              {/* Country Selection Dropdown */}
-              <div className="space-y-1.5 relative">
-                <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  Pays de facturation
-                </Label>
-                <button
-                  type="button"
-                  onClick={() => setShowCountryDropdown(!showCountryDropdown)}
-                  className="w-full flex items-center justify-between px-4 h-12 border border-slate-200 dark:border-slate-800 bg-slate-50/50 hover:bg-slate-100/50 dark:bg-slate-900/50 dark:hover:bg-slate-900 rounded-xl text-sm transition-all focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary shadow-sm"
-                >
-                  <div className="flex items-center gap-3">
-                    <FlagIcon code={activeCountry.code} flag={activeCountry.flag} name={activeCountry.name} className="w-5 h-3.5 shadow-sm" />
-                    <span className="font-medium text-slate-900 dark:text-white">{activeCountry.name}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-slate-400 text-xs">
-                    <span className="font-bold opacity-75">+{activeCountry.prefix}</span>
-                    <ChevronDown className="h-4 w-4 shrink-0" />
-                  </div>
-                </button>
+                {/* Country Selection (Billing address equivalent) */}
+                <div className="space-y-2 relative">
+                  <Label className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                    Billing address
+                  </Label>
+                  <button
+                    type="button"
+                    onClick={() => setShowCountryDropdown(!showCountryDropdown)}
+                    className="w-full flex items-center justify-between px-4 h-12 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 rounded-lg text-[15px] transition-all focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary shadow-sm"
+                  >
+                    <div className="flex items-center gap-3">
+                      <FlagIcon code={activeCountry.code} flag={activeCountry.flag} name={activeCountry.name} className="w-5 h-3.5 shadow-sm rounded-sm" />
+                      <span className="text-slate-900 dark:text-white">{activeCountry.name}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-slate-400">
+                      <ChevronDown className="h-4 w-4" />
+                    </div>
+                  </button>
 
-                {showCountryDropdown && (
-                  <div className="absolute z-50 left-0 right-0 mt-1 max-h-60 overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl py-1.5">
-                    {COUNTRIES.map((c) => (
-                      <button
-                        key={c.code}
-                        type="button"
-                        onClick={() => handleCountryChange(c.code)}
-                        className={cn(
-                          "w-full flex items-center justify-between px-4 py-2 text-sm text-left hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors",
-                          selectedCountryCode === c.code ? "bg-primary/5 text-primary font-semibold" : "text-slate-700 dark:text-slate-300"
-                        )}
-                      >
-                        <div className="flex items-center gap-3">
-                          <FlagIcon code={c.code} flag={c.flag} name={c.name} className="w-5 h-3.5" />
-                          <span>{c.name}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-slate-400">+{c.prefix}</span>
-                          {selectedCountryCode === c.code && <Check className="h-3.5 w-3.5 text-primary shrink-0" />}
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Operator Selection with logos */}
-              <div className="space-y-1.5">
-                <Label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  Moyen de paiement ({activeCountry.name})
-                </Label>
-                <div className="grid grid-cols-2 gap-2.5">
-                  {activeCountry.operators.map((op) => {
-                    const active = provider === op.id;
-                    return (
-                      <button
-                        key={op.id}
-                        type="button"
-                        onClick={() => { setProvider(op.id); setUserSelectedProvider(true); }}
-                        className={cn(
-                          "relative p-3.5 border rounded-xl flex items-center justify-center gap-2.5 min-h-[58px] transition-all bg-slate-50/50 dark:bg-slate-900/40 hover:bg-slate-50 dark:hover:bg-slate-900",
-                          active
-                            ? "border-primary bg-primary/5 dark:bg-primary/10 text-primary ring-2 ring-primary/25 shadow-sm"
-                            : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400"
-                        )}
-                      >
-                        {op.logoUrl ? (
-                          <img src={op.logoUrl} alt={op.name} className="h-7 max-w-[80%] object-contain" />
-                        ) : (
-                          <div className={cn(
-                            "px-2.5 py-1 rounded font-black text-[11px] tracking-widest",
-                            op.color
-                          )}>
-                            {op.name.toUpperCase()}
+                  {showCountryDropdown && (
+                    <div className="absolute z-50 left-0 right-0 mt-1 max-h-60 overflow-y-auto rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-xl py-2">
+                      {COUNTRIES.map((c) => (
+                        <button
+                          key={c.code}
+                          type="button"
+                          onClick={() => handleCountryChange(c.code)}
+                          className={cn(
+                            "w-full flex items-center justify-between px-4 py-2.5 text-[15px] text-left hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors",
+                            selectedCountryCode === c.code ? "bg-primary/5 text-primary font-medium" : "text-slate-700 dark:text-slate-300"
+                          )}
+                        >
+                          <div className="flex items-center gap-3">
+                            <FlagIcon code={c.code} flag={c.flag} name={c.name} className="w-5 h-3.5 shadow-sm rounded-sm" />
+                            <span>{c.name}</span>
                           </div>
-                        )}
-                        {active && (
-                          <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[8px] font-bold text-white shadow-sm ring-2 ring-white">
-                            ✓
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm text-slate-400">+{c.prefix}</span>
+                            {selectedCountryCode === c.code && <Check className="h-4 w-4 text-primary shrink-0" />}
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* Phone Input (Placed right below country mimicking ZIP/State fields) */}
+                  <div className="relative mt-2">
+                     <Input
+                        id="phone"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        required
+                        maxLength={20}
+                        placeholder={`Phone: +${activeCountry.prefix} ...`}
+                        className="h-12 bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary rounded-lg text-[15px] transition-all shadow-sm px-4"
+                     />
+                  </div>
+                </div>
+
+                {/* Operator Selection (Payment Method) */}
+                <div className="space-y-2 pt-2">
+                  <Label className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                    Payment Method
+                  </Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {activeCountry.operators.map((op) => {
+                      const active = provider === op.id;
+                      return (
+                        <button
+                          key={op.id}
+                          type="button"
+                          onClick={() => { setProvider(op.id); setUserSelectedProvider(true); }}
+                          className={cn(
+                            "relative px-4 py-3 border rounded-lg flex items-center gap-3 min-h-[56px] transition-all bg-white dark:bg-slate-950",
+                            active
+                              ? "border-primary ring-1 ring-primary shadow-sm bg-primary/5 dark:bg-primary/10"
+                              : "border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"
+                          )}
+                        >
+                          {op.logoUrl ? (
+                            <img src={op.logoUrl} alt={op.name} className="h-6 w-auto object-contain" />
+                          ) : (
+                            <div className={cn("px-2 py-1 rounded-sm font-bold text-[10px] tracking-wider text-white", op.color)}>
+                              {op.name.toUpperCase()}
+                            </div>
+                          )}
+                          <span className={cn("text-sm font-semibold", active ? "text-primary" : "text-slate-700 dark:text-slate-300")}>
+                            {op.name}
                           </span>
-                        )}
-                      </button>
-                    );
-                  })}
+                          {active && (
+                            <div className="absolute right-3">
+                              <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center text-primary-foreground">
+                                <Check className="h-3 w-3" />
+                              </div>
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
 
-              {/* Phone Input with prefilled prefix */}
-              <div className="space-y-1.5">
-                <Label htmlFor="phone" className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  Numéro de téléphone Mobile Money
-                </Label>
-                <div className="relative">
-                  <Smartphone className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                  <Input
-                    id="phone"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    required
-                    maxLength={20}
-                    placeholder={`+${activeCountry.prefix} ...`}
-                    className="pl-10 h-12 bg-slate-50/50 hover:bg-slate-100/50 dark:bg-slate-900/50 dark:hover:bg-slate-900 border-slate-200 dark:border-slate-800 focus-visible:ring-4 focus-visible:ring-primary/10 focus-visible:border-primary rounded-xl font-mono text-sm transition-all shadow-sm"
-                  />
+                {/* Order Summary (Subtotal, VAT, Total) */}
+                <div className="mt-12 pt-8 border-t border-slate-100 dark:border-slate-800/50 space-y-3">
+                  <div className="flex justify-between items-center text-[14px] text-slate-600 dark:text-slate-400">
+                    <span>Subtotal</span>
+                    <span className="font-semibold text-slate-900 dark:text-white">{fmt(link.amount)} {link.currency}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-[14px] text-slate-600 dark:text-slate-400">
+                    <span>VAT (Fees)</span>
+                    <span className="font-semibold text-slate-900 dark:text-white">
+                      {link.fees_paid_by === "customer" ? (
+                        (quote?.totalFees || 0) > 0 ? `${fmt(quote!.totalFees)} ${link.currency}` : (isQuoteLoading ? <Loader2 className="h-3 w-3 animate-spin inline-block" /> : "Calcul...")
+                      ) : "0"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center pt-4 mt-4 text-[16px]">
+                    <span className="font-bold text-slate-900 dark:text-white">Total</span>
+                    <span className="text-[18px] font-black tracking-tight text-slate-900 dark:text-white">
+                      {fmt(finalAmount)} {link.currency}
+                    </span>
+                  </div>
                 </div>
-                <p className="text-[10px] text-slate-400 leading-normal">
-                  Saisissez le numéro rattaché à votre compte Mobile Money. Une demande de confirmation USSD va vous être envoyée.
-                </p>
+
+                {/* Pay Button */}
+                <Button
+                  type="submit"
+                  className="w-full h-14 rounded-lg font-semibold text-[16px] shadow-sm hover:opacity-90 active:scale-[0.99] transition-all mt-6"
+                  style={{ backgroundColor: 'var(--primary)', color: 'var(--primary-foreground)' }}
+                  disabled={submitting || (link.fees_paid_by === "customer" && !quote)}
+                >
+                  {submitting ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : null}
+                  Pay {fmt(finalAmount)}
+                </Button>
+
+              </form>
+            ) : (
+              <div className="mt-8">
+                <StatusView
+                  status={status ?? "pending"}
+                  amount={finalAmount}
+                  currency={link.currency}
+                  countdown={redirectCountdown}
+                  thankYou={link.thank_you_message}
+                  failureReason={failureReason}
+                />
               </div>
-
-              {/* Pay Button */}
-              <Button
-                type="submit"
-                className="w-full h-14 rounded-xl font-bold shadow-xl shadow-primary/25 text-base flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all mt-4"
-                disabled={submitting || (link.fees_paid_by === "customer" && !quote)}
-              >
-                {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Lock className="h-3.5 w-3.5" />}
-                Payer {fmt(finalAmount)} {link.currency}
-              </Button>
-            </form>
-          ) : (
-            <StatusView
-              status={status ?? "pending"}
-              amount={finalAmount}
-              currency={link.currency}
-              countdown={redirectCountdown}
-              thankYou={link.thank_you_message}
-              failureReason={failureReason}
-            />
-          )}
-        </div>
-
-        {/* Footer Secure Badge */}
-        <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-900 text-center space-y-2">
-          <div className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400">
-            <Lock className="h-3.5 w-3.5 text-primary shrink-0" />
-            <span>Paiement sécurisé par DolaPay</span>
-          </div>
-          <p className="text-[9px] text-slate-400 leading-none">
-            Propulsé par DolaPay · Conditions · Confidentialité
-          </p>
+            )}
           </div>
         </div>
       </div>
