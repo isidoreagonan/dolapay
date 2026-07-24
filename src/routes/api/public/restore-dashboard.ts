@@ -47,8 +47,7 @@ export const Route = createFileRoute("/api/public/restore-dashboard")({
             type: "pay-in",
             status: "success",
             description: `Paiement Client - ${network}`,
-            created_at: d.toISOString(),
-            mode: "live" // Live mode to ensure it shows up everywhere
+            created_at: d.toISOString()
           });
         }
 
@@ -64,8 +63,7 @@ export const Route = createFileRoute("/api/public/restore-dashboard")({
             type: "pay-out",
             status: "success",
             description: `Retrait vers compte bancaire / Mobile Money`,
-            created_at: d.toISOString(),
-            mode: "live"
+            created_at: d.toISOString()
           });
         }
 
