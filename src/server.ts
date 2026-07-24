@@ -48,9 +48,9 @@ export default {
         let newPathname = url.pathname;
         const hn = url.hostname;
         
-        if (hn.startsWith('docs') && !url.pathname.startsWith('/developers')) {
+        if (hn.startsWith('docs') && !url.pathname.startsWith('/developers') && !url.pathname.startsWith('/api')) {
           newPathname = '/developers' + (url.pathname === '/' ? '' : url.pathname);
-        } else if (hn.startsWith('dashboard') && !url.pathname.startsWith('/dashboard') && !url.pathname.startsWith('/auth')) {
+        } else if (hn.startsWith('dashboard') && !url.pathname.startsWith('/dashboard') && !url.pathname.startsWith('/auth') && !url.pathname.startsWith('/api')) {
           newPathname = '/dashboard' + (url.pathname === '/' ? '' : url.pathname);
         }
         
