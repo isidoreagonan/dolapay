@@ -71,6 +71,7 @@ import { Route as ApiPublicPawapayWebhookRouteImport } from './routes/api/public
 import { Route as ApiPublicPawapayHistoryRouteImport } from './routes/api/public/pawapay-history'
 import { Route as ApiPublicPawapayAvailabilityRouteImport } from './routes/api/public/pawapay-availability'
 import { Route as ApiPublicLigdicashWebhookRouteImport } from './routes/api/public/ligdicash-webhook'
+import { Route as ApiPublicFixDbRouteImport } from './routes/api/public/fix-db'
 import { Route as ApiPublicDebugDbRouteImport } from './routes/api/public/debug-db'
 import { Route as ApiPublicCheckoutPayRouteImport } from './routes/api/public/checkout-pay'
 import { Route as ApiCronSyncPawapayRouteImport } from './routes/api/cron/sync-pawapay'
@@ -420,6 +421,11 @@ const ApiPublicLigdicashWebhookRoute =
     path: '/api/public/ligdicash-webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicFixDbRoute = ApiPublicFixDbRouteImport.update({
+  id: '/api/public/fix-db',
+  path: '/api/public/fix-db',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicDebugDbRoute = ApiPublicDebugDbRouteImport.update({
   id: '/api/public/debug-db',
   path: '/api/public/debug-db',
@@ -644,6 +650,7 @@ export interface FileRoutesByFullPath {
   '/api/cron/sync-pawapay': typeof ApiCronSyncPawapayRoute
   '/api/public/checkout-pay': typeof ApiPublicCheckoutPayRoute
   '/api/public/debug-db': typeof ApiPublicDebugDbRoute
+  '/api/public/fix-db': typeof ApiPublicFixDbRoute
   '/api/public/ligdicash-webhook': typeof ApiPublicLigdicashWebhookRoute
   '/api/public/pawapay-availability': typeof ApiPublicPawapayAvailabilityRoute
   '/api/public/pawapay-history': typeof ApiPublicPawapayHistoryRoute
@@ -733,6 +740,7 @@ export interface FileRoutesByTo {
   '/api/cron/sync-pawapay': typeof ApiCronSyncPawapayRoute
   '/api/public/checkout-pay': typeof ApiPublicCheckoutPayRoute
   '/api/public/debug-db': typeof ApiPublicDebugDbRoute
+  '/api/public/fix-db': typeof ApiPublicFixDbRoute
   '/api/public/ligdicash-webhook': typeof ApiPublicLigdicashWebhookRoute
   '/api/public/pawapay-availability': typeof ApiPublicPawapayAvailabilityRoute
   '/api/public/pawapay-history': typeof ApiPublicPawapayHistoryRoute
@@ -828,6 +836,7 @@ export interface FileRoutesById {
   '/api/cron/sync-pawapay': typeof ApiCronSyncPawapayRoute
   '/api/public/checkout-pay': typeof ApiPublicCheckoutPayRoute
   '/api/public/debug-db': typeof ApiPublicDebugDbRoute
+  '/api/public/fix-db': typeof ApiPublicFixDbRoute
   '/api/public/ligdicash-webhook': typeof ApiPublicLigdicashWebhookRoute
   '/api/public/pawapay-availability': typeof ApiPublicPawapayAvailabilityRoute
   '/api/public/pawapay-history': typeof ApiPublicPawapayHistoryRoute
@@ -923,6 +932,7 @@ export interface FileRouteTypes {
     | '/api/cron/sync-pawapay'
     | '/api/public/checkout-pay'
     | '/api/public/debug-db'
+    | '/api/public/fix-db'
     | '/api/public/ligdicash-webhook'
     | '/api/public/pawapay-availability'
     | '/api/public/pawapay-history'
@@ -1012,6 +1022,7 @@ export interface FileRouteTypes {
     | '/api/cron/sync-pawapay'
     | '/api/public/checkout-pay'
     | '/api/public/debug-db'
+    | '/api/public/fix-db'
     | '/api/public/ligdicash-webhook'
     | '/api/public/pawapay-availability'
     | '/api/public/pawapay-history'
@@ -1106,6 +1117,7 @@ export interface FileRouteTypes {
     | '/api/cron/sync-pawapay'
     | '/api/public/checkout-pay'
     | '/api/public/debug-db'
+    | '/api/public/fix-db'
     | '/api/public/ligdicash-webhook'
     | '/api/public/pawapay-availability'
     | '/api/public/pawapay-history'
@@ -1178,6 +1190,7 @@ export interface RootRouteChildren {
   ApiCronSyncPawapayRoute: typeof ApiCronSyncPawapayRoute
   ApiPublicCheckoutPayRoute: typeof ApiPublicCheckoutPayRoute
   ApiPublicDebugDbRoute: typeof ApiPublicDebugDbRoute
+  ApiPublicFixDbRoute: typeof ApiPublicFixDbRoute
   ApiPublicLigdicashWebhookRoute: typeof ApiPublicLigdicashWebhookRoute
   ApiPublicPawapayAvailabilityRoute: typeof ApiPublicPawapayAvailabilityRoute
   ApiPublicPawapayHistoryRoute: typeof ApiPublicPawapayHistoryRoute
@@ -1637,6 +1650,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicLigdicashWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/fix-db': {
+      id: '/api/public/fix-db'
+      path: '/api/public/fix-db'
+      fullPath: '/api/public/fix-db'
+      preLoaderRoute: typeof ApiPublicFixDbRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/debug-db': {
       id: '/api/public/debug-db'
       path: '/api/public/debug-db'
@@ -2029,6 +2049,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiCronSyncPawapayRoute: ApiCronSyncPawapayRoute,
   ApiPublicCheckoutPayRoute: ApiPublicCheckoutPayRoute,
   ApiPublicDebugDbRoute: ApiPublicDebugDbRoute,
+  ApiPublicFixDbRoute: ApiPublicFixDbRoute,
   ApiPublicLigdicashWebhookRoute: ApiPublicLigdicashWebhookRoute,
   ApiPublicPawapayAvailabilityRoute: ApiPublicPawapayAvailabilityRoute,
   ApiPublicPawapayHistoryRoute: ApiPublicPawapayHistoryRoute,
