@@ -456,10 +456,10 @@ function PayPage() {
         }
       `}</style>
       
-      <div className="flex flex-col md:flex-row bg-white dark:bg-slate-950 transition-colors duration-300 min-h-[100dvh] md:h-screen md:overflow-hidden">
+      <div className="flex flex-col md:flex-row bg-white dark:bg-slate-950 transition-colors duration-300 min-h-screen">
         
         {/* LEFT COLUMN: Product & Details Panel */}
-        <div className="w-full md:w-[45%] lg:w-[40%] bg-[#f9fafb] dark:bg-slate-900/50 border-r border-slate-200/50 dark:border-slate-800/50 p-6 md:p-12 lg:p-16 flex flex-col relative md:overflow-y-auto custom-scrollbar">
+        <div className="w-full md:w-[45%] lg:w-[40%] bg-[#f9fafb] dark:bg-slate-900/50 border-r border-slate-200/50 dark:border-slate-800/50 p-6 md:p-12 lg:p-16 flex flex-col relative">
           {/* Brand Logo */}
           <div className="flex items-center gap-3 mb-16 shrink-0">
             <img src={logoFull.url} alt="DolaPay" className="h-7 object-contain" />
@@ -500,7 +500,7 @@ function PayPage() {
         </div>
 
         {/* RIGHT COLUMN: Form Panel */}
-        <div className="w-full md:w-[55%] lg:w-[60%] bg-white dark:bg-slate-950 p-6 md:p-12 lg:p-16 flex flex-col md:overflow-y-auto custom-scrollbar">
+        <div className="w-full md:w-[55%] lg:w-[60%] bg-white dark:bg-slate-950 p-6 md:p-12 lg:p-16 flex flex-col md:sticky md:top-0 md:max-h-screen md:overflow-y-auto">
           <div className="max-w-[500px] mx-auto w-full">
             <div className="mb-10">
               <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
