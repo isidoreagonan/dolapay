@@ -90,34 +90,34 @@ const COUNTRIES: CountryConfig[] = [
     code: "cd", name: "RD Congo", flag: "🇨🇩", prefix: "243",
     operators: [
       { id: "Orange", name: "Orange Money", logoUrl: "/methods/orange.png", color: "bg-[#FF6600]" },
-      { id: "Airtel", name: "Airtel Money", logoUrl: null, color: "bg-[#FF0000]" },
-      { id: "Vodacom", name: "M-Pesa", logoUrl: null, color: "bg-[#E3000F]" },
+      { id: "Airtel", name: "Airtel Money", logoUrl: "/methods/airtel.webp", color: "bg-[#FF0000]" },
+      { id: "Vodacom", name: "M-Pesa", logoUrl: "/methods/mpesa.png", color: "bg-[#E3000F]" },
     ]
   },
   {
     code: "cg", name: "Congo", flag: "🇨🇬", prefix: "242",
     operators: [
       { id: "MTN", name: "MTN MoMo", logoUrl: "/methods/mtn.png", color: "bg-[#FFCC00]" },
-      { id: "Airtel", name: "Airtel Money", logoUrl: null, color: "bg-[#FF0000]" },
+      { id: "Airtel", name: "Airtel Money", logoUrl: "/methods/airtel.webp", color: "bg-[#FF0000]" },
     ]
   },
   {
     code: "ga", name: "Gabon", flag: "🇬🇦", prefix: "241",
     operators: [
-      { id: "Airtel", name: "Airtel Money", logoUrl: null, color: "bg-[#FF0000]" },
+      { id: "Airtel", name: "Airtel Money", logoUrl: "/methods/airtel.webp", color: "bg-[#FF0000]" },
     ]
   },
   {
     code: "ke", name: "Kenya", flag: "🇰🇪", prefix: "254",
     operators: [
-      { id: "Safaricom", name: "M-Pesa", logoUrl: null, color: "bg-[#009900]" },
+      { id: "Safaricom", name: "M-Pesa", logoUrl: "/methods/mpesa.png", color: "bg-[#009900]" },
     ]
   },
   {
     code: "rw", name: "Rwanda", flag: "🇷🇼", prefix: "250",
     operators: [
       { id: "MTN", name: "MTN MoMo", logoUrl: "/methods/mtn.png", color: "bg-[#FFCC00]" },
-      { id: "Airtel", name: "Airtel Money", logoUrl: null, color: "bg-[#FF0000]" },
+      { id: "Airtel", name: "Airtel Money", logoUrl: "/methods/airtel.webp", color: "bg-[#FF0000]" },
     ]
   },
   {
@@ -137,7 +137,7 @@ const COUNTRIES: CountryConfig[] = [
     code: "ug", name: "Ouganda", flag: "🇺🇬", prefix: "256",
     operators: [
       { id: "MTN", name: "MTN MoMo", logoUrl: "/methods/mtn.png", color: "bg-[#FFCC00]" },
-      { id: "Airtel", name: "Airtel Money", logoUrl: null, color: "bg-[#FF0000]" },
+      { id: "Airtel", name: "Airtel Money", logoUrl: "/methods/airtel.webp", color: "bg-[#FF0000]" },
     ]
   },
   {
