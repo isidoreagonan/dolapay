@@ -5,15 +5,20 @@ export const Route = createFileRoute("/api/public/debug-db")({
     handlers: {
       GET: async () => {
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+        const targetId = "51a91ab9-fbca-4a72-8bab-8727594d5c35";
         
-        const { data: txs } = await supabaseAdmin.from("transactions").select("*").order("created_at", { ascending: false }).limit(200);
-        const { data: wrs } = await supabaseAdmin.from("withdrawal_requests").select("*").order("created_at", { ascending: false }).limit(200);
-        const { data: oldWrs } = await supabaseAdmin.from("withdrawals").select("*").order("created_at", { ascending: false }).limit(200);
+        const txs = await supabaseAdmin.from("transactions").select("*").eq("id", targetId);
+        const wrs = await supabaseAdmin.from("withdrawal_requests").select("*").eq("id", targetId);
+        const oldWrs = await supabaseAdmin.from("withdrawals").select("*").eq("id", targetId);
+        const pb = await supabaseAdmin.from("payout_batches").select("*").eq("id", targetId);
+        const pbi = await supabaseAdmin.from("payout_batch_items").select("*").eq("id", targetId);
         
         return Response.json({
-          transactions: txs?.filter(t => t.amount == 200 || t.amount == 2000).map(t => ({ id: t.id, amount: t.amount, type: t.type, status: t.status, date: t.created_at, desc: t.description })),
-          withdrawal_requests: wrs?.filter(t => t.amount == 200 || t.amount == 2000).map(t => ({ id: t.id, amount: t.amount, status: t.status, date: t.created_at })),
-          withdrawals: oldWrs?.filter(t => t.amount == 200 || t.amount == 2000).map(t => ({ id: t.id, amount: t.amount, status: t.status, date: t.created_at }))
+          transactions: txs.data,
+          withdrawal_requests: wrs.data,
+          withdrawals: oldWrs.data,
+          payout_batches: pb.data,
+          payout_batch_items: pbi.data
         });
       }
     }
