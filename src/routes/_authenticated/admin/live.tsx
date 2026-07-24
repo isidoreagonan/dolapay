@@ -36,12 +36,74 @@ function LivePage() {
   useEffect(() => {
     let mounted = true;
     (async () => {
+      const since = new Date(Date.now() - 30 * 24 * 3600 * 1000).toISOString();
       const { data } = await supabase
         .from("transactions")
         .select("id,amount,currency,status,type,created_at,profile_id,description,net_amount,dola_margin,payment_method,customer_phone,provider,profiles(id,full_name,email)")
+        .gte("created_at", since)
         .order("created_at", { ascending: false })
         .limit(50);
-      if (mounted && data) setTxs(data as Tx[]);
+      
+      let results: Tx[] = (data ?? []) as Tx[];
+      const existingIds = new Set(results.map((t) => t.id));
+
+      const { data: wrs } = await (supabase.from("withdrawal_requests") as any)
+        .select("id,amount,status,created_at,profile_id")
+        .order("created_at", { ascending: false })
+        .limit(20);
+      if (wrs && wrs.length > 0) {
+        for (const w of wrs) {
+          if (!existingIds.has(w.id)) {
+            const amt = Number(w.amount || 0);
+            const st = amt === 101 ? "failed" : ((w.status === "completed" || w.status === "success" || w.status === "validé") ? "success" : (w.status === "failed" || w.status === "rejected" ? "failed" : "pending"));
+            if (amt > 0 && amt !== 101) {
+              existingIds.add(w.id);
+              results.push({
+                id: w.id,
+                amount: amt,
+                status: st as any,
+                type: "pay-out",
+                currency: "XOF",
+                created_at: w.created_at,
+                profile_id: w.profile_id,
+              } as any);
+            }
+          }
+        }
+      }
+
+      const { data: batches } = await (supabase.from("payout_batches") as any)
+        .select("*, payout_batch_items(*)")
+        .order("created_at", { ascending: false })
+        .limit(5);
+      if (batches && batches.length > 0) {
+        for (const b of batches) {
+          if (b.payout_batch_items && Array.isArray(b.payout_batch_items)) {
+            for (const item of b.payout_batch_items) {
+              if (!existingIds.has(item.id)) {
+                const amt = Number(item.amount || b.total_amount || 0);
+                const st = amt === 101 ? "failed" : ((item.status === "completed" || item.status === "success" || item.status === "validé") ? "success" : (item.status === "failed" || item.status === "rejected" ? "failed" : "pending"));
+                if (amt > 0 && amt !== 101) {
+                  existingIds.add(item.id);
+                  results.push({
+                    id: item.id,
+                    amount: amt,
+                    status: st as any,
+                    type: "pay-out",
+                    currency: "XOF",
+                    created_at: item.created_at || b.created_at,
+                    profile_id: b.owner_id,
+                  } as any);
+                }
+              }
+            }
+          }
+        }
+      }
+
+      results = results.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 50);
+
+      if (mounted) setTxs(results);
     })();
 
     const channel = supabase
