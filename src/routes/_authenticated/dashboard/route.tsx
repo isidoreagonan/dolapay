@@ -84,6 +84,9 @@ export function useProfile() {
       if (!targetId) return null;
       
       const { data: u } = await supabase.auth.getUser();
+      if (!u.user) return null;
+
+      const userEmail = u.user.email?.toLowerCase() || "";
 
       let data: any = null;
       try {
@@ -94,8 +97,7 @@ export function useProfile() {
           .maybeSingle();
         data = res.data;
 
-        if (!data && u.user && targetId === u.user.id) {
-          const userEmail = u.user.email?.toLowerCase() || "";
+        if (!data && targetId === u.user.id) {
           const resEmail = await supabase
             .from("profiles")
             .select("*")
