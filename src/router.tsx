@@ -22,22 +22,26 @@ export const getRouter = () => {
 
     const getCrossDomainUrl = (path: string) => {
       const hn = window.location.hostname;
-      // Define base domain dynamically but prefer dola-pay.com if prod
-      const baseDomain = hn.includes('dola-pay.com') ? 'dola-pay.com' : hn.replace('docs.', '').replace('dashboard.', '');
+      const isProd = hn.includes('dola-pay.com');
+      const baseDomain = isProd ? 'dola-pay.com' : hn.replace('docs.', '').replace('dashboard.', '');
       const scheme = hn.includes('localhost') ? 'http://' : 'https://';
 
-      if (!hn.startsWith('dashboard') && (path.startsWith('/dashboard') || path.startsWith('/auth'))) {
+      const isDashboardPath = path.startsWith('/dashboard') || path.startsWith('/auth');
+      const isDocsPath = path.startsWith('/developers');
+      const isMainPath = !isDashboardPath && !isDocsPath;
+
+      if (isDashboardPath && !hn.startsWith('dashboard')) {
         const cleanPath = path.startsWith('/dashboard') ? path.replace('/dashboard', '') : path;
         return `${scheme}dashboard.${baseDomain}${cleanPath === '' ? '/' : cleanPath}`;
       }
       
-      if (!hn.startsWith('docs') && path.startsWith('/developers')) {
+      if (isDocsPath && !hn.startsWith('docs')) {
         const cleanPath = path.replace('/developers', '');
         return `${scheme}docs.${baseDomain}${cleanPath === '' ? '/' : cleanPath}`;
       }
       
-      if ((hn.startsWith('dashboard') || hn.startsWith('docs')) && path === '/') {
-        return `${scheme}${baseDomain}/`;
+      if (isMainPath && (hn.startsWith('dashboard') || hn.startsWith('docs'))) {
+        return `${scheme}${baseDomain}${path}`;
       }
       
       return null;
