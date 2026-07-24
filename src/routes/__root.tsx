@@ -16,6 +16,19 @@ import appCss from "../styles.css?url";
 import logoIcon from "@/assets/dolapay-icon.png.asset.json";
 import logoFull from "@/assets/dolapay-logo.png.asset.json";
 
+if (typeof window !== "undefined") {
+  const hn = window.location.hostname;
+  const path = window.location.pathname;
+  const isProd = hn.includes("dola-pay.com");
+  const isDashboardPath = path.startsWith("/dashboard") || path.startsWith("/auth");
+  
+  if (isProd && isDashboardPath && !hn.startsWith("dashboard")) {
+    const cleanPath = path.startsWith("/dashboard") ? path.replace("/dashboard", "") : path;
+    const target = `https://dashboard.dola-pay.com${cleanPath === "" ? "/" : cleanPath}${window.location.search}${window.location.hash}`;
+    window.location.replace(target);
+  }
+}
+
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
