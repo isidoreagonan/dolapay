@@ -36,7 +36,7 @@ export const getRouter = () => {
       if (hn.startsWith('docs') && !path.startsWith('/developers')) {
         return '/developers' + (path === '/' ? '' : path);
       }
-      if (hn.startsWith('dashboard') && !path.startsWith('/dashboard')) {
+      if (hn.startsWith('dashboard') && !path.startsWith('/dashboard') && !path.startsWith('/auth')) {
         return '/dashboard' + (path === '/' ? '' : path);
       }
       return path;

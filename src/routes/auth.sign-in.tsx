@@ -31,10 +31,13 @@ function SignIn() {
     setLoading(true);
 
     if (magicLinkMode) {
+      const isDashboard = window.location.hostname.startsWith('dashboard');
+      const redirectBase = isDashboard ? window.location.origin : window.location.origin + "/dashboard";
+      
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: window.location.origin + "/dashboard",
+          emailRedirectTo: redirectBase,
         },
       });
       setLoading(false);
@@ -64,10 +67,13 @@ function SignIn() {
 
   async function handleGoogle() {
     setGoogleLoading(true);
+    const isDashboard = window.location.hostname.startsWith('dashboard');
+    const redirectBase = isDashboard ? window.location.origin : window.location.origin + "/dashboard";
+    
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: window.location.origin + "/dashboard",
+        redirectTo: redirectBase,
       },
     });
     setGoogleLoading(false);

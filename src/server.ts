@@ -41,6 +41,25 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      const url = new URL(request.url);
+      
+      // Serve static assets normally
+      if (!url.pathname.startsWith('/_build') && !url.pathname.startsWith('/assets')) {
+        let newPathname = url.pathname;
+        const hn = url.hostname;
+        
+        if (hn.startsWith('docs') && !url.pathname.startsWith('/developers')) {
+          newPathname = '/developers' + (url.pathname === '/' ? '' : url.pathname);
+        } else if (hn.startsWith('dashboard') && !url.pathname.startsWith('/dashboard') && !url.pathname.startsWith('/auth')) {
+          newPathname = '/dashboard' + (url.pathname === '/' ? '' : url.pathname);
+        }
+        
+        if (newPathname !== url.pathname) {
+          url.pathname = newPathname;
+          request = new Request(url.toString(), request);
+        }
+      }
+
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);
