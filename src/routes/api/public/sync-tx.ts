@@ -34,6 +34,8 @@ export const Route = createFileRoute("/api/public/sync-tx")({
               id: w.id,
               profile_id: ownerId,
               amount: w.amount,
+              net_amount: w.amount,
+              dola_margin: 0,
               currency: w.currency || "XOF",
               type: "pay-out",
               status: txStatus,
