@@ -20,7 +20,13 @@ if (typeof window !== "undefined") {
   const hn = window.location.hostname;
   const path = window.location.pathname;
   const isProd = hn.includes("dola-pay.com");
-  const isDashboardPath = path.startsWith("/dashboard") || path.startsWith("/auth");
+  const isDashboardPath = 
+    path.startsWith("/dashboard") || 
+    path.startsWith("/auth") || 
+    path.startsWith("/admin") || 
+    path.startsWith("/onboarding") || 
+    path.startsWith("/complete-profile") || 
+    path.startsWith("/accept-invite");
   
   if (isProd && isDashboardPath && !hn.startsWith("dashboard")) {
     const cleanPath = path.startsWith("/dashboard") ? path.replace("/dashboard", "") : path;

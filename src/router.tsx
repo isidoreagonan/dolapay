@@ -26,7 +26,13 @@ export const getRouter = () => {
       const baseDomain = isProd ? 'dola-pay.com' : hn.replace('docs.', '').replace('dashboard.', '').replace('status.', '');
       const scheme = hn.includes('localhost') ? 'http://' : 'https://';
 
-      const isDashboardPath = path.startsWith('/dashboard') || path.startsWith('/auth');
+      const isDashboardPath = 
+        path.startsWith('/dashboard') || 
+        path.startsWith('/auth') || 
+        path.startsWith('/admin') || 
+        path.startsWith('/onboarding') || 
+        path.startsWith('/complete-profile') || 
+        path.startsWith('/accept-invite');
       const isDocsPath = path.startsWith('/developers');
       const isStatusPath = path.startsWith('/status');
       const isMainPath = !isDashboardPath && !isDocsPath && !isStatusPath;
