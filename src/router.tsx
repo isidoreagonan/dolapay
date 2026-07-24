@@ -86,7 +86,7 @@ export const getRouter = () => {
         path.startsWith('/complete-profile') || 
         path.startsWith('/accept-invite');
         
-      if (hn.startsWith('dashboard') && !isDashboardAppNativePath) {
+      if (hn.startsWith('dashboard') && !isDashboardAppNativePath && !path.startsWith('/pay')) {
         return '/dashboard' + (path === '/' ? '' : path);
       }
       if (hn.startsWith('status') && !path.startsWith('/status')) {
