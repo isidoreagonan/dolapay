@@ -41,19 +41,25 @@ function TeamPage() {
 
   const invite = useMutation({
     mutationFn: async () => {
-      const { data: u } = await supabase.auth.getUser();
-      if (!u.user) throw new Error("Non connecté");
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Non connecté");
       if (!email) throw new Error("Email requis");
-      const { error } = await supabase.from("team_members").insert({
-        owner_id: u.user.id,
-        email: email.trim().toLowerCase(),
-        role,
-        status: "pending",
+      
+      const res = await fetch("/api/team/invite", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({ email, role })
       });
-      if (error) throw error;
+      
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erreur lors de l'envoi de l'invitation");
+      return data;
     },
     onSuccess: () => {
-      toast.success("Invitation envoyée");
+      toast.success("Invitation envoyée avec succès");
       setEmail("");
       qc.invalidateQueries({ queryKey: ["team-members"] });
     },

@@ -40,6 +40,7 @@ import { Route as AuthSignUpRouteImport } from './routes/auth.sign-up'
 import { Route as AuthSignInRouteImport } from './routes/auth.sign-in'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as AuthenticatedCompleteProfileRouteImport } from './routes/_authenticated/complete-profile'
+import { Route as AuthenticatedAcceptInviteRouteImport } from './routes/_authenticated/accept-invite'
 import { Route as DevelopersApiRouteRouteImport } from './routes/developers/api/route'
 import { Route as AuthenticatedDashboardRouteRouteImport } from './routes/_authenticated/dashboard/route'
 import { Route as AuthenticatedAdminRouteRouteImport } from './routes/_authenticated/admin/route'
@@ -55,6 +56,8 @@ import { Route as DevelopersApiCheckoutPayRouteImport } from './routes/developer
 import { Route as DevelopersApiAuthRouteImport } from './routes/developers/api/auth'
 import { Route as ApiV1PayoutsRouteImport } from './routes/api/v1/payouts'
 import { Route as ApiV1ChargesRouteImport } from './routes/api/v1/charges'
+import { Route as ApiTeamInviteRouteImport } from './routes/api/team/invite'
+import { Route as ApiTeamAcceptRouteImport } from './routes/api/team/accept'
 import { Route as ApiPublicWithdrawRouteImport } from './routes/api/public/withdraw'
 import { Route as ApiPublicTestTxRouteImport } from './routes/api/public/test-tx'
 import { Route as ApiPublicTestNotifyRouteImport } from './routes/api/public/test-notify'
@@ -253,6 +256,12 @@ const AuthenticatedCompleteProfileRoute =
     path: '/complete-profile',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAcceptInviteRoute =
+  AuthenticatedAcceptInviteRouteImport.update({
+    id: '/accept-invite',
+    path: '/accept-invite',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const DevelopersApiRouteRoute = DevelopersApiRouteRouteImport.update({
   id: '/developers/api',
   path: '/developers/api',
@@ -330,6 +339,16 @@ const ApiV1PayoutsRoute = ApiV1PayoutsRouteImport.update({
 const ApiV1ChargesRoute = ApiV1ChargesRouteImport.update({
   id: '/api/v1/charges',
   path: '/api/v1/charges',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiTeamInviteRoute = ApiTeamInviteRouteImport.update({
+  id: '/api/team/invite',
+  path: '/api/team/invite',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiTeamAcceptRoute = ApiTeamAcceptRouteImport.update({
+  id: '/api/team/accept',
+  path: '/api/team/accept',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicWithdrawRoute = ApiPublicWithdrawRouteImport.update({
@@ -571,6 +590,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRouteRouteWithChildren
   '/developers/api': typeof DevelopersApiRouteRouteWithChildren
+  '/accept-invite': typeof AuthenticatedAcceptInviteRoute
   '/complete-profile': typeof AuthenticatedCompleteProfileRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/auth/sign-in': typeof AuthSignInRoute
@@ -630,6 +650,8 @@ export interface FileRoutesByFullPath {
   '/api/public/test-notify': typeof ApiPublicTestNotifyRoute
   '/api/public/test-tx': typeof ApiPublicTestTxRoute
   '/api/public/withdraw': typeof ApiPublicWithdrawRoute
+  '/api/team/accept': typeof ApiTeamAcceptRoute
+  '/api/team/invite': typeof ApiTeamInviteRoute
   '/api/v1/charges': typeof ApiV1ChargesRouteWithChildren
   '/api/v1/payouts': typeof ApiV1PayoutsRoute
   '/developers/api/auth': typeof DevelopersApiAuthRoute
@@ -656,6 +678,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/settings': typeof SettingsRoute
+  '/accept-invite': typeof AuthenticatedAcceptInviteRoute
   '/complete-profile': typeof AuthenticatedCompleteProfileRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/auth/sign-in': typeof AuthSignInRoute
@@ -715,6 +738,8 @@ export interface FileRoutesByTo {
   '/api/public/test-notify': typeof ApiPublicTestNotifyRoute
   '/api/public/test-tx': typeof ApiPublicTestTxRoute
   '/api/public/withdraw': typeof ApiPublicWithdrawRoute
+  '/api/team/accept': typeof ApiTeamAcceptRoute
+  '/api/team/invite': typeof ApiTeamInviteRoute
   '/api/v1/charges': typeof ApiV1ChargesRouteWithChildren
   '/api/v1/payouts': typeof ApiV1PayoutsRoute
   '/developers/api/auth': typeof DevelopersApiAuthRoute
@@ -747,6 +772,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRouteRouteWithChildren
   '/developers/api': typeof DevelopersApiRouteRouteWithChildren
+  '/_authenticated/accept-invite': typeof AuthenticatedAcceptInviteRoute
   '/_authenticated/complete-profile': typeof AuthenticatedCompleteProfileRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/auth/sign-in': typeof AuthSignInRoute
@@ -806,6 +832,8 @@ export interface FileRoutesById {
   '/api/public/test-notify': typeof ApiPublicTestNotifyRoute
   '/api/public/test-tx': typeof ApiPublicTestTxRoute
   '/api/public/withdraw': typeof ApiPublicWithdrawRoute
+  '/api/team/accept': typeof ApiTeamAcceptRoute
+  '/api/team/invite': typeof ApiTeamInviteRoute
   '/api/v1/charges': typeof ApiV1ChargesRouteWithChildren
   '/api/v1/payouts': typeof ApiV1PayoutsRoute
   '/developers/api/auth': typeof DevelopersApiAuthRoute
@@ -838,6 +866,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/dashboard'
     | '/developers/api'
+    | '/accept-invite'
     | '/complete-profile'
     | '/onboarding'
     | '/auth/sign-in'
@@ -897,6 +926,8 @@ export interface FileRouteTypes {
     | '/api/public/test-notify'
     | '/api/public/test-tx'
     | '/api/public/withdraw'
+    | '/api/team/accept'
+    | '/api/team/invite'
     | '/api/v1/charges'
     | '/api/v1/payouts'
     | '/developers/api/auth'
@@ -923,6 +954,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/settings'
+    | '/accept-invite'
     | '/complete-profile'
     | '/onboarding'
     | '/auth/sign-in'
@@ -982,6 +1014,8 @@ export interface FileRouteTypes {
     | '/api/public/test-notify'
     | '/api/public/test-tx'
     | '/api/public/withdraw'
+    | '/api/team/accept'
+    | '/api/team/invite'
     | '/api/v1/charges'
     | '/api/v1/payouts'
     | '/developers/api/auth'
@@ -1013,6 +1047,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
     | '/developers/api'
+    | '/_authenticated/accept-invite'
     | '/_authenticated/complete-profile'
     | '/_authenticated/onboarding'
     | '/auth/sign-in'
@@ -1072,6 +1107,8 @@ export interface FileRouteTypes {
     | '/api/public/test-notify'
     | '/api/public/test-tx'
     | '/api/public/withdraw'
+    | '/api/team/accept'
+    | '/api/team/invite'
     | '/api/v1/charges'
     | '/api/v1/payouts'
     | '/developers/api/auth'
@@ -1141,6 +1178,8 @@ export interface RootRouteChildren {
   ApiPublicTestNotifyRoute: typeof ApiPublicTestNotifyRoute
   ApiPublicTestTxRoute: typeof ApiPublicTestTxRoute
   ApiPublicWithdrawRoute: typeof ApiPublicWithdrawRoute
+  ApiTeamAcceptRoute: typeof ApiTeamAcceptRoute
+  ApiTeamInviteRoute: typeof ApiTeamInviteRoute
   ApiV1ChargesRoute: typeof ApiV1ChargesRouteWithChildren
   ApiV1PayoutsRoute: typeof ApiV1PayoutsRoute
   ApiPublicPaySlugRoute: typeof ApiPublicPaySlugRoute
@@ -1368,6 +1407,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCompleteProfileRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/accept-invite': {
+      id: '/_authenticated/accept-invite'
+      path: '/accept-invite'
+      fullPath: '/accept-invite'
+      preLoaderRoute: typeof AuthenticatedAcceptInviteRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/developers/api': {
       id: '/developers/api'
       path: '/developers/api'
@@ -1471,6 +1517,20 @@ declare module '@tanstack/react-router' {
       path: '/api/v1/charges'
       fullPath: '/api/v1/charges'
       preLoaderRoute: typeof ApiV1ChargesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/team/invite': {
+      id: '/api/team/invite'
+      path: '/api/team/invite'
+      fullPath: '/api/team/invite'
+      preLoaderRoute: typeof ApiTeamInviteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/team/accept': {
+      id: '/api/team/accept'
+      path: '/api/team/accept'
+      fullPath: '/api/team/accept'
+      preLoaderRoute: typeof ApiTeamAcceptRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/withdraw': {
@@ -1851,6 +1911,7 @@ const AuthenticatedDashboardRouteRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRouteRoute: typeof AuthenticatedAdminRouteRouteWithChildren
   AuthenticatedDashboardRouteRoute: typeof AuthenticatedDashboardRouteRouteWithChildren
+  AuthenticatedAcceptInviteRoute: typeof AuthenticatedAcceptInviteRoute
   AuthenticatedCompleteProfileRoute: typeof AuthenticatedCompleteProfileRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
 }
@@ -1859,6 +1920,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRouteRoute: AuthenticatedAdminRouteRouteWithChildren,
   AuthenticatedDashboardRouteRoute:
     AuthenticatedDashboardRouteRouteWithChildren,
+  AuthenticatedAcceptInviteRoute: AuthenticatedAcceptInviteRoute,
   AuthenticatedCompleteProfileRoute: AuthenticatedCompleteProfileRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
 }
@@ -1959,6 +2021,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicTestNotifyRoute: ApiPublicTestNotifyRoute,
   ApiPublicTestTxRoute: ApiPublicTestTxRoute,
   ApiPublicWithdrawRoute: ApiPublicWithdrawRoute,
+  ApiTeamAcceptRoute: ApiTeamAcceptRoute,
+  ApiTeamInviteRoute: ApiTeamInviteRoute,
   ApiV1ChargesRoute: ApiV1ChargesRouteWithChildren,
   ApiV1PayoutsRoute: ApiV1PayoutsRoute,
   ApiPublicPaySlugRoute: ApiPublicPaySlugRoute,

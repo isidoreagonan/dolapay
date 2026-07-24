@@ -48,6 +48,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import logoFull from "@/assets/dolapay-logo.png.asset.json";
+import { useWorkspace } from "@/contexts/WorkspaceContext";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   component: DashboardLayout,
@@ -71,27 +72,30 @@ export type Profile = {
 };
 
 export function useProfile() {
+  const workspaceContext = useWorkspace();
+  const targetId = workspaceContext?.currentWorkspace?.id;
+
   return useQuery({
-    queryKey: ["my-profile"],
+    queryKey: ["my-profile", targetId],
     staleTime: 1000 * 60 * 5,
     refetchOnWindowFocus: false,
+    enabled: !!targetId,
     queryFn: async (): Promise<Profile | null> => {
+      if (!targetId) return null;
+      
       const { data: u } = await supabase.auth.getUser();
-      if (!u.user) return null;
-
-      const userEmail = u.user.email?.toLowerCase() || "";
-      const isMasterAdmin = userEmail === "isidoreagonan@gmail.com";
 
       let data: any = null;
       try {
         const res = await supabase
           .from("profiles")
           .select("*")
-          .eq("id", u.user.id)
+          .eq("id", targetId)
           .maybeSingle();
         data = res.data;
 
-        if (!data && userEmail) {
+        if (!data && u.user && targetId === u.user.id) {
+          const userEmail = u.user.email?.toLowerCase() || "";
           const resEmail = await supabase
             .from("profiles")
             .select("*")
@@ -232,6 +236,7 @@ function DashboardLayout() {
   const [showPayoutsModal, setShowPayoutsModal] = useState(false);
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const { currentWorkspace, workspaces, setWorkspace } = useWorkspace();
 
   // IMPORTANT : Tous les hooks React (useEffect, useState) DOIVENT être appelés AVANT tout return conditionnel pour éviter les crashs de rendu !
   useEffect(() => {
@@ -298,14 +303,14 @@ function DashboardLayout() {
       locked: payoutsLocked,
       lockedTip: "Passez à l'Enterprise Tier pour débloquer les décaissements automatisés vers des tiers.",
     },
-    { to: "/dashboard/team", icon: Users, label: "Équipe" },
-    ...(profile?.account_type === "enterprise"
+    ...(currentWorkspace?.role === "owner" ? [{ to: "/dashboard/team", icon: Users, label: "Équipe" }] : []),
+    ...(profile?.account_type === "enterprise" && (currentWorkspace?.role === "owner" || currentWorkspace?.role === "admin")
       ? [
           { to: "/dashboard/api-keys", icon: KeyRound, label: "Clés API" },
           { to: "/dashboard/webhooks", icon: Webhook, label: "Webhooks" },
         ]
       : []),
-    { to: "/dashboard/settings", icon: SettingsIcon, label: "Compte & KYC" },
+    ...(currentWorkspace?.role === "owner" ? [{ to: "/dashboard/settings", icon: SettingsIcon, label: "Compte & KYC" }] : []),
     ...(isAdmin ? [{ to: "/admin", icon: Crown, label: "Système Admin" }] : []),
   ];
 
@@ -341,9 +346,27 @@ function DashboardLayout() {
 
           {!isCollapsed && (
             <div className="mb-6 shrink-0 rounded-xl border border-blue-800/60 bg-blue-900/30 p-3">
-              <div className="text-xs text-blue-300/80">Connecté en tant que</div>
-              <div className="truncate text-sm font-semibold text-white">{profile?.full_name || profile?.email}</div>
-              {profile?.id && (
+              <div className="text-xs text-blue-300/80 mb-1">Espace de travail</div>
+              
+              {workspaces.length > 1 ? (
+                <select 
+                  className="w-full bg-blue-950/80 border border-blue-800 text-sm font-semibold text-white rounded-md p-1.5 focus:outline-none"
+                  value={currentWorkspace?.id || ""}
+                  onChange={(e) => setWorkspace(e.target.value)}
+                >
+                  {workspaces.map(w => (
+                    <option key={w.id} value={w.id}>
+                      {w.name} {w.role === 'owner' ? '' : `(${w.role})`}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <div className="truncate text-sm font-semibold text-white">
+                  {currentWorkspace?.name || profile?.full_name || profile?.email}
+                </div>
+              )}
+
+              {currentWorkspace?.role === "owner" && profile?.id && (
                 <button
                   type="button"
                   onClick={() => {
@@ -351,18 +374,26 @@ function DashboardLayout() {
                     navigator.clipboard?.writeText(accId);
                     toast.success("Identifiant copié");
                   }}
-                  className="mt-1 block truncate font-mono text-[10px] text-blue-300/60 transition-colors hover:text-white"
+                  className="mt-2 block truncate font-mono text-[10px] text-blue-300/60 transition-colors hover:text-white"
                   title="Cliquer pour copier"
                 >
                   acc_{profile.id.replace(/-/g, "").slice(0, 16)}
                 </button>
               )}
-              <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold", tier.badgeClass)}>
-                  <span>{tier.icon}</span> {tier.short} Tier
-                </span>
-                <KycBadge status={profile?.kyc_status ?? "pending"} />
-              </div>
+              {currentWorkspace?.role !== "owner" && (
+                <div className="mt-2 block truncate font-mono text-[10px] text-amber-300/80">
+                  Mode Collaboration
+                </div>
+              )}
+              
+              {currentWorkspace?.role === "owner" && (
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                  <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold", tier.badgeClass)}>
+                    <span>{tier.icon}</span> {tier.short} Tier
+                  </span>
+                  <KycBadge status={profile?.kyc_status ?? "pending"} />
+                </div>
+              )}
             </div>
           )}
 

@@ -687,3 +687,41 @@ export async function notifyPayoutStatus(supabaseAdmin: any, payoutIdOrItem: any
 export async function notifyWithdrawalRequestStatus(supabaseAdmin: any, withdrawalId: string, status: "pending" | "success" | "failed", errorMessage?: string): Promise<void> {
   return notifyPayoutStatus(supabaseAdmin, withdrawalId, status, errorMessage);
 }
+
+export async function sendTeamInvitationEmail(params: {
+  inviteeEmail: string;
+  inviterName: string;
+  role: string;
+}): Promise<boolean> {
+  const roleLabel = params.role === 'admin' ? 'Administrateur' : params.role === 'operator' ? 'Opérateur' : 'Lecteur';
+  const subject = `Vous avez été invité à rejoindre l'équipe de ${params.inviterName} sur DolaPay`;
+
+  const html = getBaseEmailHtml(subject, `
+    <h1 class="h1">Invitation d'équipe 🤝</h1>
+    <p class="text">
+      Bonjour,<br/><br/>
+      <strong>${params.inviterName}</strong> vous a invité à collaborer sur son espace d'entreprise DolaPay.
+    </p>
+
+    <div class="card-box">
+      <div class="row">
+        <span class="row-label">Entreprise</span>
+        <span class="row-value">${params.inviterName}</span>
+      </div>
+      <div class="row">
+        <span class="row-label">Rôle assigné</span>
+        <span class="row-value">${roleLabel}</span>
+      </div>
+    </div>
+
+    <p class="text">
+      Cliquez sur le bouton ci-dessous pour accepter l'invitation. Vous serez redirigé vers DolaPay pour vous connecter ou créer un compte avec cette adresse email.
+    </p>
+
+    <div class="btn-container">
+      <a href="https://dola-pay.com/accept-invite" class="btn">Accepter l'invitation</a>
+    </div>
+  `);
+
+  return sendRawEmail(params.inviteeEmail, subject, html);
+}
