@@ -17,31 +17,20 @@ export const Route = createFileRoute("/api/public/debug2")({
           return Response.json({ success: false, error: "Profiles not found", details: profileError });
         }
         
-        // Count transactions per profile
-        const { data: txs, error: txError } = await supabaseAdmin
+        const correctProfileId = "1e1934d4-4216-4140-98cc-0510d80e8860"; // isidoreagonan@gmail.com
+
+        // Update transactions to the correct UUID
+        const { data: updated, error } = await supabaseAdmin
           .from("transactions")
-          .select("profile_id");
-
-        if (txError) {
-          return Response.json({ success: false, error: txError });
-        }
-
-        const counts: Record<string, number> = {};
-        if (txs) {
-          for (const tx of txs) {
-            if (tx.profile_id) {
-              counts[tx.profile_id] = (counts[tx.profile_id] || 0) + 1;
-            }
-          }
-        }
-
-        const mappedProfiles = profiles.map(p => ({
-          email: p.email,
-          accId: `acc_${p.id.replace(/-/g, "").slice(0, 16)}`,
-          fullId: p.id
-        }));
-
-        return Response.json({ success: true, counts, profiles: mappedProfiles });
+          .update({ profile_id: correctProfileId })
+          .eq("profile_id", "46179a95-999b-469d-915d-718bae54a844")
+          .select("id");
+          
+        return Response.json({ 
+          success: true, 
+          restored_count: updated?.length,
+          error
+        });
 
 
       }
