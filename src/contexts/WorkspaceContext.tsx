@@ -41,7 +41,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         .from("profiles")
         .select("business_name, email")
         .eq("id", user!.id)
-        .single();
+        .maybeSingle();
       
       list.push({
         id: user!.id,

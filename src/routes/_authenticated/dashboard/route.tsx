@@ -236,7 +236,7 @@ function DashboardLayout() {
   const [showPayoutsModal, setShowPayoutsModal] = useState(false);
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const { currentWorkspace, workspaces, setWorkspace } = useWorkspace();
+  const { currentWorkspace, workspaces, setWorkspace, isLoading: workspaceLoading } = useWorkspace();
 
   // IMPORTANT : Tous les hooks React (useEffect, useState) DOIVENT être appelés AVANT tout return conditionnel pour éviter les crashs de rendu !
   useEffect(() => {
@@ -248,7 +248,9 @@ function DashboardLayout() {
       }, 300);
     }
     
-    if (!profileLoading && !profile) {
+    const isWorkspaceReady = !workspaceLoading && (workspaces.length === 0 || !!currentWorkspace);
+
+    if (isWorkspaceReady && !profileLoading && !profile) {
       supabase.auth.signOut().then(() => {
         window.location.href = "/auth/sign-in";
       });
