@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
+import { pawapay } from "@/lib/pawapay.server";
 
 async function handleTestTx() {
   const supabaseAdmin = createClient(
@@ -7,85 +8,31 @@ async function handleTestTx() {
     process.env.SUPABASE_SERVICE_ROLE_KEY || ""
   );
 
-  const userId = "46179a95-999b-469d-915d-718bae54a844";
+  // Find the most recent PawaPay transaction
+  const { data: txs, error } = await supabaseAdmin
+    .from("transactions")
+    .select("*")
+    .eq("provider", "pawapay")
+    .order("created_at", { ascending: false })
+    .limit(5);
 
-  // Wipe the ghost balance from user_metadata
-  const uRes = await supabaseAdmin.auth.admin.updateUserById(userId, {
-    user_metadata: { wallet_balance: 0 }
-  });
-  
-  // Wipe from profiles just in case
-  await supabaseAdmin.from("profiles").update({ wallet_balance: 0 } as any).eq("id", userId);
+  if (error || !txs || txs.length === 0) {
+    return Response.json({ error: "No pawapay transactions found", details: error });
+  }
 
-  const { data: txs } = await supabaseAdmin.from("transactions").select("*").or(`profile_id.eq.${userId},merchant_id.eq.${userId}`);
-  const { data: wrs } = await supabaseAdmin.from("withdrawal_requests").select("*").or(`profile_id.eq.${userId},merchant_id.eq.${userId}`);
-  const { data: batches } = await supabaseAdmin.from("payout_batches").select("*, payout_batch_items(*)").eq("owner_id", userId);
-
-  let livePayin = 0, livePayout = 0;
-  const seenIds = new Set<string>();
-  const contributingPayins: any[] = [];
-  const contributingPayouts: any[] = [];
-
-  if (txs) {
-    txs.forEach((t: any) => {
-      const st = String(t.status || "").toLowerCase();
-      if (st === "completed" || st === "successful" || st === "success" || st === "paid" || st === "validé" || st === "validated" || st === "settled" || st === "ok" || st === "confirmed") {
-        const amt = Number(t.net_amount || t.amount || 0);
-        const desc = String(t.description || "").toLowerCase();
-        const mode = String((t as any).mode || "").toLowerCase();
-        const isTestTx = desc.includes("_test") || desc.includes("sandbox") || mode === "test" || mode === "sandbox";
-        if (!isTestTx) {
-          if (t.id) seenIds.add(String(t.id));
-          const isPayout = String(t.type || "").toLowerCase().includes("payout") || String(t.type || "").toLowerCase().includes("withdraw");
-          if (isPayout) {
-            livePayout += amt;
-            contributingPayouts.push(t);
-          } else {
-            livePayin += amt;
-            contributingPayins.push(t);
-          }
-        }
-      }
+  const results = [];
+  for (const tx of txs) {
+    const live = await pawapay.getDepositStatus(tx.id);
+    results.push({
+      id: tx.id,
+      db_status: tx.status,
+      created_at: tx.created_at,
+      description: tx.description,
+      pawapay_live: live
     });
   }
 
-  if (wrs) {
-    wrs.forEach((w: any) => {
-      const st = String(w.status || "").toLowerCase();
-      if (st === "success" || st === "completed" || st === "processing" || st === "validé" || st === "validated" || st === "pending") {
-        if (!seenIds.has(String(w.id))) {
-          seenIds.add(String(w.id));
-          const amt = Number(w.amount || 0);
-          if (amt > 0) {
-            livePayout += amt;
-            contributingPayouts.push(w);
-          }
-        }
-      }
-    });
-  }
-
-  if (batches) {
-    batches.forEach((b: any) => {
-      if (b.payout_batch_items) {
-        b.payout_batch_items.forEach((item: any) => {
-          const st = String(item.status || "").toLowerCase();
-          if (st === "success" || st === "completed" || st === "validé" || st === "validated" || st === "processing" || st === "pending") {
-            if (!seenIds.has(String(item.id))) {
-              seenIds.add(String(item.id));
-              const amt = Number(item.amount || b.total_amount || 0);
-              if (amt > 0) {
-                livePayout += amt;
-                contributingPayouts.push(item);
-              }
-            }
-          }
-        });
-      }
-    });
-  }
-
-  return Response.json({ livePayin, livePayout, bestBalance: Math.max(0, livePayin - livePayout), contributingPayins, contributingPayouts, txs });
+  return Response.json({ results });
 }
 
 export const Route = createFileRoute("/api/public/test-tx")({

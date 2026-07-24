@@ -60,14 +60,22 @@ export const Route = createFileRoute("/api/public/tx-status/$id")({
             try {
               const { pawapay } = await import("@/lib/pawapay.server");
               const live = await pawapay.getDepositStatus(params.id);
-              if (live && (live.status === "COMPLETED" || (live as any).status === "SUCCESS" || (live as any).status === "PAID")) {
-                newStatus = "success";
-              } else if (live && (live.status === "FAILED" || (live as any).status === "REJECTED")) {
-                newStatus = "failed";
-                const fCode = live.failureReason?.failureCode || "FAILED";
-                const fMsg = live.failureReason?.failureMessage || "Paiement refusé par l'opérateur Mobile Money";
-                extraDesc = ` · [Échec] ${fCode}: ${fMsg}`;
-                failureReasonObj = { code: fCode, message: fMsg };
+              console.log(`[tx-status] Polling PawaPay for ${params.id}:`, live);
+              if (live && live.status) {
+                const ls = String(live.status).toUpperCase();
+                if (ls === "COMPLETED" || ls === "SUCCESS" || ls === "PAID") {
+                  newStatus = "success";
+                } else if (ls === "FAILED" || ls === "REJECTED") {
+                  newStatus = "failed";
+                  const fCode = live.failureReason?.failureCode || "FAILED";
+                  const fMsg = live.failureReason?.failureMessage || "Paiement refusé par l'opérateur Mobile Money";
+                  extraDesc = ` · [Échec] ${fCode}: ${fMsg}`;
+                  failureReasonObj = { code: fCode, message: fMsg };
+                } else if (elapsedSec >= 300) {
+                  newStatus = "failed";
+                  extraDesc = " · [Échec] TIMEOUT: Délai d'expiration du paiement dépassé";
+                  failureReasonObj = { code: "TIMEOUT", message: "Le paiement a expiré sans confirmation de l'opérateur." };
+                }
               } else if (elapsedSec >= 300) {
                 newStatus = "failed";
                 extraDesc = " · [Échec] TIMEOUT: Délai d'expiration du paiement dépassé";

@@ -436,7 +436,9 @@ export const Route = createFileRoute("/api/public/withdraw")({
             if (finalStatus !== "failed") {
               console.log("[Withdraw] Enregistrement dans transactions (pay-out) et payout_batches...");
               
-              const txStatus = (finalStatus === "success" || finalStatus === "completed" || finalStatus === "processing" || finalStatus === "failed") ? finalStatus : "pending";
+              const rawTxStatus = (finalStatus === "success" || finalStatus === "completed" || finalStatus === "processing" || finalStatus === "failed") ? finalStatus : "pending";
+              const txStatus = rawTxStatus === "processing" ? "pending" : rawTxStatus;
+              
               // Transaction type "pay-out" ensures sync-wallet will calculate the updated balance properly
               const txAttempt = await supabaseAdmin.from("transactions").insert({
                 id: payoutId,
