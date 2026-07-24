@@ -6,15 +6,22 @@ export const Route = createFileRoute("/api/public/debug2")({
       GET: async () => {
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         
-        // Find the correct profile by email
-        const { data: profile, error: profileError } = await supabaseAdmin
+        // Find the correct profile by matching the beginning of the UUID based on acc_48175d999f8465d
+        // Note: 48175d999f8465d corresponds to 48175d99-9f84-65d... in UUID format.
+        // We will fetch all profiles and find the one that matches.
+        const { data: profiles, error: profileError } = await supabaseAdmin
           .from("profiles")
-          .select("id")
-          .ilike("email", "dolapoecom1@gmail.com")
-          .single();
+          .select("id");
 
-        if (!profile || profileError) {
-          return Response.json({ success: false, error: "Profile not found", details: profileError });
+        if (!profiles || profileError) {
+          return Response.json({ success: false, error: "Profiles not found", details: profileError });
+        }
+        
+        const targetHex = "48175d999f8465d";
+        const profile = profiles.find(p => p.id.replace(/-/g, "").startsWith(targetHex));
+
+        if (!profile) {
+          return Response.json({ success: false, error: "Profile not found matching target hex" });
         }
 
         const correctProfileId = profile.id; // This is a UUID
