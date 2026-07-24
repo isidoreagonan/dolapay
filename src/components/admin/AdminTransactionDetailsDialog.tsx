@@ -50,10 +50,16 @@ export function AdminTransactionDetailsDialog({ tx, onClose }: { tx: AdminTxDeta
   const isPayout = tx.type === "pay-out";
   const isSuccess = tx.status === "success" || tx.status === "completed" || tx.status === "validé";
 
-  // Calculs par défaut si les champs ne sont pas dans la DB (historique)
-  const fallbackFee = Math.round(tx.amount * (isPayout ? 0.01 : 0.02)); // ex: 2% payin, 1% payout
-  const fee = tx.fee_amount ?? fallbackFee;
-  const net = tx.net_amount ?? (tx.amount - fee);
+  // Calculs précis basés sur amount et net_amount (puisque transactions stocke net_amount et dola_margin, mais pas fee_amount)
+  const fallbackFee = Math.round(tx.amount * (isPayout ? 0.01 : 0.02));
+  
+  let computedFee = fallbackFee;
+  if (tx.net_amount) {
+    computedFee = isPayout ? (tx.net_amount - tx.amount) : (tx.amount - tx.net_amount);
+  }
+  
+  const fee = tx.fee_amount ?? computedFee;
+  const net = tx.net_amount ?? (isPayout ? tx.amount + fee : tx.amount - fee);
   
   // Dola Margin (commission réelle conservée par DolaPay)
   const dolaMargin = tx.dola_margin ?? fee;
@@ -123,15 +129,15 @@ export function AdminTransactionDetailsDialog({ tx, onClose }: { tx: AdminTxDeta
           {isSuccess && (
             <>
               <div className="flex justify-between py-1 border-b border-white/5 text-slate-400">
-                <span>Montant Brut</span>
+                <span>{isPayout ? "Montant demandé (Brut)" : "Montant Brut"}</span>
                 <span className="font-mono">{new Intl.NumberFormat("fr-FR").format(tx.amount)} {tx.currency || 'XOF'}</span>
               </div>
               <div className="flex justify-between py-1 border-b border-white/5 text-slate-400">
                 <span>Frais prélevés au marchand</span>
                 <span className="font-mono">-{new Intl.NumberFormat("fr-FR").format(fee)} {tx.currency || 'XOF'}</span>
               </div>
-              <div className="flex justify-between py-1 border-b border-white/5 font-bold text-emerald-400">
-                <span>Net versé au marchand</span>
+              <div className={cn("flex justify-between py-1 border-b border-white/5 font-bold", isPayout ? "text-rose-400" : "text-emerald-400")}>
+                <span>{isPayout ? "Débit total du solde (Net)" : "Net versé au marchand"}</span>
                 <span className="font-mono text-base">{new Intl.NumberFormat("fr-FR").format(net)} {tx.currency || 'XOF'}</span>
               </div>
               
