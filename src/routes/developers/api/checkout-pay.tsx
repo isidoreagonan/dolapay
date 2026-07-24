@@ -100,7 +100,7 @@ function ApiCheckoutPayPage() {
             <tbody className="divide-y divide-border">
               <tr className="hover:bg-muted/30">
                 <td className="p-4 font-mono text-primary font-bold">amount <span className="text-red-500">*</span></td>
-                <td className="p-4 text-navy/70">Le montant entier à facturer (ex: <code className="text-xs bg-muted px-1 py-0.5 rounded">2500</code>).</td>
+                <td className="p-4 text-navy/70">Le montant entier à facturer (ex: <code className="text-xs bg-muted px-1 py-0.5 rounded">2500</code>). <strong>Minimum 100 FCFA.</strong></td>
               </tr>
               <tr className="hover:bg-muted/30">
                 <td className="p-4 font-mono text-primary font-bold">currency <span className="text-red-500">*</span></td>

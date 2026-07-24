@@ -99,7 +99,7 @@ function ApiSessionsPage() {
             <tbody className="divide-y divide-border">
               <tr className="hover:bg-muted/30">
                 <td className="p-4 font-mono text-primary font-bold">amount <span className="text-red-500">*</span></td>
-                <td className="p-4 text-navy/70">Le montant à facturer au client (ex: <code className="text-xs bg-muted px-1 py-0.5 rounded">5000</code>). Toujours en entier (sans décimales).</td>
+                <td className="p-4 text-navy/70">Le montant à facturer au client (ex: <code className="text-xs bg-muted px-1 py-0.5 rounded">5000</code>). Toujours en entier (sans décimales). <strong>Minimum 100 FCFA.</strong></td>
               </tr>
               <tr className="hover:bg-muted/30">
                 <td className="p-4 font-mono text-primary font-bold">currency <span className="text-red-500">*</span></td>
