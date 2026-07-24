@@ -52,6 +52,8 @@ export default {
           newPathname = '/developers' + (url.pathname === '/' ? '' : url.pathname);
         } else if (hn.startsWith('dashboard') && !url.pathname.startsWith('/dashboard') && !url.pathname.startsWith('/auth') && !url.pathname.startsWith('/api')) {
           newPathname = '/dashboard' + (url.pathname === '/' ? '' : url.pathname);
+        } else if (hn.startsWith('status') && !url.pathname.startsWith('/status') && !url.pathname.startsWith('/api')) {
+          newPathname = '/status' + (url.pathname === '/' ? '' : url.pathname);
         }
         
         if (newPathname !== url.pathname) {
