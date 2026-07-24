@@ -6,10 +6,20 @@ export const Route = createFileRoute("/api/public/debug2")({
       GET: async () => {
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
         
-        // The correct workspace/profile ID expected by the frontend
-        const correctProfileId = "acc_48175d999f8465d";
+        // Find the correct profile by email
+        const { data: profile, error: profileError } = await supabaseAdmin
+          .from("profiles")
+          .select("id")
+          .ilike("email", "dolapoecom1@gmail.com")
+          .single();
 
-        // Update transactions from the misattributed UUID to the correct workspace ID
+        if (!profile || profileError) {
+          return Response.json({ success: false, error: "Profile not found", details: profileError });
+        }
+
+        const correctProfileId = profile.id; // This is a UUID
+
+        // Update transactions from the misattributed UUID to the correct UUID
         const { data: updated1, error: error1 } = await supabaseAdmin
           .from("transactions")
           .update({ profile_id: correctProfileId })
@@ -24,6 +34,7 @@ export const Route = createFileRoute("/api/public/debug2")({
 
         return Response.json({ 
           success: true, 
+          correctProfileId,
           updated_uuid1: updated1?.length, 
           updated_uuid2: updated2?.length,
           error1,
