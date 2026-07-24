@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
-import { CheckCircle2, AlertTriangle, XCircle, Loader2, RefreshCw } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, XCircle, Loader2, RefreshCw, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export const Route = createFileRoute('/status/')({
@@ -81,6 +82,8 @@ const formatCorrespondentName = (name: string) => {
 };
 
 function StatusDashboard() {
+  const [searchQuery, setSearchQuery] = useState('');
+
   const { data: statusData, isLoading, isError, refetch, isFetching } = useQuery<CountryStatus[]>({
     queryKey: ['pawapay-availability'],
     queryFn: async () => {
@@ -123,6 +126,13 @@ function StatusDashboard() {
 
   const globalStatus = getGlobalStatus();
   const globalConfig = getStatusConfig(globalStatus.status);
+
+  // Filtrer les pays selon la recherche
+  const filteredData = statusData?.filter((country) => {
+    const name = COUNTRY_NAMES[country.country] || country.country;
+    return name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+           country.country.toLowerCase().includes(searchQuery.toLowerCase());
+  });
 
   if (isLoading) {
     return (
@@ -195,9 +205,29 @@ function StatusDashboard() {
         </div>
       </div>
 
+      {/* Barre de recherche */}
+      <div className="relative max-w-md">
+        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+          <Search className="h-5 w-5 text-white/40" />
+        </div>
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Rechercher un pays (ex: Côte d'Ivoire, BEN...)"
+          className="w-full bg-white/5 border border-white/10 rounded-2xl py-3.5 pl-11 pr-4 text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-transparent transition-all backdrop-blur-sm"
+        />
+      </div>
+
       {/* Country Grids */}
       <div className="space-y-10">
-        {statusData?.map((countryData) => {
+        {filteredData?.length === 0 && (
+          <div className="text-center py-12 text-white/50">
+            Aucun pays trouvé pour "{searchQuery}"
+          </div>
+        )}
+        
+        {filteredData?.map((countryData) => {
           // Skip if no correspondents
           if (!countryData.correspondents || countryData.correspondents.length === 0) return null;
           
