@@ -111,12 +111,55 @@ function LivePage() {
       .on("postgres_changes", { event: "*", schema: "public", table: "transactions" }, (payload) => {
         if (payload.eventType === "INSERT") {
           const row = payload.new as Tx;
-          setTxs((prev) => [row, ...prev].slice(0, 100));
+          setTxs((prev) => [row, ...prev].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 100));
           setPulse(row.id);
           setTimeout(() => setPulse(null), 1500);
         } else if (payload.eventType === "UPDATE") {
           const row = payload.new as Tx;
-          setTxs((prev) => prev.map((t) => (t.id === row.id ? row : t)));
+          setTxs((prev) => prev.map((t) => (t.id === row.id ? { ...t, ...row } : t)));
+        }
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "withdrawal_requests" }, (payload) => {
+        const amt = Number(payload.new.amount || 0);
+        if (amt === 101) return;
+        const st = (payload.new.status === "completed" || payload.new.status === "success" || payload.new.status === "validé") ? "success" : (payload.new.status === "failed" || payload.new.status === "rejected" ? "failed" : "pending");
+        const row = {
+          id: payload.new.id,
+          amount: amt,
+          status: st,
+          type: "pay-out",
+          currency: "XOF",
+          created_at: payload.new.created_at,
+          profile_id: payload.new.profile_id,
+        } as Tx;
+
+        if (payload.eventType === "INSERT") {
+          setTxs((prev) => [row, ...prev].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 100));
+          setPulse(row.id);
+          setTimeout(() => setPulse(null), 1500);
+        } else if (payload.eventType === "UPDATE") {
+          setTxs((prev) => prev.map((t) => (t.id === row.id ? { ...t, ...row } : t)));
+        }
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "payout_batch_items" }, (payload) => {
+        const amt = Number(payload.new.amount || 0);
+        if (amt === 101) return;
+        const st = (payload.new.status === "completed" || payload.new.status === "success" || payload.new.status === "validé") ? "success" : (payload.new.status === "failed" || payload.new.status === "rejected" ? "failed" : "pending");
+        const row = {
+          id: payload.new.id,
+          amount: amt,
+          status: st,
+          type: "pay-out",
+          currency: "XOF",
+          created_at: payload.new.created_at,
+        } as Tx;
+
+        if (payload.eventType === "INSERT") {
+          setTxs((prev) => [row, ...prev].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 100));
+          setPulse(row.id);
+          setTimeout(() => setPulse(null), 1500);
+        } else if (payload.eventType === "UPDATE") {
+          setTxs((prev) => prev.map((t) => (t.id === row.id ? { ...t, ...row } : t)));
         }
       })
       .subscribe();
