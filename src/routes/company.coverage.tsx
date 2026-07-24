@@ -24,7 +24,8 @@ const countries = [
   { name: "Sierra Leone", flag: "🇸🇱", zone: "Afrique de l'Ouest", ops: ["Orange"] },
 ];
 
-const CoveragePage = () => (
+function CoveragePage() {
+  return (
   <PageShell
     title="Couverture DolaPay — 12 économies africaines, tous les opérateurs"
     description="UEMOA, CEMAC, Afrique de l'Est et Centrale. MTN, Orange, Wave, Moov, Airtel, M-Pesa — une seule intégration, tous les opérateurs Mobile Money majeurs."
@@ -102,7 +103,8 @@ const CoveragePage = () => (
       </div>
     </section>
   </PageShell>
-);
+  );
+}
 
 
 

@@ -4,7 +4,8 @@ import { Zap, FileSpreadsheet, Clock, ShieldCheck, RefreshCcw, Users } from "luc
 import ProductPage from "@/components/site/product-page";
 import PricingMatrix from "@/components/site/pricing-matrix";
 
-const PayOut = () => (
+function PayOut() {
+  return (
   <ProductPage
     seoTitle="Décaissements (Pay-out) — DolaPay"
     seoDescription="Envoyez de l'argent instantanément vers des milliers de portefeuilles Mobile Money et comptes bancaires en Afrique. Bulk API ou CSV."
@@ -33,7 +34,8 @@ const PayOut = () => (
       subtitle="Tarifs tout inclus : frais réseau + commission DolaPay. Bulk et instantané au même prix."
     />
   </ProductPage>
-);
+  );
+}
 
 
 
