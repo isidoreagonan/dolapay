@@ -6,7 +6,7 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { calculateMargin } from "@/lib/margins.server";
 
 const ChargeBody = z.object({
-  amount: z.number().int().positive("Le montant doit être un entier positif"),
+  amount: z.number().int().min(100, "Le montant minimum est de 100 FCFA"),
   currency: z.enum(["XOF", "XAF", "USD"]).default("XOF"),
   customer_phone: z.string().min(8, "Numéro de téléphone invalide"),
   provider: z.string().default("Orange"),

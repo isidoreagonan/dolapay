@@ -4,7 +4,7 @@ import { authenticateMerchant } from "../auth.server";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const CreateSessionSchema = z.object({
-  amount: z.number().int().positive("Le montant doit être un entier positif"),
+  amount: z.number().int().min(100, "Le montant minimum est de 100 FCFA"),
   currency: z.enum(["XOF", "XAF", "USD"]).default("XOF"),
   success_url: z.string().url("URL de succès invalide").max(1000),
   cancel_url: z.string().url("URL d'annulation invalide").max(1000).optional(),

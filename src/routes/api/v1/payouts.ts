@@ -6,7 +6,7 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 import { calculateMargin } from "@/lib/margins.server";
 
 const PayoutBody = z.object({
-  amount: z.number().int().positive("Le montant doit être supérieur à zéro"),
+  amount: z.number().int().min(200, "Le montant minimum de retrait est de 200 FCFA"),
   currency: z.string().default("XOF"),
   recipient_phone: z.string().min(8, "Numéro de téléphone invalide"),
   provider: z.string().default("Orange"),
