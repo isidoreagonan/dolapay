@@ -454,6 +454,13 @@ function PayPage() {
           ${fontFam === 'serif' ? `font-family: ui-serif, Georgia, serif;` : ''}
           ${fontFam === 'system-ui' ? `font-family: system-ui, sans-serif;` : ''}
         }
+        .hide-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .hide-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
       `}</style>
       
       <div className="flex flex-col md:flex-row bg-white dark:bg-slate-950 transition-colors duration-300 min-h-screen">
@@ -500,7 +507,7 @@ function PayPage() {
         </div>
 
         {/* RIGHT COLUMN: Form Panel */}
-        <div className="w-full md:w-[55%] lg:w-[60%] bg-white dark:bg-slate-950 p-6 md:p-12 lg:p-16 flex flex-col md:sticky md:top-0 md:max-h-screen md:overflow-y-auto">
+        <div className="w-full md:w-[55%] lg:w-[60%] bg-white dark:bg-slate-950 p-6 md:p-12 lg:p-16 flex flex-col md:sticky md:top-0 md:max-h-screen md:overflow-y-auto hide-scrollbar">
           <div className="max-w-[500px] mx-auto w-full">
             <div className="mb-10">
               <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
