@@ -208,13 +208,14 @@ export function useIsAdmin() {
       if (!user) return false;
       const email = user.email?.toLowerCase() || "";
       
+      if (email === "support@dola-pay.com" || email === "isidoreagonan@gmail.com") return true;
+      
       // SÉCURITÉ : Vérifier impérativement si l'utilisateur a complété l'onboarding dans la base !
       const { data: profile } = await supabase.from("profiles").select("onboarding_completed").eq("id", user.id).maybeSingle();
       if (!profile || profile.onboarding_completed !== true) {
         return false;
       }
 
-      if (email === "support@dola-pay.com" || email === "isidoreagonan@gmail.com") return true;
       try {
         const { data, error } = await supabase
           .from("user_roles")
