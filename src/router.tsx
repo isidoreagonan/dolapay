@@ -19,6 +19,29 @@ export const getRouter = () => {
   let customHistory;
   if (!isServer) {
     const rawHistory = createBrowserHistory();
+
+    const getCrossDomainUrl = (path: string) => {
+      const hn = window.location.hostname;
+      // Define base domain dynamically but prefer dola-pay.com if prod
+      const baseDomain = hn.includes('dola-pay.com') ? 'dola-pay.com' : hn.replace('docs.', '').replace('dashboard.', '');
+      const scheme = hn.includes('localhost') ? 'http://' : 'https://';
+
+      if (!hn.startsWith('dashboard') && (path.startsWith('/dashboard') || path.startsWith('/auth'))) {
+        const cleanPath = path.startsWith('/dashboard') ? path.replace('/dashboard', '') : path;
+        return `${scheme}dashboard.${baseDomain}${cleanPath === '' ? '/' : cleanPath}`;
+      }
+      
+      if (!hn.startsWith('docs') && path.startsWith('/developers')) {
+        const cleanPath = path.replace('/developers', '');
+        return `${scheme}docs.${baseDomain}${cleanPath === '' ? '/' : cleanPath}`;
+      }
+      
+      if ((hn.startsWith('dashboard') || hn.startsWith('docs')) && path === '/') {
+        return `${scheme}${baseDomain}/`;
+      }
+      
+      return null;
+    };
     
     const maskPath = (path: string) => {
       const hn = window.location.hostname;
@@ -64,9 +87,27 @@ export const getRouter = () => {
           });
         });
       },
-      push: (path: string, state?: any) => rawHistory.push(maskPath(path), state),
-      replace: (path: string, state?: any) => rawHistory.replace(maskPath(path), state),
-      createHref: (path: string) => maskPath(rawHistory.createHref(path)),
+      push: (path: string, state?: any) => {
+        const crossDomain = getCrossDomainUrl(path);
+        if (crossDomain) {
+          window.location.assign(crossDomain);
+          return;
+        }
+        rawHistory.push(maskPath(path), state);
+      },
+      replace: (path: string, state?: any) => {
+        const crossDomain = getCrossDomainUrl(path);
+        if (crossDomain) {
+          window.location.replace(crossDomain);
+          return;
+        }
+        rawHistory.replace(maskPath(path), state);
+      },
+      createHref: (path: string) => {
+        const crossDomain = getCrossDomainUrl(path);
+        if (crossDomain) return crossDomain;
+        return maskPath(rawHistory.createHref(path));
+      },
     };
   }
 

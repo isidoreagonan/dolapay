@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DevelopersIndexRouteImport } from './routes/developers/index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as ResourcesUseCasesRouteImport } from './routes/resources.use-cases'
 import { Route as ResourcesSupportRouteImport } from './routes/resources.support'
@@ -104,6 +105,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DevelopersIndexRoute = DevelopersIndexRouteImport.update({
+  id: '/developers/',
+  path: '/developers/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BlogIndexRoute = BlogIndexRouteImport.update({
@@ -558,6 +564,7 @@ export interface FileRoutesByFullPath {
   '/resources/support': typeof ResourcesSupportRoute
   '/resources/use-cases': typeof ResourcesUseCasesRoute
   '/blog/': typeof BlogIndexRoute
+  '/developers/': typeof DevelopersIndexRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/compliance': typeof AuthenticatedAdminComplianceRoute
   '/admin/finance': typeof AuthenticatedAdminFinanceRoute
@@ -638,6 +645,7 @@ export interface FileRoutesByTo {
   '/resources/support': typeof ResourcesSupportRoute
   '/resources/use-cases': typeof ResourcesUseCasesRoute
   '/blog': typeof BlogIndexRoute
+  '/developers': typeof DevelopersIndexRoute
   '/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/admin/compliance': typeof AuthenticatedAdminComplianceRoute
   '/admin/finance': typeof AuthenticatedAdminFinanceRoute
@@ -723,6 +731,7 @@ export interface FileRoutesById {
   '/resources/support': typeof ResourcesSupportRoute
   '/resources/use-cases': typeof ResourcesUseCasesRoute
   '/blog/': typeof BlogIndexRoute
+  '/developers/': typeof DevelopersIndexRoute
   '/_authenticated/admin/audit': typeof AuthenticatedAdminAuditRoute
   '/_authenticated/admin/compliance': typeof AuthenticatedAdminComplianceRoute
   '/_authenticated/admin/finance': typeof AuthenticatedAdminFinanceRoute
@@ -808,6 +817,7 @@ export interface FileRouteTypes {
     | '/resources/support'
     | '/resources/use-cases'
     | '/blog/'
+    | '/developers/'
     | '/admin/audit'
     | '/admin/compliance'
     | '/admin/finance'
@@ -888,6 +898,7 @@ export interface FileRouteTypes {
     | '/resources/support'
     | '/resources/use-cases'
     | '/blog'
+    | '/developers'
     | '/admin/audit'
     | '/admin/compliance'
     | '/admin/finance'
@@ -972,6 +983,7 @@ export interface FileRouteTypes {
     | '/resources/support'
     | '/resources/use-cases'
     | '/blog/'
+    | '/developers/'
     | '/_authenticated/admin/audit'
     | '/_authenticated/admin/compliance'
     | '/_authenticated/admin/finance'
@@ -1053,6 +1065,7 @@ export interface RootRouteChildren {
   ResourcesSupportRoute: typeof ResourcesSupportRoute
   ResourcesUseCasesRoute: typeof ResourcesUseCasesRoute
   BlogIndexRoute: typeof BlogIndexRoute
+  DevelopersIndexRoute: typeof DevelopersIndexRoute
   ApiPublicCheckoutPayRoute: typeof ApiPublicCheckoutPayRoute
   ApiPublicLigdicashWebhookRoute: typeof ApiPublicLigdicashWebhookRoute
   ApiPublicPawapayWebhookRoute: typeof ApiPublicPawapayWebhookRoute
@@ -1094,6 +1107,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/developers/': {
+      id: '/developers/'
+      path: '/developers'
+      fullPath: '/developers/'
+      preLoaderRoute: typeof DevelopersIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/blog/': {
@@ -1813,6 +1833,7 @@ const rootRouteChildren: RootRouteChildren = {
   ResourcesSupportRoute: ResourcesSupportRoute,
   ResourcesUseCasesRoute: ResourcesUseCasesRoute,
   BlogIndexRoute: BlogIndexRoute,
+  DevelopersIndexRoute: DevelopersIndexRoute,
   ApiPublicCheckoutPayRoute: ApiPublicCheckoutPayRoute,
   ApiPublicLigdicashWebhookRoute: ApiPublicLigdicashWebhookRoute,
   ApiPublicPawapayWebhookRoute: ApiPublicPawapayWebhookRoute,
