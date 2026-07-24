@@ -61,7 +61,8 @@ const faqs = [
   }
 ];
 
-const FAQPage = () => (
+function FAQPage() {
+  return (
   <PageShell
     title="Foire aux questions (FAQ) — DolaPay"
     description="Trouvez des réponses rapides sur l'intégration, la tarification, et le fonctionnement des paiements et reversements DolaPay."
@@ -133,4 +134,5 @@ const FAQPage = () => (
 
 export default FAQPage;
 
-export const Route = createFileRoute("/resources/faq")({ component: FAQPage });
+export const Route = createFileRoute("/resources/faq")({ component: FAQPage }  );
+}

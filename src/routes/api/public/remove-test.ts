@@ -9,17 +9,17 @@ export const Route = createFileRoute("/api/public/remove-test")({
         // The user specifically requested deleting the fake 2000 and 3000 F transactions
         const amountsToDelete = [2000, 3000];
 
-        // 1. Delete from transactions
-        const { data: txs } = await supabaseAdmin.from("transactions").delete().in("amount", amountsToDelete).select();
-        
-        // 2. Delete from withdrawals
+        // 1. Delete from withdrawals (child of transactions)
         const { data: wrs } = await supabaseAdmin.from("withdrawals").delete().in("amount", amountsToDelete).select();
 
-        // 3. Delete from payout_batch_items
+        // 2. Delete from payout_batch_items (child of payout_batches and transactions)
         const { data: pbi } = await supabaseAdmin.from("payout_batch_items").delete().in("amount", amountsToDelete).select();
 
-        // 4. Delete from payout_batches
+        // 3. Delete from payout_batches
         const { data: pb } = await supabaseAdmin.from("payout_batches").delete().in("total_amount", amountsToDelete).select();
+
+        // 4. Delete from transactions (parent)
+        const { data: txs } = await supabaseAdmin.from("transactions").delete().in("amount", amountsToDelete).select();
 
         return Response.json({
           success: true,

@@ -791,7 +791,8 @@ const CTA = () => (
 );
 
 /* ---------- Page ---------- */
-const Home = () => (
+function Home() {
+  return (
   <PageShell
     title="DolaPay — Encaissez facilement vos clients partout en Afrique"
     description="Vendez sur les réseaux sociaux avec nos liens de paiement, ou intégrez notre API sur votre site. Acceptez le Mobile Money et les cartes bancaires sans effort."
@@ -812,7 +813,8 @@ const Home = () => (
       <CTA />
     </div>
   </PageShell>
-);
+  );
+}
 
 
 

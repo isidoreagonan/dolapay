@@ -54,7 +54,8 @@ const cases = [
   }
 ];
 
-const UseCases = () => (
+function UseCases() {
+  return (
   <PageShell
     title="Cas d'usage — DolaPay"
     description="Découvrez comment l'infrastructure DolaPay propulse l'e-commerce, les startups, les freelances et les grandes entreprises en Afrique."
@@ -145,4 +146,5 @@ const UseCases = () => (
 
 export default UseCases;
 
-export const Route = createFileRoute("/resources/use-cases")({ component: UseCases });
+export const Route = createFileRoute("/resources/use-cases")({ component: UseCases }  );
+}

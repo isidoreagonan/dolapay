@@ -4,7 +4,8 @@ import { Smartphone, CreditCard, ShieldCheck, Zap, BarChart3, Repeat } from "luc
 import ProductPage from "@/components/site/product-page";
 import PricingMatrix from "@/components/site/pricing-matrix";
 
-const PayIn = () => (
+function PayIn() {
+  return (
   <ProductPage
     seoTitle="Encaissements (Pay-in) — DolaPay"
     seoDescription="Encaissez en Mobile Money (MTN, Orange, Wave, Moov, M-Pesa) et par carte bancaire dans 12 pays africains avec un seul checkout."
@@ -33,7 +34,8 @@ const PayIn = () => (
       subtitle="Le taux affiché est tout compris : frais réels de l'opérateur + commission DolaPay 2%."
     />
   </ProductPage>
-);
+  );
+}
 
 
 

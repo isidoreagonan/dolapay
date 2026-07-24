@@ -66,6 +66,7 @@ import { Route as ApiPublicTestEmailRouteImport } from './routes/api/public/test
 import { Route as ApiPublicSyncWalletRouteImport } from './routes/api/public/sync-wallet'
 import { Route as ApiPublicSendNotificationRouteImport } from './routes/api/public/send-notification'
 import { Route as ApiPublicRestoreAdminRouteImport } from './routes/api/public/restore-admin'
+import { Route as ApiPublicRemoveTestRouteImport } from './routes/api/public/remove-test'
 import { Route as ApiPublicQuoteRouteImport } from './routes/api/public/quote'
 import { Route as ApiPublicPawapayWebhookRouteImport } from './routes/api/public/pawapay-webhook'
 import { Route as ApiPublicPawapayHistoryRouteImport } from './routes/api/public/pawapay-history'
@@ -394,6 +395,11 @@ const ApiPublicRestoreAdminRoute = ApiPublicRestoreAdminRouteImport.update({
   path: '/api/public/restore-admin',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicRemoveTestRoute = ApiPublicRemoveTestRouteImport.update({
+  id: '/api/public/remove-test',
+  path: '/api/public/remove-test',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicQuoteRoute = ApiPublicQuoteRouteImport.update({
   id: '/api/public/quote',
   path: '/api/public/quote',
@@ -656,6 +662,7 @@ export interface FileRoutesByFullPath {
   '/api/public/pawapay-history': typeof ApiPublicPawapayHistoryRoute
   '/api/public/pawapay-webhook': typeof ApiPublicPawapayWebhookRoute
   '/api/public/quote': typeof ApiPublicQuoteRoute
+  '/api/public/remove-test': typeof ApiPublicRemoveTestRoute
   '/api/public/restore-admin': typeof ApiPublicRestoreAdminRoute
   '/api/public/send-notification': typeof ApiPublicSendNotificationRoute
   '/api/public/sync-wallet': typeof ApiPublicSyncWalletRoute
@@ -746,6 +753,7 @@ export interface FileRoutesByTo {
   '/api/public/pawapay-history': typeof ApiPublicPawapayHistoryRoute
   '/api/public/pawapay-webhook': typeof ApiPublicPawapayWebhookRoute
   '/api/public/quote': typeof ApiPublicQuoteRoute
+  '/api/public/remove-test': typeof ApiPublicRemoveTestRoute
   '/api/public/restore-admin': typeof ApiPublicRestoreAdminRoute
   '/api/public/send-notification': typeof ApiPublicSendNotificationRoute
   '/api/public/sync-wallet': typeof ApiPublicSyncWalletRoute
@@ -842,6 +850,7 @@ export interface FileRoutesById {
   '/api/public/pawapay-history': typeof ApiPublicPawapayHistoryRoute
   '/api/public/pawapay-webhook': typeof ApiPublicPawapayWebhookRoute
   '/api/public/quote': typeof ApiPublicQuoteRoute
+  '/api/public/remove-test': typeof ApiPublicRemoveTestRoute
   '/api/public/restore-admin': typeof ApiPublicRestoreAdminRoute
   '/api/public/send-notification': typeof ApiPublicSendNotificationRoute
   '/api/public/sync-wallet': typeof ApiPublicSyncWalletRoute
@@ -938,6 +947,7 @@ export interface FileRouteTypes {
     | '/api/public/pawapay-history'
     | '/api/public/pawapay-webhook'
     | '/api/public/quote'
+    | '/api/public/remove-test'
     | '/api/public/restore-admin'
     | '/api/public/send-notification'
     | '/api/public/sync-wallet'
@@ -1028,6 +1038,7 @@ export interface FileRouteTypes {
     | '/api/public/pawapay-history'
     | '/api/public/pawapay-webhook'
     | '/api/public/quote'
+    | '/api/public/remove-test'
     | '/api/public/restore-admin'
     | '/api/public/send-notification'
     | '/api/public/sync-wallet'
@@ -1123,6 +1134,7 @@ export interface FileRouteTypes {
     | '/api/public/pawapay-history'
     | '/api/public/pawapay-webhook'
     | '/api/public/quote'
+    | '/api/public/remove-test'
     | '/api/public/restore-admin'
     | '/api/public/send-notification'
     | '/api/public/sync-wallet'
@@ -1196,6 +1208,7 @@ export interface RootRouteChildren {
   ApiPublicPawapayHistoryRoute: typeof ApiPublicPawapayHistoryRoute
   ApiPublicPawapayWebhookRoute: typeof ApiPublicPawapayWebhookRoute
   ApiPublicQuoteRoute: typeof ApiPublicQuoteRoute
+  ApiPublicRemoveTestRoute: typeof ApiPublicRemoveTestRoute
   ApiPublicRestoreAdminRoute: typeof ApiPublicRestoreAdminRoute
   ApiPublicSendNotificationRoute: typeof ApiPublicSendNotificationRoute
   ApiPublicSyncWalletRoute: typeof ApiPublicSyncWalletRoute
@@ -1613,6 +1626,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/restore-admin'
       fullPath: '/api/public/restore-admin'
       preLoaderRoute: typeof ApiPublicRestoreAdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/remove-test': {
+      id: '/api/public/remove-test'
+      path: '/api/public/remove-test'
+      fullPath: '/api/public/remove-test'
+      preLoaderRoute: typeof ApiPublicRemoveTestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/quote': {
@@ -2055,6 +2075,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicPawapayHistoryRoute: ApiPublicPawapayHistoryRoute,
   ApiPublicPawapayWebhookRoute: ApiPublicPawapayWebhookRoute,
   ApiPublicQuoteRoute: ApiPublicQuoteRoute,
+  ApiPublicRemoveTestRoute: ApiPublicRemoveTestRoute,
   ApiPublicRestoreAdminRoute: ApiPublicRestoreAdminRoute,
   ApiPublicSendNotificationRoute: ApiPublicSendNotificationRoute,
   ApiPublicSyncWalletRoute: ApiPublicSyncWalletRoute,

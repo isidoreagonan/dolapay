@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import LegalPage from "@/components/site/legal-page";
 
-const Mentions = () => (
+function Mentions() {
+  return (
   <LegalPage
     title="Mentions légales — DolaPay"
     description="Mentions légales de DolaPay : éditeur du site, hébergement, propriété intellectuelle et coordonnées."
@@ -61,4 +62,5 @@ const Mentions = () => (
 
 export default Mentions;
 
-export const Route = createFileRoute("/legal/mentions")({ component: Mentions });
+export const Route = createFileRoute("/legal/mentions")({ component: Mentions }  );
+}

@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import LegalPage from "@/components/site/legal-page";
 
-const CookiePolicy = () => (
+function CookiePolicy() {
+  return (
   <LegalPage
     title="Politique de gestion des Cookies — DolaPay"
     description="Comprendre comment DolaPay utilise les cookies pour améliorer votre expérience de navigation."
@@ -46,4 +47,5 @@ const CookiePolicy = () => (
 
 export default CookiePolicy;
 
-export const Route = createFileRoute("/legal/cookie-policy")({ component: CookiePolicy });
+export const Route = createFileRoute("/legal/cookie-policy")({ component: CookiePolicy }  );
+}

@@ -147,15 +147,16 @@ function OnboardingPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  useEffect(() => {
+    if (profile?.onboarding_completed) {
+      navigate({ to: "/dashboard", replace: true });
+    } else if (profile && (!profile.country || !profile.phone)) {
+      navigate({ to: "/complete-profile", replace: true });
+    }
+  }, [profile, navigate]);
+
   if (isLoading) return <div className="grid min-h-screen place-items-center"><Loader2 className="h-6 w-6 animate-spin" /></div>;
-  if (profile?.onboarding_completed) {
-    navigate({ to: "/dashboard", replace: true });
-    return null;
-  }
-  if (profile && (!profile.country || !profile.phone)) {
-    navigate({ to: "/complete-profile", replace: true });
-    return null;
-  }
+  if (profile?.onboarding_completed || (profile && (!profile.country || !profile.phone))) return null;
 
   const steps = ["Type de compte", "Informations", "Documents", "Récapitulatif"];
 
