@@ -84,7 +84,7 @@ function StatusDashboard() {
   const { data: statusData, isLoading, isError, refetch, isFetching } = useQuery<CountryStatus[]>({
     queryKey: ['pawapay-availability'],
     queryFn: async () => {
-      const res = await fetch('https://api.pawapay.io/availability');
+      const res = await fetch('/api/public/pawapay-availability');
       if (!res.ok) throw new Error('Failed to fetch status');
       return res.json();
     },

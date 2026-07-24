@@ -65,6 +65,7 @@ import { Route as ApiPublicSendNotificationRouteImport } from './routes/api/publ
 import { Route as ApiPublicRestoreAdminRouteImport } from './routes/api/public/restore-admin'
 import { Route as ApiPublicQuoteRouteImport } from './routes/api/public/quote'
 import { Route as ApiPublicPawapayWebhookRouteImport } from './routes/api/public/pawapay-webhook'
+import { Route as ApiPublicPawapayAvailabilityRouteImport } from './routes/api/public/pawapay-availability'
 import { Route as ApiPublicLigdicashWebhookRouteImport } from './routes/api/public/ligdicash-webhook'
 import { Route as ApiPublicCheckoutPayRouteImport } from './routes/api/public/checkout-pay'
 import { Route as AuthenticatedDashboardWebhooksRouteImport } from './routes/_authenticated/dashboard/webhooks'
@@ -380,6 +381,12 @@ const ApiPublicPawapayWebhookRoute = ApiPublicPawapayWebhookRouteImport.update({
   path: '/api/public/pawapay-webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPawapayAvailabilityRoute =
+  ApiPublicPawapayAvailabilityRouteImport.update({
+    id: '/api/public/pawapay-availability',
+    path: '/api/public/pawapay-availability',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicLigdicashWebhookRoute =
   ApiPublicLigdicashWebhookRouteImport.update({
     id: '/api/public/ligdicash-webhook',
@@ -598,6 +605,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/webhooks': typeof AuthenticatedDashboardWebhooksRoute
   '/api/public/checkout-pay': typeof ApiPublicCheckoutPayRoute
   '/api/public/ligdicash-webhook': typeof ApiPublicLigdicashWebhookRoute
+  '/api/public/pawapay-availability': typeof ApiPublicPawapayAvailabilityRoute
   '/api/public/pawapay-webhook': typeof ApiPublicPawapayWebhookRoute
   '/api/public/quote': typeof ApiPublicQuoteRoute
   '/api/public/restore-admin': typeof ApiPublicRestoreAdminRoute
@@ -680,6 +688,7 @@ export interface FileRoutesByTo {
   '/dashboard/webhooks': typeof AuthenticatedDashboardWebhooksRoute
   '/api/public/checkout-pay': typeof ApiPublicCheckoutPayRoute
   '/api/public/ligdicash-webhook': typeof ApiPublicLigdicashWebhookRoute
+  '/api/public/pawapay-availability': typeof ApiPublicPawapayAvailabilityRoute
   '/api/public/pawapay-webhook': typeof ApiPublicPawapayWebhookRoute
   '/api/public/quote': typeof ApiPublicQuoteRoute
   '/api/public/restore-admin': typeof ApiPublicRestoreAdminRoute
@@ -768,6 +777,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboard/webhooks': typeof AuthenticatedDashboardWebhooksRoute
   '/api/public/checkout-pay': typeof ApiPublicCheckoutPayRoute
   '/api/public/ligdicash-webhook': typeof ApiPublicLigdicashWebhookRoute
+  '/api/public/pawapay-availability': typeof ApiPublicPawapayAvailabilityRoute
   '/api/public/pawapay-webhook': typeof ApiPublicPawapayWebhookRoute
   '/api/public/quote': typeof ApiPublicQuoteRoute
   '/api/public/restore-admin': typeof ApiPublicRestoreAdminRoute
@@ -856,6 +866,7 @@ export interface FileRouteTypes {
     | '/dashboard/webhooks'
     | '/api/public/checkout-pay'
     | '/api/public/ligdicash-webhook'
+    | '/api/public/pawapay-availability'
     | '/api/public/pawapay-webhook'
     | '/api/public/quote'
     | '/api/public/restore-admin'
@@ -938,6 +949,7 @@ export interface FileRouteTypes {
     | '/dashboard/webhooks'
     | '/api/public/checkout-pay'
     | '/api/public/ligdicash-webhook'
+    | '/api/public/pawapay-availability'
     | '/api/public/pawapay-webhook'
     | '/api/public/quote'
     | '/api/public/restore-admin'
@@ -1025,6 +1037,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboard/webhooks'
     | '/api/public/checkout-pay'
     | '/api/public/ligdicash-webhook'
+    | '/api/public/pawapay-availability'
     | '/api/public/pawapay-webhook'
     | '/api/public/quote'
     | '/api/public/restore-admin'
@@ -1091,6 +1104,7 @@ export interface RootRouteChildren {
   DevelopersIndexRoute: typeof DevelopersIndexRoute
   ApiPublicCheckoutPayRoute: typeof ApiPublicCheckoutPayRoute
   ApiPublicLigdicashWebhookRoute: typeof ApiPublicLigdicashWebhookRoute
+  ApiPublicPawapayAvailabilityRoute: typeof ApiPublicPawapayAvailabilityRoute
   ApiPublicPawapayWebhookRoute: typeof ApiPublicPawapayWebhookRoute
   ApiPublicQuoteRoute: typeof ApiPublicQuoteRoute
   ApiPublicRestoreAdminRoute: typeof ApiPublicRestoreAdminRoute
@@ -1503,6 +1517,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPawapayWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/pawapay-availability': {
+      id: '/api/public/pawapay-availability'
+      path: '/api/public/pawapay-availability'
+      fullPath: '/api/public/pawapay-availability'
+      preLoaderRoute: typeof ApiPublicPawapayAvailabilityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/ligdicash-webhook': {
       id: '/api/public/ligdicash-webhook'
       path: '/api/public/ligdicash-webhook'
@@ -1885,6 +1906,7 @@ const rootRouteChildren: RootRouteChildren = {
   DevelopersIndexRoute: DevelopersIndexRoute,
   ApiPublicCheckoutPayRoute: ApiPublicCheckoutPayRoute,
   ApiPublicLigdicashWebhookRoute: ApiPublicLigdicashWebhookRoute,
+  ApiPublicPawapayAvailabilityRoute: ApiPublicPawapayAvailabilityRoute,
   ApiPublicPawapayWebhookRoute: ApiPublicPawapayWebhookRoute,
   ApiPublicQuoteRoute: ApiPublicQuoteRoute,
   ApiPublicRestoreAdminRoute: ApiPublicRestoreAdminRoute,
