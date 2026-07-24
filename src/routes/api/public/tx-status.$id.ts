@@ -92,7 +92,7 @@ export const Route = createFileRoute("/api/public/tx-status/$id")({
             if (newStatus === "success") {
               if (data.profile_id && Number(data.amount) > 0) {
                 try {
-                  const amt = Number(data.amount);
+                  const amt = Number(data.net_amount || data.amount);
                   // Mise à jour de la table wallets si possible
                   const { data: w } = await (supabaseAdmin.from("wallets") as any).select("balance").eq("profile_id", data.profile_id).maybeSingle();
                   if (w) {
