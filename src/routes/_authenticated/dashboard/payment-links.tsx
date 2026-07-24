@@ -337,7 +337,7 @@ function LinkRow({
   onEdit: () => void;
   onDelete: () => void;
 }) {
-  const url = `${typeof window !== "undefined" ? window.location.origin : ""}/pay/${link.slug}`;
+  const url = `https://dola-pay.com/pay/${link.slug}`;
   const sym = CURRENCIES.find((c) => c.code === link.currency)?.symbol ?? link.currency;
   const amount = new Intl.NumberFormat("fr-FR").format(Number(link.amount));
   const revenue = new Intl.NumberFormat("fr-FR").format(Math.round(link.revenue ?? 0));
@@ -407,7 +407,7 @@ function LinkRow({
 }
 
 function PreviewDialog({ link }: { link: PL }) {
-  const url = `${typeof window !== "undefined" ? window.location.origin : ""}/pay/${link.slug}`;
+  const url = `https://dola-pay.com/pay/${link.slug}`;
   const qr = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(url)}`;
   return (
     <DialogContent className="max-w-md border-white/10 bg-card/90 backdrop-blur-2xl">
